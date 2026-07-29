@@ -49,14 +49,9 @@
 </head>
 <body class="auth-body">
     <div class="auth-container">
-        <!-- Left Column: Dynamic Visual Hero Carousel -->
-        <div class="auth-visual">
-            <!-- Dynamic Image Slides -->
-            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80" alt="Workspace 1" class="auth-slide active">
-            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80" alt="Workspace 2" class="auth-slide">
-            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" alt="Workspace 3" class="auth-slide">
-            
-            <!-- Overlay stays on top -->
+        <!-- Visual Left (Dynamic Carousel) -->
+        <div class="auth-visual" id="dynamic-carousel">
+            <!-- Images will be injected here by JS -->
             <div class="auth-quote-overlay">
                 <p class="auth-quote" id="quote-text">"Your focus determines your reality. Protect your cognitive bandwidth like your most precious metabolic asset."</p>
                 <span class="auth-quote-author" id="quote-author">— Quantified Self Principle</span>
@@ -118,19 +113,51 @@
     </div>
 
     <script src="js/app.js"></script>
+    <!-- Carousel JavaScript -->
     <script>
-        // Simple vanilla JS crossfade carousel
         document.addEventListener('DOMContentLoaded', () => {
-            const slides = document.querySelectorAll('.auth-slide');
+            const carouselContainer = document.getElementById('dynamic-carousel');
+            const overlay = document.querySelector('.auth-quote-overlay');
+            
+            // 30 Premium Workspace, Focus, and Architecture Unsplash IDs
+            const photoIDs = [
+                "1497366216548-37526070297c", "1522071820081-009f0129c71c", "1516321318423-f06f85e504b3",
+                "1497215968147-3982ccb63cc9", "1504384308090-c894fdcc538d", "1581287053822-06216710e6cb",
+                "1486312338219-ce68d2c6f44d", "1499951360447-b19be8fe80f5", "1507238691740-14c86ac0069a",
+                "1542621334-a25a56d09229", "1551288049-bebda4e38f71", "1517336714731-489689fd1ca8",
+                "1505330622279-bf59d1844b7d", "1498050108023-c5249f4df085", "1434493789847-2f02535451d9",
+                "1515378791036-0648a3ef77b2", "1522071901873-411886a10004", "1551434678-e076c223a692",
+                "1497215840685-6184eb43236e", "1454165804606-c3d57bc86b40", "1524749292158-7540c2494485",
+                "1520607162513-32243398934b", "1508243771214-6e10d1fcce06", "1512314889357-e157c22f938d",
+                "1497032205567-504586d11f8e", "1491897558066-e8201a1829e0", "1497015282811-1647a957ee08",
+                "1497015455546-1a704e6c1e34", "1497015509746-17b204da2889", "1497015694769-d41bd9fdf7d1"
+            ];
+
+            const slides = [];
+
+            // Dynamically create and inject the 30 images
+            photoIDs.forEach((id, index) => {
+                const img = document.createElement('img');
+                img.src = `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=80`;
+                img.className = `auth-slide ${index === 0 ? 'active' : ''}`;
+                img.alt = `Focus Environment ${index + 1}`;
+                
+                // Lazy load everything except the first two to save user bandwidth
+                if (index > 1) img.loading = "lazy";
+                
+                // Insert into the DOM strictly behind the quote overlay
+                carouselContainer.insertBefore(img, overlay);
+                slides.push(img);
+            });
+
             let currentSlide = 0;
             
-            if (slides.length > 0) {
-                setInterval(() => {
-                    slides[currentSlide].classList.remove('active');
-                    currentSlide = (currentSlide + 1) % slides.length;
-                    slides[currentSlide].classList.add('active');
-                }, 5000); // Change image every 5 seconds
-            }
+            // Start the crossfade loop
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 5000); // 5 seconds per image
         });
     </script>
 </body>
