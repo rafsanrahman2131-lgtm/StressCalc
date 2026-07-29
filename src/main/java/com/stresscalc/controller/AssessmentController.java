@@ -121,12 +121,25 @@ public class AssessmentController {
             int accuracy = payload.containsKey("accuracy") ? ((Number) payload.get("accuracy")).intValue() : 90;
             int errorRatePercent = Math.max(0, 100 - accuracy);
 
-            // Default fallback
-            int finalStressIndex = 25;
-            double predictedFocus = 8.5;
-            int predictedBandwidth = 85;
+            // FORMULA CALCULATION:
+            // 1. Subjective Overwhelm normalized to 100-point scale
+            double overwhelm100 = overwhelm * 10.0;
 
-            // Query Python FastAPI RandomForest ML Microservice
+            // 2. Reaction Time Penalty: Baseline 250ms. 1 pt per 10ms over 300ms (capped at 100)
+            double rxPenalty = 0.0;
+            if (reactionTimeMs > 300) {
+                rxPenalty = (reactionTimeMs - 300) / 10.0;
+            }
+            rxPenalty = Math.min(100.0, Math.max(0.0, rxPenalty));
+
+            // 3. Final Index = (Facial Tension * 0.3) + (Overwhelm * 0.5) + (Reaction Penalty * 0.2)
+            double calculatedIndex = (facialTension * 0.3) + (overwhelm100 * 0.5) + (rxPenalty * 0.2);
+            int finalStressIndex = (int) Math.round(Math.min(100.0, Math.max(0.0, calculatedIndex)));
+
+            double predictedFocus = Math.max(1.0, Math.min(10.0, 10.0 - (finalStressIndex / 15.0)));
+            int predictedBandwidth = Math.max(10, Math.min(100, 100 - finalStressIndex));
+
+            // Query Python FastAPI RandomForest ML Microservice for predictions if available
             try {
                 Map<String, Object> mlRequest = new HashMap<>();
                 mlRequest.put("context_switches", 2);
@@ -155,7 +168,7 @@ public class AssessmentController {
                     }
                 }
             } catch (Exception mlEx) {
-                System.err.println("Assessment ML Notice: Fallback used. Error: " + mlEx.getMessage());
+                System.err.println("Assessment ML Notice: Using precise formula calculation. Error: " + mlEx.getMessage());
             }
 
             // Save Assessment to MySQL stress_assessments table
@@ -190,7 +203,7 @@ public class AssessmentController {
             response.put("subjective_score", overwhelm);
             response.put("reaction_time_ms", reactionTimeMs);
             response.put("error_rate_percent", errorRatePercent);
-            response.put("engine", "RandomForestRegressor ML Microservice");
+            response.put("engine", "Unified Weighted Stress Calculator Engine");
 
             return ResponseEntity.ok(response);
 

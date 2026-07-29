@@ -4,6 +4,7 @@
  * 1. Step 1 Bio-Scan with Live Visible Camera Viewport & Auto Camera Shutdown upon completion
  * 2. Dynamic Rotating Questionnaires (Step 2 questions change every time you click Calculate Stress)
  * 3. Dynamic Game Engine (Prompts different games based on bio-scan + selected answers + run rotation)
+ * 4. Intervention UI Pop-up Card Engine with 4-7-8 Box Breathing Animation (Task 2 & 3)
  */
 
 class CheckInWorkflow {
@@ -202,10 +203,9 @@ class CheckInWorkflow {
         const container = document.getElementById('dynamicQuestionContainer');
         if (!container) return;
 
-        // Select Question Pack based on run count and facial tension score
         let packIndex = (this.checkInCount - 1) % this.questionPacks.length;
         if (this.scanTensionScore >= 35) {
-            packIndex = 0; // High facial tension forces physical strain pack
+            packIndex = 0;
         }
         const pack = this.questionPacks[packIndex];
 
@@ -259,7 +259,6 @@ class CheckInWorkflow {
     async evaluateAndProceedToStep3() {
         const telemetry = window.telemetryEngine ? window.telemetryEngine.state : { focusIndex: 8.5, cognitiveBandwidth: 85, ambientNoiseDb: 42, contextSwitches: 0 };
 
-        // Fallback game rotation array so games vary even if no option was selected
         const gamesList = ["stroop", "breathing", "math_speed", "pattern_memory"];
         let preferred = this.selectedPreferredGame || gamesList[(this.checkInCount - 1) % gamesList.length];
 
@@ -564,7 +563,7 @@ class CheckInWorkflow {
         });
     }
 
-    // COMPLETION
+    // COMPLETION & TASK 2 DYNAMIC INTERVENTION UI ENGINE
     async finishCheckIn(avgReactionMs = 450, accuracyPct = 90) {
         try {
             const response = await fetch('/api/assessment', {
@@ -581,7 +580,7 @@ class CheckInWorkflow {
 
             if (response.ok) {
                 const result = await response.json();
-                const finalIndex = result.final_stress_index || 42;
+                const finalIndex = result.final_stress_index !== undefined ? result.final_stress_index : 42;
                 this.showToastNotification(finalIndex, this.scanTensionScore, this.overwhelmScore, avgReactionMs);
             }
         } catch (err) {
@@ -594,6 +593,9 @@ class CheckInWorkflow {
         }
     }
 
+    /**
+     * TASK 2 & 3: Inject dynamic Intervention UI into bottom-right pop-up card
+     */
     showToastNotification(stressIndex, tension, overwhelm, reactionMs) {
         let toast = document.getElementById('assessmentToast');
         if (!toast) {
@@ -603,30 +605,52 @@ class CheckInWorkflow {
             document.body.appendChild(toast);
         }
 
-        let statusColor = "#22c55e";
-        let statusLabel = "Low Stress Baseline";
+        let bannerColor = "#22c55e";
+        let bannerBg = "rgba(34, 197, 94, 0.15)";
+        let bannerBorder = "rgba(34, 197, 94, 0.4)";
+        let bannerText = "Optimal State - Ready for Deep Work.";
+        let interventionHTML = "";
 
-        if (stressIndex > 65) {
-            statusColor = "#ef4444";
-            statusLabel = "High Overload Warning";
-        } else if (stressIndex > 35) {
-            statusColor = "#f59e0b";
-            statusLabel = "Moderate Stress";
+        if (stressIndex >= 70) {
+            // High Stress (70-100): Red Banner + CSS-based 4-7-8 Breathing Circle
+            bannerColor = "#ef4444";
+            bannerBg = "rgba(239, 68, 68, 0.15)";
+            bannerBorder = "rgba(239, 68, 68, 0.4)";
+            bannerText = "High Strain Detected.";
+            interventionHTML = `
+                <div style="margin-top: 10px; text-align: center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                    <div style="font-size: 0.75rem; color: #ef4444; font-weight: 800; margin-bottom: 4px;">🫁 4-7-8 Guided Box Breathing</div>
+                    <div class="box-breathing-circle">
+                        <span class="box-breathing-text"></span>
+                    </div>
+                </div>
+            `;
+        } else if (stressIndex >= 31) {
+            // Moderate Stress (31-69): Yellow Banner
+            bannerColor = "#f59e0b";
+            bannerBg = "rgba(245, 158, 11, 0.15)";
+            bannerBorder = "rgba(245, 158, 11, 0.4)";
+            bannerText = "Elevated Load - Recommended: 5-Minute Screen Break.";
         }
 
         toast.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                 <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">⚡ Unified Stress Index Calculated</span>
-                <span style="background: ${statusColor}; color: #fff; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 6px;">${statusLabel}</span>
+                <span style="background: ${bannerColor}; color: #fff; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 6px;">Index: ${stressIndex}/100</span>
             </div>
-            <div style="font-size: 2rem; font-weight: 900; color: ${statusColor}; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;">
-                ${stressIndex} <span style="font-size: 1rem; color: rgba(255,255,255,0.6);">/ 100</span>
+
+            <!-- Dynamic Intervention Banner -->
+            <div style="background: ${bannerBg}; border: 1px solid ${bannerBorder}; color: ${bannerColor}; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; line-height: 1.3;">
+                ${bannerText}
             </div>
-            <div style="font-size: 0.75rem; opacity: 0.8; display: flex; gap: 12px;">
-                <span>Facial Tension: <strong>${tension}%</strong></span>
+
+            <div style="font-size: 0.75rem; opacity: 0.85; display: flex; justify-content: space-between; font-family: monospace;">
+                <span>Facial: <strong>${tension}%</strong></span>
                 <span>Overwhelm: <strong>${overwhelm}/10</strong></span>
                 <span>Reaction: <strong>${reactionMs}ms</strong></span>
             </div>
+
+            ${interventionHTML}
         `;
 
         toast.style.display = 'block';
@@ -635,7 +659,7 @@ class CheckInWorkflow {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.style.display = 'none', 400);
-        }, 6000);
+        }, 8000);
     }
 }
 

@@ -45,23 +45,22 @@ def health_check():
 @app.post("/predict")
 def predict_metrics(payload: TelemetryPayload):
     try:
-        input_df = pd.DataFrame([{
-            'context_switches': payload.context_switches,
-            'uninterrupted_seconds': payload.uninterrupted_seconds,
-            'facial_tension': payload.facial_tension,
-            'overwhelm_score': payload.overwhelm_score,
-            'reaction_time_ms': payload.reaction_time_ms,
-            'error_rate_percent': payload.error_rate_percent,
-            'ambient_noise_weight': payload.ambient_noise_weight
-        }])
+        # Exact Formula Calculation:
+        # 1. Subjective Overwhelm to 100-point scale
+        overwhelm_100 = payload.overwhelm_score * 10.0
 
-        pred_focus = float(models['focus'].predict(input_df)[0])
-        pred_bandwidth = float(models['bandwidth'].predict(input_df)[0])
-        pred_stress = float(models['stress'].predict(input_df)[0])
+        # 2. Reaction Time Penalty: Baseline 250ms. 1 pt per 10ms over 300ms (capped at 100)
+        rx_penalty = 0.0
+        if payload.reaction_time_ms > 300:
+            rx_penalty = (payload.reaction_time_ms - 300.0) / 10.0
+        rx_penalty = min(100.0, max(0.0, rx_penalty))
 
-        pred_focus = round(max(0.0, min(10.0, pred_focus)), 1)
-        pred_bandwidth = int(round(max(10.0, min(100.0, pred_bandwidth))))
-        pred_stress = int(round(max(0.0, min(10.0, pred_stress))))
+        # 3. Final Stress Index = (Facial Tension * 0.3) + (Overwhelm * 0.5) + (Reaction Penalty * 0.2)
+        calculated_stress = (payload.facial_tension * 0.3) + (overwhelm_100 * 0.5) + (rx_penalty * 0.2)
+        pred_stress = int(round(max(0.0, min(100.0, calculated_stress))))
+
+        pred_focus = round(max(1.0, min(10.0, 10.0 - (pred_stress / 15.0))), 1)
+        pred_bandwidth = int(round(max(10.0, min(100.0, 100.0 - pred_stress))))
 
         return {
             "status": "success",
@@ -82,10 +81,8 @@ def recommend_adaptive_game(payload: AdaptiveGamePayload):
     tension = payload.facial_tension
     preferred = payload.preferred_game
 
-    # Priority 1: Direct user selection in dynamic questionnaire
     if preferred in ["stroop", "breathing", "math_speed", "pattern_memory"]:
         game_type = preferred
-    # Priority 2: Biological & environmental override thresholds
     elif overwhelm >= 7 or switches >= 3 or (bandwidth < 60 and focus < 6.0):
         game_type = "breathing"
     elif tension >= 30.0:
