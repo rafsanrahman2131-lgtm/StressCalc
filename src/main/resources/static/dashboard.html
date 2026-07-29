@@ -656,7 +656,7 @@
         <ul class="nav-menu">
             <li><a href="#" id="nav-telemetry" class="active">Telemetry</a></li>
             <li><a href="#" id="nav-logs">Action Logs</a></li>
-            <li><a href="#">Environmental</a></li>
+            <li><a href="#" id="nav-environmental">Environmental</a></li>
             <li><a href="#">Settings</a></li>
             <li style="margin-top: auto;"><a href="auth.html" style="color: #ef4444; opacity: 0.9;">Sign Out</a></li>
         </ul>
@@ -776,7 +776,7 @@
             </div>
         </div>
 
-        <!-- SPA VIEW 2: TASK 3 HISTORICAL ACTION LOGS VIEW -->
+        <!-- SPA VIEW 2: HISTORICAL ACTION LOGS VIEW -->
         <div id="action-logs-view" class="spa-view" style="display: none;">
             <header class="dashboard-header">
                 <div>
@@ -832,6 +832,67 @@
                         <!-- Dynamically populated by history.js -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- SPA VIEW 3: ENVIRONMENTAL DASHBOARD VIEW -->
+        <div id="environmental-view" class="spa-view" style="display: none;">
+            <header class="dashboard-header">
+                <div>
+                    <h1 style="margin: 0; font-size: 1.6rem; font-weight: 800;">Environmental & Contextual Telemetry</h1>
+                    <div class="sync-status">
+                        <div class="pulse-dot"></div> YAMNet Audio & Tab Density Active
+                    </div>
+                </div>
+
+                <!-- 3-Way Theme Controls -->
+                <div class="theme-controls" style="display: flex; gap: 8px;">
+                    <button class="theme-btn-dash" title="Light Mode">☀️ Light</button>
+                    <button class="theme-btn-dash" title="Dark Mode">🌙 Dark</button>
+                    <button class="theme-btn-dash" title="Contrast Mode">👁️ Contrast</button>
+                </div>
+            </header>
+
+            <!-- Grid Row 1: Tab Density Radar/Timeline + Audio Classification Breakdown -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                <!-- Tab Density Timeline Glass Card -->
+                <div class="glass-card" style="height: 340px; padding: 1.5rem; display: flex; flex-direction: column;">
+                    <div style="opacity: 0.9; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Tab Density Timeline (Today)</span>
+                        <span style="font-size: 0.75rem; color: #3b82f6; font-weight: 600;">● Active Browser Tabs</span>
+                    </div>
+                    <div style="position: relative; width: 100%; flex: 1;">
+                        <canvas id="tabDensityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Audio Classification Breakdown Glass Card -->
+                <div class="glass-card" style="height: 340px; padding: 1.5rem; display: flex; flex-direction: column;">
+                    <div style="opacity: 0.9; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>YAMNet Audio Classification Breakdown</span>
+                        <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">● Acoustic Sensor</span>
+                    </div>
+                    <div style="position: relative; width: 100%; flex: 1;">
+                        <canvas id="audioBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Row 2: Peak Stressors List -->
+            <div class="glass-card" style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">Peak Environmental Stressors</h3>
+                        <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 2px;">Top 3 highest recorded ambient noise spikes today</div>
+                    </div>
+                    <span style="font-size: 0.75rem; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 4px 10px; border-radius: 8px; font-weight: 700;">
+                        🔥 Acoustic Spikes
+                    </span>
+                </div>
+
+                <ul id="peakSpikesList" style="list-style: none; padding: 0; margin: 0;">
+                    <!-- Dynamically populated by environmental.js -->
+                </ul>
             </div>
         </div>
 
@@ -919,6 +980,9 @@
 
     <!-- Historical Data & 7-Day Trend Controller -->
     <script src="js/history.js"></script>
+
+    <!-- Environmental Dashboard Controller -->
+    <script src="js/environmental.js"></script>
 
     <!-- Chart.js Sliding & Timeline Range Engine -->
     <script>
