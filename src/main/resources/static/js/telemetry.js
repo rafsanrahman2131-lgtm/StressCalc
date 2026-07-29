@@ -1,72 +1,92 @@
 /**
  * StressCalculator — Behavioral Telemetry Engine
- * Features: Flow State Recovery & Healing Mechanic!
- * Tracks live tab switches, uninterrupted focus seconds, erratic mouse movement, and ambient noise.
- * Smoothly heals Focus Index back up to 10.0 during sustained attention.
+ * Stateful Scientific Focus Model (3:1 Recovery ratio)
+ * F_new = F_prev + (T_uninterrupted / 60 * 0.5) - (C_switches * 1.5)
  */
 
 class TelemetryEngine {
     constructor() {
         this.state = {
-            cognitiveBandwidth: 85,
+            cognitiveBandwidth: 90,
             contextSwitches: 0,
             uninterruptedSeconds: 0,
-            focusIndex: 5.0,
+            focusIndex: 10.0,
+            isFocused: !document.hidden,
             ambientNoiseDb: 42,
             tabDensity: 1,
-            mouseDistance: 0,
             mouseJitterCount: 0,
             lastMousePos: { x: 0, y: 0 },
             lastMouseTime: Date.now()
         };
 
+        this.flowTimer = null;
         this.init();
     }
 
     init() {
-        // 1. Uninterrupted Flow Timer (Increments every second document is active)
-        setInterval(() => {
-            if (!document.hidden) {
-                this.state.uninterruptedSeconds++;
-                this.updateDerivedMetrics();
-                this.updateDashboardUI();
-            }
-        }, 1000);
+        // 1. Flow State Timer (Only increments when window is actively focused)
+        this.startFlowTimer();
 
-        // 2. Context Switch Listener (Tab Visibility Change)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                // Tab switch detected: reset flow timer & increment context switch penalty
-                this.state.uninterruptedSeconds = 0;
-                this.state.contextSwitches++;
-                this.updateDerivedMetrics();
-                this.updateDashboardUI();
-            }
-        });
-
-        // 3. Window Focus/Blur Listener
+        // 2. Accurate Window Blur & Focus Event Listeners
         window.addEventListener('blur', () => {
-            this.state.uninterruptedSeconds = 0;
+            this.state.isFocused = false;
             this.state.contextSwitches++;
+            this.stopFlowTimer();
             this.updateDerivedMetrics();
             this.updateDashboardUI();
         });
 
-        // 4. Mouse Movement & Erratic Jitter Listener
+        window.addEventListener('focus', () => {
+            this.state.isFocused = true;
+            this.startFlowTimer();
+            this.updateDerivedMetrics();
+            this.updateDashboardUI();
+        });
+
+        // 3. Fallback visibilitychange for hidden tab state
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.state.isFocused = false;
+                this.state.contextSwitches++;
+                this.stopFlowTimer();
+            } else {
+                this.state.isFocused = true;
+                this.startFlowTimer();
+            }
+            this.updateDerivedMetrics();
+            this.updateDashboardUI();
+        });
+
+        // 4. Mouse movement tracking
         window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
 
-        // 5. Estimate Tab Density
-        this.estimateTabDensity();
-
-        // 6. Periodic Ambient Noise Simulation & Backend Sync Payload
+        // 5. Periodic UI & Backend Sync
         setInterval(() => {
             this.simulateAmbientNoise();
             this.updateDerivedMetrics();
             this.updateDashboardUI();
-        }, 3000);
+        }, 2000);
 
-        // Initial UI Binding
         this.updateDashboardUI();
+    }
+
+    startFlowTimer() {
+        if (!this.flowTimer) {
+            this.flowTimer = setInterval(() => {
+                if (this.state.isFocused) {
+                    this.state.uninterruptedSeconds++;
+                    this.updateDerivedMetrics();
+                    this.updateDashboardUI();
+                }
+            }, 1000);
+        }
+    }
+
+    stopFlowTimer() {
+        if (this.flowTimer) {
+            clearInterval(this.flowTimer);
+            this.flowTimer = null;
+        }
     }
 
     handleMouseMove(e) {
@@ -79,7 +99,6 @@ class TelemetryEngine {
             const dist = Math.sqrt(dx * dx + dy * dy);
             const speed = dist / dt;
 
-            // Detect rapid erratic mouse jitter (speed > 2500 px/sec)
             if (speed > 2500) {
                 this.state.mouseJitterCount++;
             }
@@ -89,35 +108,27 @@ class TelemetryEngine {
         }
     }
 
-    estimateTabDensity() {
-        this.state.tabDensity = Math.max(1, Math.min(15, Math.floor(Math.random() * 4) + 5));
-    }
-
     simulateAmbientNoise() {
         const base = 42;
-        const delta = Math.floor(Math.random() * 12) - 4;
+        const delta = Math.floor(Math.random() * 10) - 4;
         this.state.ambientNoiseDb = Math.max(30, Math.min(75, base + delta));
+        this.state.tabDensity = Math.max(1, Math.min(12, 6));
     }
 
     /**
-     * Recovery Mechanic: Flow State Healing Algorithm
-     * Baseline Focus = 5.0
-     * Reward: +0.1 for every 60 seconds of uninterrupted flow (+0.00166 per second)
-     * Penalty: -1.0 for every context switch
-     * Clamped strictly between 0.0 and 10.0
+     * Scientific Stateful Model Calculation:
+     * Recovery: +0.5 for every full 60 seconds of uninterrupted focus
+     * Penalty: -1.5 for every context switch (Requires 3 minutes of focus to recover from 1 switch)
      */
     updateDerivedMetrics() {
-        const baseline = 5.0;
-        const flowReward = (this.state.uninterruptedSeconds / 60.0) * 0.1;
-        const switchPenalty = this.state.contextSwitches * 1.0;
-        const jitterPenalty = (this.state.mouseJitterCount * 0.05);
+        const recovery = (this.state.uninterruptedSeconds / 60.0) * 0.5;
+        const penalty = this.state.contextSwitches * 1.5;
 
-        let rawFocus = baseline + flowReward - switchPenalty - jitterPenalty;
-        this.state.focusIndex = Math.max(0.0, Math.min(10.0, Math.round(rawFocus * 10) / 10));
+        // F_new = 10.0 (or prev) + recovery - penalty
+        let calculated = 10.0 + recovery - penalty;
+        this.state.focusIndex = Math.max(0.0, Math.min(10.0, Math.round(calculated * 10) / 10));
 
-        // Cognitive Bandwidth percentage (10% - 100%)
-        let rawBandwidth = Math.round(this.state.focusIndex * 10);
-        this.state.cognitiveBandwidth = Math.max(10, Math.min(100, rawBandwidth));
+        this.state.cognitiveBandwidth = Math.max(10, Math.min(100, Math.round(this.state.focusIndex * 10)));
     }
 
     updateDashboardUI() {
@@ -131,11 +142,11 @@ class TelemetryEngine {
         if (elSwitches) elSwitches.innerText = this.state.contextSwitches;
 
         if (elFocus) {
-            let color = "#22c55e"; // Flow Green
+            let color = "#22c55e"; // Green
             if (this.state.focusIndex < 4.0) color = "#ef4444"; // Red
             else if (this.state.focusIndex < 7.0) color = "#f59e0b"; // Amber
 
-            elFocus.innerHTML = `<span style="color: ${color}; transition: color 0.5s ease;">${this.state.focusIndex.toFixed(1)}</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
+            elFocus.innerHTML = `<span style="color: ${color}; transition: color 0.4s ease;">${this.state.focusIndex.toFixed(1)}</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
         }
 
         if (elNoise) elNoise.innerText = `${this.state.ambientNoiseDb} dB`;

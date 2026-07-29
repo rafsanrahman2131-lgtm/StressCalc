@@ -73,23 +73,35 @@ public class TelemetryDataController {
             int contextSwitches = payload.containsKey("contextSwitches") ? ((Number) payload.get("contextSwitches")).intValue() : 0;
             int uninterruptedSeconds = payload.containsKey("uninterruptedSeconds") ? ((Number) payload.get("uninterruptedSeconds")).intValue() : 0;
             
-            // Focus Index Recovery Algorithm: Baseline 5.0, +0.1 per 60s uninterrupted flow, -1.0 per context switch
-            double baseline = 5.0;
-            double flowReward = (uninterruptedSeconds / 60.0) * 0.1;
-            double switchPenalty = contextSwitches * 1.0;
+            // Query most recent focus_index from database state model
+            List<TelemetryLog> existingLogs = telemetryRepository.findTop20ByUserIdOrderByLogTimestampAsc(userId);
+            double previousFocus = 10.0;
+            if (!existingLogs.isEmpty()) {
+                TelemetryLog latest = existingLogs.get(existingLogs.size() - 1);
+                if (latest.getFocusIndex() != null) {
+                    previousFocus = latest.getFocusIndex().doubleValue();
+                }
+            }
 
-            double calculatedFocus = Math.max(0.0, Math.min(10.0, baseline + flowReward - switchPenalty));
+            // Scientific Formula:
+            // Recovery: +0.5 per 60s of uninterrupted focus
+            // Penalty: -1.5 per context switch
+            double recovery = (uninterruptedSeconds / 60.0) * 0.5;
+            double penalty = contextSwitches * 1.5;
 
-            int cognitiveBandwidth = payload.containsKey("cognitiveBandwidth") ? 
-                    ((Number) payload.get("cognitiveBandwidth")).intValue() : (int) Math.round(calculatedFocus * 10);
+            double calculatedFocus = previousFocus + recovery - penalty;
+            calculatedFocus = Math.max(0.0, Math.min(10.0, calculatedFocus));
             
+            BigDecimal focusDecimal = BigDecimal.valueOf(calculatedFocus).setScale(1, RoundingMode.HALF_UP);
+
+            int cognitiveBandwidth = (int) Math.round(focusDecimal.doubleValue() * 10);
             cognitiveBandwidth = Math.max(10, Math.min(100, cognitiveBandwidth));
 
             TelemetryLog log = new TelemetryLog();
             log.setUserId(userId);
             log.setCognitiveBandwidth(cognitiveBandwidth);
             log.setContextSwitches(contextSwitches);
-            log.setFocusIndex(BigDecimal.valueOf(calculatedFocus).setScale(2, RoundingMode.HALF_UP));
+            log.setFocusIndex(focusDecimal);
             log.setAmbientNoiseDb(payload.containsKey("ambientNoiseDb") ? ((Number) payload.get("ambientNoiseDb")).intValue() : 42);
             log.setTabDensity(payload.containsKey("tabDensity") ? ((Number) payload.get("tabDensity")).intValue() : 6);
             log.setLogTimestamp(LocalDateTime.now());
@@ -98,7 +110,7 @@ public class TelemetryDataController {
 
             Map<String, Object> res = new HashMap<>();
             res.put("status", "success");
-            res.put("focus_index", calculatedFocus);
+            res.put("focus_index", focusDecimal.doubleValue());
             res.put("uninterrupted_seconds", uninterruptedSeconds);
             return ResponseEntity.ok(res);
 
