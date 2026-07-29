@@ -1,6 +1,6 @@
 /**
  * StressCalculator — Behavioral Telemetry Engine
- * Precise Event Categorization:
+ * Clean Stressor Labels (No (#N) Numbers):
  * - "Tab Switched"
  * - "Tab Minimized"
  * - "Tab Restored"
@@ -79,7 +79,7 @@ class TelemetryEngine {
                 this.state.isFocused = false;
                 this.state.contextSwitches++;
                 this.state.recentSwitches++;
-                this.logStressorEvent(timeStr, `Tab Minimized (#${this.state.contextSwitches})`);
+                this.logStressorEvent(timeStr, "Tab Minimized");
             } else {
                 this.state.isFocused = true;
                 this.resumeAudio();
@@ -92,14 +92,13 @@ class TelemetryEngine {
 
         // 6. Window Blur & Focus Event Listeners (Window Context Switches)
         window.addEventListener('blur', () => {
-            // Only log Tab Switched if document visibility didn't already trigger Tab Minimized
             if (!document.hidden && this.state.isFocused) {
                 this.state.isFocused = false;
                 this.state.contextSwitches++;
                 this.state.recentSwitches++;
                 
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                this.logStressorEvent(timeStr, `Tab Switched (#${this.state.contextSwitches})`);
+                this.logStressorEvent(timeStr, "Tab Switched");
 
                 this.updateDerivedMetrics();
                 this.updateDashboardUI();
