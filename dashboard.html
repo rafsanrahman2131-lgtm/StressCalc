@@ -512,25 +512,25 @@
             </div>
         </header>
 
-        <!-- Top Metrics Row -->
+        <!-- Top Metrics Row with Exact Data Binding IDs -->
         <div class="metrics-grid">
             <div class="glass-card">
                 <div class="metric-title">Cognitive Bandwidth</div>
-                <div class="metric-value gradient-text" id="val-bandwidth">78%</div>
+                <div class="metric-value gradient-text" id="ui-bandwidth">85%</div>
                 <div class="metric-sub">Optimal capacity</div>
             </div>
             <div class="glass-card">
                 <div class="metric-title">Context Switches</div>
-                <div class="metric-value" id="val-switches">14</div>
-                <div class="metric-sub" style="color: #ef4444;">Warning: +4 vs Baseline</div>
+                <div class="metric-value" id="ui-switches">0</div>
+                <div class="metric-sub" style="color: #ef4444;">Live Counter</div>
             </div>
             <div class="glass-card">
                 <div class="metric-title">Focus Index</div>
-                <div class="metric-value" id="val-focus">8.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
+                <div class="metric-value" id="ui-focus">10.0<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
                 <div class="metric-sub">Sustained Flow State</div>
             </div>
 
-            <!-- MediaPipe Facial Tension Metric Card with Manual Control Button Intact -->
+            <!-- MediaPipe Facial Tension Metric Card -->
             <div class="glass-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <div class="metric-title" style="margin-bottom: 0;">Facial Tension Level</div>
@@ -560,11 +560,11 @@
                 <div style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
                     <div>
                         <div class="metric-title">Ambient Noise</div>
-                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono" id="val-noise">45 dB</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-noise">42</span> dB</div>
                     </div>
                     <div>
                         <div class="metric-title">Tab Density</div>
-                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono" id="val-tabs">8 open</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-tabs">1</span> open</div>
                     </div>
                 </div>
             </div>
@@ -583,7 +583,6 @@
     <!-- MULTI-STEP GUIDED CHECK-IN WIZARD MODAL OVERLAY -->
     <div id="checkinWizard" class="wizard-modal-overlay">
         <div class="wizard-container">
-            <!-- Header Bar -->
             <div class="wizard-header-bar">
                 <div class="progress-bar-bg">
                     <div id="wizardProgressFill" class="progress-bar-fill"></div>
@@ -592,7 +591,6 @@
                 <button id="closeWizardBtn" class="close-wizard-btn" title="Close Wizard">✕</button>
             </div>
 
-            <!-- STEP 1: Physiological Bio-Scan (5-Second MediaPipe) -->
             <div id="step1" class="wizard-step">
                 <h2 style="margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800;">Step 1: Bio-Scan</h2>
                 <p style="margin: 0; font-size: 0.85rem; opacity: 0.7;">Align your face in good lighting for a 5-second facial tension scan.</p>
@@ -604,7 +602,6 @@
                 </div>
             </div>
 
-            <!-- STEP 2: Subjective Questionnaire -->
             <div id="step2" class="wizard-step">
                 <h2 style="margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800;">Step 2: Subjective Check</h2>
                 <p style="margin: 0 0 20px 0; font-size: 0.85rem; opacity: 0.7;">Rate your current mental state baseline.</p>
@@ -628,7 +625,6 @@
                 <button id="step2NextBtn" class="btn-wizard-primary">Proceed to Cognitive Test &rarr;</button>
             </div>
 
-            <!-- STEP 3: Stroop Test Cognitive Game -->
             <div id="step3" class="wizard-step">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800;">Step 3: Stroop Test</h2>
@@ -644,6 +640,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Telemetry Behavioral Engine -->
+    <script src="js/telemetry.js"></script>
 
     <!-- Vision Telemetry Script -->
     <script src="js/vision_telemetry.js"></script>
@@ -665,14 +664,6 @@
                 const data = await response.json();
                 const labels = data.map(item => item.timestamp);
                 const focusData = data.map(item => item.focus_index);
-
-                if (data.length > 0) {
-                    const latest = data[data.length - 1];
-                    if (latest.bandwidth_percent) document.getElementById('val-bandwidth').textContent = `${latest.bandwidth_percent}%`;
-                    if (latest.focus_index) document.getElementById('val-focus').innerHTML = `${latest.focus_index}<span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
-                    if (latest.ambient_noise_db) document.getElementById('val-noise').textContent = `${latest.ambient_noise_db} dB`;
-                    if (latest.tab_density) document.getElementById('val-tabs').textContent = `${latest.tab_density} open`;
-                }
 
                 const ctx = document.getElementById('telemetryChart').getContext('2d');
                 if (telemetryChart) {
