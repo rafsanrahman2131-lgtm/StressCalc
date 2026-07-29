@@ -1,7 +1,6 @@
 /**
  * StressCalculator — Behavioral Telemetry Engine
- * Smooth Continuous Cursor Dynamics (100% Always Active)
- * Normal mouse movement ALWAYS maintains/rewards focus & NEVER drops score sharply.
+ * Features: Live Dynamic Chart Streaming to dashboard Chart.js!
  */
 
 class TelemetryEngine {
@@ -26,13 +25,12 @@ class TelemetryEngine {
     }
 
     init() {
-        // 1. Continuous 1-second Loop (ALWAYS RUNS 100% OF THE TIME)
+        // 1. Continuous 1-second Loop (Pushes live points to Chart.js stream)
         setInterval(() => {
             if (this.state.isFocused) {
                 this.state.uninterruptedSeconds++;
             }
             
-            // Gradually decay any accumulated jitter or switch penalties over time
             if (this.state.mouseJitterCount > 0) {
                 this.state.mouseJitterCount--;
             }
@@ -46,6 +44,11 @@ class TelemetryEngine {
             this.simulateAmbientNoise();
             this.updateDerivedMetrics();
             this.updateDashboardUI();
+
+            // Stream live point to Chart.js graph!
+            if (typeof window.pushLiveChartPoint === 'function') {
+                window.pushLiveChartPoint(this.state.focusIndex);
+            }
         }, 1000);
 
         // 2. Window Focus & Blur Listeners
@@ -63,19 +66,13 @@ class TelemetryEngine {
             this.updateDashboardUI();
         });
 
-        // 3. Continuous Mouse Movement Listener (ALWAYS ACTIVE)
+        // 3. Continuous Mouse Movement Listener
         window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
 
-        // Initial UI Render
         this.updateDerivedMetrics();
         this.updateDashboardUI();
     }
 
-    /**
-     * Smooth Mouse Movement Handler:
-     * Normal cursor movement across screen is 100% healthy and boosts engagement.
-     * Never penalizes normal mouse movements.
-     */
     handleMouseMove(e) {
         const now = Date.now();
         const dt = (now - this.state.lastMouseTime) / 1000;
@@ -90,13 +87,10 @@ class TelemetryEngine {
                 this.state.mouseSpeedPxSec = speed;
                 this.state.mouseDistancePx += Math.round(dist);
 
-                // Moving the mouse proves active human engagement
                 if (this.state.isFocused) {
-                    // Small continuous engagement reward (+0.02s per move)
                     this.state.uninterruptedSeconds += 0.02;
                 }
 
-                // Only extreme violent shaking (> 6500 px/sec) registers as erratic jitter
                 if (speed > 6500) {
                     this.state.mouseJitterCount = Math.min(3, this.state.mouseJitterCount + 1);
                 }
@@ -116,17 +110,9 @@ class TelemetryEngine {
         this.state.tabDensity = 6;
     }
 
-    /**
-     * Calibrated Focus & Bandwidth Formula:
-     * - Base Focus = 9.0
-     * - Flow Reward: +0.1 per 8 seconds of continuous active engagement
-     * - Penalty: -0.15 per recent active context switch
-     * - Minimum floor = 5.0, Max = 10.0
-     */
     updateDerivedMetrics() {
         const baseline = 9.0;
         
-        // Active Flow Reward (+0.1 focus per 8s of engagement)
         const flowReward = (this.state.uninterruptedSeconds / 8.0) * 0.1;
         const switchPenalty = this.state.recentSwitches * 0.15;
         const jitterPenalty = (this.state.mouseJitterCount * 0.05);
@@ -134,9 +120,8 @@ class TelemetryEngine {
         let calculatedFocus = baseline + flowReward - switchPenalty - jitterPenalty;
         this.state.focusIndex = Math.max(5.0, Math.min(10.0, Math.round(calculatedFocus * 10) / 10));
 
-        // Cognitive Bandwidth percentage (60% - 100%)
         let baseBandwidth = Math.round(this.state.focusIndex * 9.8);
-        let flowBonusPct = Math.floor(this.state.uninterruptedSeconds / 4); // +1% bandwidth every 4s
+        let flowBonusPct = Math.floor(this.state.uninterruptedSeconds / 4);
         
         let calculatedBandwidth = baseBandwidth + flowBonusPct;
         this.state.cognitiveBandwidth = Math.max(60, Math.min(100, calculatedBandwidth));

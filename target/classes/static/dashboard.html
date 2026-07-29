@@ -516,7 +516,7 @@
         <div class="metrics-grid">
             <div class="glass-card">
                 <div class="metric-title">Cognitive Bandwidth</div>
-                <div class="metric-value gradient-text" id="ui-bandwidth">85%</div>
+                <div class="metric-value gradient-text" id="ui-bandwidth">92%</div>
                 <div class="metric-sub">Optimal capacity</div>
             </div>
             <div class="glass-card">
@@ -526,7 +526,7 @@
             </div>
             <div class="glass-card">
                 <div class="metric-title">Focus Index</div>
-                <div class="metric-value" id="ui-focus">10.0<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
+                <div class="metric-value" id="ui-focus">9.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
                 <div class="metric-sub">Sustained Flow State</div>
             </div>
 
@@ -541,7 +541,7 @@
             </div>
         </div>
 
-        <!-- Main Live Chart.js Panel -->
+        <!-- Main Live Chart.js Panel with Dynamic Streaming -->
         <div class="glass-card chart-panel">
             <div style="opacity: 0.8; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
                 <span>Cognitive Load vs Time Telemetry</span>
@@ -564,7 +564,7 @@
                     </div>
                     <div>
                         <div class="metric-title">Tab Density</div>
-                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-tabs">1</span> open</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-tabs">6</span> open</div>
                     </div>
                 </div>
             </div>
@@ -650,80 +650,111 @@
     <!-- Guided Workflow Controller Script -->
     <script src="js/workflow.js"></script>
 
-    <!-- Chart.js Async Fetch & Theme Toggle Logic -->
+    <!-- Chart.js Live Real-Time Streaming Engine -->
     <script>
-        let telemetryChart = null;
+        window.telemetryChart = null;
 
-        async function loadChartData() {
-            try {
-                const response = await fetch('/api/telemetry-data');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+        function initLiveChart() {
+            const ctx = document.getElementById('telemetryChart').getContext('2d');
+            
+            // Generate initial live timestamps for visual flow
+            const now = new Date();
+            const initialLabels = [];
+            const initialData = [];
 
-                const data = await response.json();
-                const labels = data.map(item => item.timestamp);
-                const focusData = data.map(item => item.focus_index);
+            for (let i = 12; i >= 0; i--) {
+                const timeStr = new Date(now.getTime() - i * 3000).toTimeString().split(' ')[0];
+                initialLabels.push(timeStr);
+                initialData.push(8.5 + (Math.sin(i) * 0.4));
+            }
 
-                const ctx = document.getElementById('telemetryChart').getContext('2d');
-                if (telemetryChart) {
-                    telemetryChart.destroy();
-                }
-
-                telemetryChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Focus Index',
-                            data: focusData,
-                            borderColor: '#22c55e',
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                            borderWidth: 2.5,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#22c55e',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 1.5,
-                            pointRadius: 4,
-                            pointHoverRadius: 7
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                titleFont: { family: 'Inter', size: 12 },
-                                bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
-                                padding: 12,
-                                displayColors: false,
-                                callbacks: {
-                                    label: function(context) {
-                                        return `Focus Score: ${context.parsed.y} / 10`;
-                                    }
+            window.telemetryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: initialLabels,
+                    datasets: [{
+                        label: 'Focus Index',
+                        data: initialData,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#22c55e',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 1.5,
+                        pointRadius: 4,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 400 },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { family: 'Inter', size: 12 },
+                            bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Focus Score: ${context.parsed.y} / 10`;
                                 }
                             }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 } }
                         },
-                        scales: {
-                            x: {
-                                grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                                ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 } }
-                            },
-                            y: {
-                                min: 0,
-                                max: 10,
-                                grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                                ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 }, stepSize: 2 }
-                            }
+                        y: {
+                            min: 0,
+                            max: 10,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 }, stepSize: 2 }
                         }
                     }
-                });
+                }
+            });
+        }
 
-            } catch (error) {
-                console.error("Failed to load telemetry chart data:", error);
+        // Real-Time Chart Point Stream Function called by telemetry.js every 2-3s
+        window.pushLiveChartPoint = function(focusValue) {
+            if (!window.telemetryChart) return;
+
+            const timeStr = new Date().toTimeString().split(' ')[0];
+            const chart = window.telemetryChart;
+
+            chart.data.labels.push(timeStr);
+            chart.data.datasets[0].data.push(focusValue);
+
+            if (chart.data.labels.length > 15) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+
+            chart.update('none'); // Silky smooth real-time stream update
+        };
+
+        async function fetchInitialBackendLogs() {
+            try {
+                const response = await fetch('/api/telemetry-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.length > 0 && window.telemetryChart) {
+                        const labels = data.map(item => item.timestamp);
+                        const focusData = data.map(item => item.focus_index);
+                        window.telemetryChart.data.labels = labels;
+                        window.telemetryChart.data.datasets[0].data = focusData;
+                        window.telemetryChart.update();
+                    }
+                }
+            } catch (err) {
+                console.warn("Backend log sync notice:", err);
             }
         }
 
@@ -734,23 +765,24 @@
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('stresscalc_theme', theme);
 
-            if (telemetryChart) {
+            if (window.telemetryChart) {
                 const isLight = theme === 'light';
                 const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)';
                 const tickColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.6)';
                 
-                telemetryChart.options.scales.x.grid.color = gridColor;
-                telemetryChart.options.scales.x.ticks.color = tickColor;
-                telemetryChart.options.scales.y.grid.color = gridColor;
-                telemetryChart.options.scales.y.ticks.color = tickColor;
-                telemetryChart.update();
+                window.telemetryChart.options.scales.x.grid.color = gridColor;
+                window.telemetryChart.options.scales.x.ticks.color = tickColor;
+                window.telemetryChart.options.scales.y.grid.color = gridColor;
+                window.telemetryChart.options.scales.y.ticks.color = tickColor;
+                window.telemetryChart.update();
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('stresscalc_theme') || 'dark';
             setTheme(savedTheme);
-            loadChartData();
+            initLiveChart();
+            fetchInitialBackendLogs();
         });
     </script>
 </body>
