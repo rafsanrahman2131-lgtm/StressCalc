@@ -79,8 +79,8 @@
                     <h2 id="form-title" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;">Welcome back</h2>
                     <p class="auth-subtext" id="form-subtitle" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Enter your credentials to access your telemetry dashboard.</p>
 
-                    <!-- LOGIN FORM (Connected to live Alwaysdata Java backend) -->
-                    <form id="form-login" action="http://stresscalcu.alwaysdata.net/login" method="POST" style="display: block;">
+                    <!-- LOGIN FORM -->
+                    <form id="form-login" action="/login" method="POST" style="display: block;">
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
                             <input type="email" id="loginEmail" name="loginEmail" placeholder="you@domain.com" required>
@@ -95,8 +95,8 @@
                         <button type="submit" class="btn btn-primary btn-full">Enter Dashboard</button>
                     </form>
 
-                    <!-- SIGNUP FORM (Connected to live Alwaysdata Java backend) -->
-                    <form id="form-signup" action="http://stresscalcu.alwaysdata.net/register" method="POST" style="display: none;">
+                    <!-- SIGNUP FORM -->
+                    <form id="form-signup" action="/register" method="POST" style="display: none;">
                         <div class="form-group">
                             <label for="regName">Full Name</label>
                             <input type="text" id="regName" name="regName" placeholder="Your Name" required>
