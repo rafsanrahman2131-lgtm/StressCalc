@@ -8,6 +8,9 @@
     <!-- Link to global styles for theme variables -->
     <link rel="stylesheet" href="css/styles.css">
     
+    <!-- Theme Engine Controller (Immediate Execution to prevent FOUC) -->
+    <script src="js/settings.js"></script>
+
     <!-- Include Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -322,7 +325,7 @@
         }
 
         .theme-btn-dash {
-            background: var(--toggle-bg, rgba(255,255,255,0.05));
+            background: var(--surface, rgba(255,255,255,0.05));
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             padding: 6px 12px;
@@ -333,9 +336,10 @@
             transition: all 0.2s ease;
         }
 
-        .theme-btn-dash:hover {
-            border-color: #22c55e;
-            color: #22c55e;
+        .theme-btn-dash:hover, .theme-btn-dash.active {
+            border-color: var(--accent, #22c55e);
+            color: var(--accent, #22c55e);
+            background: var(--accent-light, rgba(34, 197, 94, 0.15));
         }
 
         /* Card Camera Toggle Button */
@@ -637,11 +641,11 @@
                     </div>
                 </div>
                 
-                <!-- 3-Way Theme Engine Controls -->
+                <!-- 3-Way Theme Engine Controls (Light, Dark, Contrast) -->
                 <div class="theme-controls" style="display: flex; gap: 8px;">
-                    <button class="theme-btn-dash" onclick="setTheme('light')" title="Light Mode">☀️ Light</button>
-                    <button class="theme-btn-dash" onclick="setTheme('dark')" title="Dark Mode">🌙 Dark</button>
-                    <button class="theme-btn-dash" onclick="setTheme('contrast')" title="Contrast Mode">👁️ Contrast</button>
+                    <button class="theme-btn-dash" title="Light Mode">☀️ Light</button>
+                    <button class="theme-btn-dash" title="Dark Mode">🌙 Dark</button>
+                    <button class="theme-btn-dash" title="Contrast Mode">👁️ Contrast</button>
                 </div>
             </header>
 
@@ -748,11 +752,11 @@
                     </div>
                 </div>
 
-                <!-- 3-Way Theme Engine Controls -->
+                <!-- 3-Way Theme Engine Controls (Light, Dark, Contrast) -->
                 <div class="theme-controls" style="display: flex; gap: 8px;">
-                    <button class="theme-btn-dash" onclick="setTheme('light')" title="Light Mode">☀️ Light</button>
-                    <button class="theme-btn-dash" onclick="setTheme('dark')" title="Dark Mode">🌙 Dark</button>
-                    <button class="theme-btn-dash" onclick="setTheme('contrast')" title="Contrast Mode">👁️ Contrast</button>
+                    <button class="theme-btn-dash" title="Light Mode">☀️ Light</button>
+                    <button class="theme-btn-dash" title="Dark Mode">🌙 Dark</button>
+                    <button class="theme-btn-dash" title="Contrast Mode">👁️ Contrast</button>
                 </div>
             </header>
 
@@ -900,6 +904,10 @@
             const initialViewLabels = window.allChartLabels.slice(-window.visibleWindowSize);
             const initialViewData = window.allChartData.slice(-window.visibleWindowSize);
 
+            const activeTheme = localStorage.getItem('stresscalc_theme') || 'dark';
+            let initialGrid = activeTheme === 'light' ? 'rgba(0,0,0,0.08)' : (activeTheme === 'contrast' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.05)');
+            let initialTick = activeTheme === 'light' ? '#0f172a' : (activeTheme === 'contrast' ? '#ffffff' : 'rgba(255,255,255,0.6)');
+
             window.telemetryChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -940,14 +948,14 @@
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 } }
+                            grid: { color: initialGrid, drawBorder: false },
+                            ticks: { color: initialTick, font: { family: 'Inter', size: 11 } }
                         },
                         y: {
                             min: 0,
                             max: 10,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 }, stepSize: 2 }
+                            grid: { color: initialGrid, drawBorder: false },
+                            ticks: { color: initialTick, font: { family: 'Inter', size: 11 }, stepSize: 2 }
                         }
                     }
                 }
@@ -1134,29 +1142,7 @@
             }
         }
 
-        function setTheme(theme) {
-            if (!['light', 'dark', 'contrast'].includes(theme)) {
-                theme = 'dark';
-            }
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('stresscalc_theme', theme);
-
-            if (window.telemetryChart) {
-                const isLight = theme === 'light';
-                const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)';
-                const tickColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.6)';
-                
-                window.telemetryChart.options.scales.x.grid.color = gridColor;
-                window.telemetryChart.options.scales.x.ticks.color = tickColor;
-                window.telemetryChart.options.scales.y.grid.color = gridColor;
-                window.telemetryChart.options.scales.y.ticks.color = tickColor;
-                window.telemetryChart.update();
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('stresscalc_theme') || 'dark';
-            setTheme(savedTheme);
             initLiveChart();
             fetchInitialBackendLogs();
         });
