@@ -37,7 +37,7 @@
             padding: 2rem 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 1.5rem;
             flex-shrink: 0;
         }
 
@@ -48,6 +48,33 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        /* Pulsing Primary Start Check-In Button */
+        .btn-checkin-pulse {
+            width: 100%;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #ffffff;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+            animation: pulseCheckin 2.5s infinite;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-checkin-pulse:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6);
+        }
+
+        @keyframes pulseCheckin {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
 
         .nav-menu {
@@ -256,6 +283,167 @@
         .card-cam-btn:hover {
             transform: scale(1.05);
         }
+
+        /* GLASSMORPHIC WIZARD MODAL STYLES */
+        .wizard-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .wizard-container {
+            width: 100%;
+            max-width: 520px;
+            background: rgba(24, 24, 27, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            position: relative;
+            color: #FAFAFA;
+        }
+
+        .wizard-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar-bg {
+            width: 70%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 33.3%;
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #10b981);
+            transition: width 0.4s ease;
+        }
+
+        .close-wizard-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .close-wizard-btn:hover {
+            color: #ffffff;
+        }
+
+        .wizard-step {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .wizard-step.active {
+            opacity: 1;
+        }
+
+        /* Step 1 Bio-Scan Ring */
+        .scan-timer-ring {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid rgba(34, 197, 94, 0.2);
+            border-top: 4px solid #22c55e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.5rem auto;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #22c55e;
+            animation: spinRing 2s linear infinite;
+        }
+
+        @keyframes spinRing {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Step 2 Sliders */
+        .slider-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .wizard-range-input {
+            width: 100%;
+            accent-color: #22c55e;
+        }
+
+        /* Step 3 Stroop Game */
+        .stroop-word {
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            margin: 1.5rem 0;
+            letter-spacing: 2px;
+        }
+
+        .stroop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .stroop-opt-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid;
+            color: #ffffff;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stroop-opt-btn:hover {
+            transform: scale(1.03);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-wizard-primary {
+            width: 100%;
+            background: #22c55e;
+            color: #ffffff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -263,12 +451,16 @@
     <!-- Invisible Webcam Video Element for MediaPipe Background Processing -->
     <video id="webcamFeed" autoplay muted playsinline style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; visibility: hidden;"></video>
 
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar Navigation with Pulsing Check-In Button -->
     <aside class="sidebar">
         <div class="logo">
             <div class="logo-icon" style="width: 28px; height: 28px; background: #22c55e; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem;">SC</div>
             <span>Stress<span class="gradient-text">Calc</span></span>
         </div>
+
+        <!-- Prominent Guided Check-In Button -->
+        <button id="startCheckInBtn" class="btn-checkin-pulse">⚡ Start Daily Check-In</button>
+
         <ul class="nav-menu">
             <li><a href="#" class="active">Telemetry</a></li>
             <li><a href="#">Action Logs</a></li>
@@ -314,7 +506,7 @@
                 <div class="metric-sub">Sustained Flow State</div>
             </div>
 
-            <!-- MediaPipe Facial Tension Metric Card with Elegant Control Button -->
+            <!-- MediaPipe Facial Tension Metric Card with Manual Control Button Intact -->
             <div class="glass-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <div class="metric-title" style="margin-bottom: 0;">Facial Tension Level</div>
@@ -364,8 +556,76 @@
         </div>
     </main>
 
+    <!-- MULTI-STEP GUIDED CHECK-IN WIZARD MODAL OVERLAY -->
+    <div id="checkinWizard" class="wizard-modal-overlay">
+        <div class="wizard-container">
+            <!-- Header Bar -->
+            <div class="wizard-header-bar">
+                <div class="progress-bar-bg">
+                    <div id="wizardProgressFill" class="progress-bar-fill"></div>
+                </div>
+                <span id="wizardProgressText" style="font-size: 0.8rem; opacity: 0.8; font-weight: 700;">Step 1 of 3</span>
+                <button id="closeWizardBtn" class="close-wizard-btn" title="Close Wizard">✕</button>
+            </div>
+
+            <!-- STEP 1: Physiological Bio-Scan (5-Second MediaPipe) -->
+            <div id="step1" class="wizard-step">
+                <h2 style="margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800;">Step 1: Bio-Scan</h2>
+                <p style="margin: 0; font-size: 0.85rem; opacity: 0.7;">Align your face in good lighting for a 5-second facial tension scan.</p>
+                <div class="scan-timer-ring">
+                    <span id="scanTimerCount">5</span>
+                </div>
+                <div style="text-align: center; font-size: 0.85rem; color: #22c55e; font-weight: 600;" id="scanStatusMessage">
+                    Initializing Camera & MediaPipe Face Mesh...
+                </div>
+            </div>
+
+            <!-- STEP 2: Subjective Questionnaire -->
+            <div id="step2" class="wizard-step">
+                <h2 style="margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800;">Step 2: Subjective Check</h2>
+                <p style="margin: 0 0 20px 0; font-size: 0.85rem; opacity: 0.7;">Rate your current mental state baseline.</p>
+                
+                <div class="slider-group">
+                    <label>
+                        <span>How overwhelmed do you feel?</span>
+                        <span style="color: #22c55e;"><span id="overwhelmVal">5</span> / 10</span>
+                    </label>
+                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="5">
+                </div>
+
+                <div class="slider-group">
+                    <label>
+                        <span>Current energy level:</span>
+                        <span style="color: #22c55e;"><span id="energyVal">7</span> / 10</span>
+                    </label>
+                    <input type="range" id="energyInput" class="wizard-range-input" min="1" max="10" value="7">
+                </div>
+
+                <button id="step2NextBtn" class="btn-wizard-primary">Proceed to Cognitive Test &rarr;</button>
+            </div>
+
+            <!-- STEP 3: Stroop Test Cognitive Game -->
+            <div id="step3" class="wizard-step">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800;">Step 3: Stroop Test</h2>
+                    <span id="stroopRoundCounter" style="font-size: 0.8rem; font-weight: 700; opacity: 0.7;">Prompt 1 / 10</span>
+                </div>
+                <div style="margin-top: 6px; font-size: 0.8rem; color: #f59e0b; font-weight: 600;">
+                    ⚠️ Rule: Click the color of the INK, NOT the text word!
+                </div>
+
+                <div id="stroopTargetWord" class="stroop-word">GREEN</div>
+
+                <div id="stroopOptionsContainer" class="stroop-grid"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Vision Telemetry Script -->
     <script src="js/vision_telemetry.js"></script>
+
+    <!-- Guided Workflow Controller Script -->
+    <script src="js/workflow.js"></script>
 
     <!-- Chart.js Async Fetch & Theme Toggle Logic -->
     <script>
