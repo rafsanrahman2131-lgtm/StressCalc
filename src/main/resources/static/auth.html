@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StressCalculator — Authentication</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .auth-visual {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            background-color: #1a1a1a;
+        }
+
+        .auth-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            z-index: 1;
+        }
+
+        .auth-slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .auth-quote-overlay {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            right: 40px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 24px;
+            border-radius: 16px;
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Visual Left -->
+        <div class="auth-visual" id="dynamic-carousel">
+            <!-- Images injected by JS -->
+            <div class="auth-quote-overlay">
+                <p class="auth-quote" id="dynamic-quote" style="transition: opacity 0.5s ease-in-out; opacity: 1;">"Your focus determines your reality. Protect your cognitive bandwidth."</p>
+                <span class="auth-quote-author" id="dynamic-author" style="transition: opacity 0.5s ease-in-out; opacity: 1;">— QUANTIFIED SELF</span>
+            </div>
+        </div>
+
+        <!-- Form Right -->
+        <div class="auth-form-wrapper">
+            <div class="auth-header-nav">
+                <a href="index.html" class="back-link">&larr; Return to Home</a>
+                <div class="theme-toggle-group">
+                    <button class="theme-btn" data-set-theme="light" title="Light Mode">☀️</button>
+                    <button class="theme-btn" data-set-theme="dark" title="Dark Mode">🌙</button>
+                    <button class="theme-btn" data-set-theme="contrast" title="Contrast Mode">👁️</button>
+                </div>
+            </div>
+
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+                    <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+                </div>
+
+                <div class="auth-form-content">
+                    <h2 id="form-title" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;">Welcome back</h2>
+                    <p class="auth-subtext" id="form-subtitle" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Enter your credentials to access your telemetry dashboard.</p>
+
+                    <!-- LOGIN FORM -->
+                    <form id="form-login" action="/login" method="POST" style="display: block;">
+                        <div class="form-group">
+                            <label for="loginEmail">Email Address</label>
+                            <input type="email" id="loginEmail" name="loginEmail" placeholder="you@domain.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" name="loginPassword" placeholder="••••••••" required>
+                        </div>
+                        <div style="text-align: right; margin-bottom: 15px;">
+                            <a href="#" class="forgot-pass" style="font-size: 0.85rem; opacity: 0.7; text-decoration: none;">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Enter Dashboard</button>
+                    </form>
+
+                    <!-- SIGNUP FORM (Initially Hidden) -->
+                    <form id="form-signup" action="/register" method="POST" style="display: none;">
+                        <div class="form-group">
+                            <label for="regName">Full Name</label>
+                            <input type="text" id="regName" name="regName" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regEmail">Email Address</label>
+                            <input type="email" id="regEmail" name="regEmail" placeholder="you@domain.com" required>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label for="regDOB">Date of Birth</label>
+                                <input type="date" id="regDOB" name="regDOB" required style="font-family: inherit;">
+                            </div>
+                            <div class="form-group">
+                                <label for="regOccupation">Primary Role</label>
+                                <select id="regOccupation" name="regOccupation" style="padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-color, rgba(15,23,42,0.15)); background: var(--surface, #FFFFFF); color: var(--text-primary, #0F172A); font-size: 0.9rem; outline: none; font-family: inherit;" required>
+                                    <option value="" disabled selected>Select Role...</option>
+                                    <option value="student_engineering">Engineering Student</option>
+                                    <option value="student_general">Student (Other)</option>
+                                    <option value="software_engineer">Software Engineer</option>
+                                    <option value="designer">Designer / Creative</option>
+                                    <option value="professional">Professional</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Create Password</label>
+                            <input type="password" id="regPassword" name="regPassword" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                    </form>
+                    
+                    <p class="auth-disclaimer">By continuing, you agree to StressCalculator's Terms of Service & Privacy Policy.</p>
+                </div>
+            </div>
+
+            <div style="font-size: 0.8rem; opacity: 0.6; text-align: center;">
+                &copy; 2026 StressCalculator Inc.
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <!-- Unified Script: Tabs + JIT Carousel + Dynamic 50 Texts -->
+    <script>
+        // TAB SWITCHING LOGIC
+        function switchTab(tab) {
+            const loginForm = document.getElementById('form-login');
+            const signupForm = document.getElementById('form-signup');
+            const tabLogin = document.getElementById('tab-login');
+            const tabSignup = document.getElementById('tab-signup');
+            const title = document.getElementById('form-title');
+            const subtitle = document.getElementById('form-subtitle');
+
+            if (tab === 'login') {
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                tabLogin.classList.add('active');
+                tabSignup.classList.remove('active');
+                title.textContent = 'Welcome back';
+                subtitle.textContent = 'Enter your credentials to access your telemetry dashboard.';
+            } else {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                tabSignup.classList.add('active');
+                tabLogin.classList.remove('active');
+                title.textContent = 'Begin tracking';
+                subtitle.textContent = 'Configure your physiological and environmental baseline.';
+            }
+        }
+
+        // CAROUSEL & TEXT LOGIC
+        document.addEventListener('DOMContentLoaded', () => {
+            const carouselContainer = document.getElementById('dynamic-carousel');
+            const overlay = document.querySelector('.auth-quote-overlay');
+            const quoteEl = document.getElementById('dynamic-quote');
+            const authorEl = document.getElementById('dynamic-author');
+            
+            // 30 Images curated for Mental Health, Calm, Mindfulness, and Cognitive Recovery
+            const photoIDs = [
+                "1518147895015-4dcfa84be013", // Zen stones/balance
+                "1528319725582-ddc096101511", // Calm person meditating
+                "1499209974431-9cbcece7f88d", // Peaceful mountain lake
+                "1506126613408-eca07ce68773", // Relaxing tea/calm setting
+                "1475924156734-496f6cac6ec1", // Nature walk/breathe
+                "1447452001602-7090c7ab2db3", // Serene forest light
+                "1508672019048-805c876b67e2", // Smooth water ripples
+                "1469474968028-56623f02e42e", // Person looking at peaceful view
+                "1434030216411-0b793f4b4273", // Mist over calm water
+                "1515023115689-589c33041d3c", // Yoga/stretching silhouette
+                "1515377905703-c4788e51af15", // Peaceful morning sunlight
+                "1529333166437-7750a6dd5a70", // Minimalist calm interior
+                "1493721515592-225381cd09fa", // Abstract smooth waves
+                "1446071103084-c257b5f70672", // Deep breathing in nature
+                "1505684617551-92be098e9a65", // Calm beach walk
+                "1536622204-7407a9e3fc15", // Sun rays through trees
+                "1464822759023-fed622ff2c3b", // Peaceful mountains
+                "1445462529983-5596cb10eecc", // Autumn leaves calm
+                "1512411993460-e883e05a8f9c", // Minimalist sky and clouds
+                "1470724610486-1d37b7ce7009", // Rain drops on window (calming)
+                "1498661726053-eb3e9db29986", // Flowing stream
+                "1519681393608-41078f40c115", // Mindfulness space
+                "1495954484750-af469f2f9be5", // Open expansive landscape
+                "1494587351196-bbf5f29cff42", // Gentle ocean waves
+                "1507281736553-f4226b9fbb66", // Person resting outdoors
+                "1499209974431-9cbcece7f88d", // Quiet reflection
+                "1522204523171-d6152a5dc837", // Soft abstract textures
+                "1511216113886-f3089d1b6a37", // Botanical/plant close up
+                "1472214103451-9374bd1c798e", // Serene sunset
+                "1532453288672-3a27e9be9efd"  // Calming atmospheric light
+            ];
+
+            // 50 Unique Texts about Focus, Stress, and Cognitive Load
+            const texts = [
+                "Context switching isn't free—it charges a heavy tax on working memory.",
+                "Protect your cognitive bandwidth like your most precious metabolic asset.",
+                "Flow state is fragile. Defend it with ruthless telemetry.",
+                "Burnout is the accumulation of invisible micro-stressors.",
+                "Your attention is the only currency that truly matters today.",
+                "Ambient noise spikes cortisol. Measure your environment.",
+                "Multitasking is a myth; you are just rapidly degrading your focus.",
+                "Mental energy is finite. Allocate it mathematically.",
+                "Identify your peak focus windows and ruthlessly guard them.",
+                "Continuous partial attention is the silent killer of deep work.",
+                "Fatigue begins long before you consciously feel it.",
+                "Quantify your environment to optimize your physiological output.",
+                "Every notification is a micro-fracture in your concentration.",
+                "Cognitive load management is the ultimate competitive advantage.",
+                "Stop guessing about your stress levels. Start measuring them.",
+                "Data-driven focus leads to sustainable high performance.",
+                "Your brain is a biological engine; track its RPMs.",
+                "Design your workspace to minimize environmental friction.",
+                "Deep work requires deep recovery. Track both.",
+                "Attention residue from your last task poisons your current one.",
+                "Treat your focus blocks like non-negotiable metabolic cycles.",
+                "High-performance engineering requires high-performance rest.",
+                "The quantified self is the optimized self.",
+                "Don't manage your time; manage your cognitive energy.",
+                "A cluttered environment creates a cluttered working memory.",
+                "Visual noise consumes processing power. Streamline your field of view.",
+                "Measure the cost of a distraction in metabolic terms.",
+                "Willpower is a depleting resource. Rely on environmental design instead.",
+                "Stress is data. Analyze it, don't just endure it.",
+                "Optimal bandwidth requires optimal acoustic environments.",
+                "Track your tab density; it directly correlates to anxiety.",
+                "Every unread message is a cognitive open loop.",
+                "Protect your morning bandwidth from low-value inputs.",
+                "Frictionless context switching is an illusion.",
+                "Your baseline stress dictates your maximum output.",
+                "Observe your cognitive degradation over the workday.",
+                "Screen time isn't equal; measure the intensity of the engagement.",
+                "Optimize for flow, not just for time spent at the desk.",
+                "Physiological metrics don't lie about your cognitive state.",
+                "The architecture of your day dictates the architecture of your mind.",
+                "Prevent burnout by catching the telemetry spikes early.",
+                "Mental clarity is engineered, not accidental.",
+                "Track the delta between your perceived effort and actual strain.",
+                "Your nervous system is the ultimate hardware. Monitor its temperature.",
+                "Acoustic telemetry reveals hidden drains on your focus.",
+                "Unstructured workloads create sustained low-grade panic.",
+                "Harness your data to build a personalized cognitive firewall.",
+                "Focus is a measurable, trainable metabolic process.",
+                "Treat cognitive debt as seriously as financial debt.",
+                "Your environment is either taxing your focus or subsidizing it."
+            ];
+
+            let currentIndex = 0;
+            let textIndex = 0;
+            let currentSlideEl = null;
+
+            // 1. STRICT PRELOAD FOR THE FIRST IMAGE
+            function loadInitialImage(index) {
+                const initImg = new Image();
+                
+                initImg.onload = () => {
+                    initImg.className = 'auth-slide';
+                    carouselContainer.insertBefore(initImg, overlay);
+                    void initImg.offsetWidth; // Trigger browser reflow
+                    initImg.classList.add('active'); // Fade it in smoothly
+                    currentSlideEl = initImg;
+                    
+                    startCarousel();
+                };
+                
+                initImg.onerror = () => {
+                    console.warn(`Initial image failed to load. Skipping to next image.`);
+                    currentIndex = (index + 1) % photoIDs.length;
+                    loadInitialImage(currentIndex); 
+                };
+                
+                initImg.src = `https://images.unsplash.com/photo-${photoIDs[index]}?auto=format&fit=crop&w=1200&q=80`;
+            }
+
+            // 2. CAROUSEL INTERVAL LOGIC
+            function startCarousel() {
+                setInterval(() => {
+                    const nextIndex = (currentIndex + 1) % photoIDs.length;
+                    const nextImg = new Image();
+                    
+                    nextImg.onload = () => {
+                        nextImg.className = 'auth-slide';
+                        carouselContainer.insertBefore(nextImg, overlay);
+                        void nextImg.offsetWidth; 
+                        nextImg.classList.add('active');
+                        
+                        if (currentSlideEl) {
+                            currentSlideEl.classList.remove('active');
+                            const staleEl = currentSlideEl;
+                            setTimeout(() => {
+                                if (staleEl.parentNode) staleEl.parentNode.removeChild(staleEl);
+                            }, 1500);
+                        }
+                        
+                        // TEXT CROSSFADE LOGIC
+                        quoteEl.style.opacity = 0;
+                        authorEl.style.opacity = 0;
+                        
+                        setTimeout(() => {
+                            textIndex = (textIndex + 1) % texts.length;
+                            quoteEl.textContent = `"${texts[textIndex]}"`;
+                            quoteEl.style.opacity = 1;
+                            authorEl.style.opacity = 1;
+                        }, 500);
+                        
+                        currentSlideEl = nextImg;
+                        currentIndex = nextIndex;
+                    };
+
+                    nextImg.onerror = () => {
+                        currentIndex = nextIndex;
+                    };
+
+                    nextImg.src = `https://images.unsplash.com/photo-${photoIDs[nextIndex]}?auto=format&fit=crop&w=1200&q=80`;
+                }, 5000);
+            }
+
+            loadInitialImage(currentIndex);
+        });
+    </script>
+</body>
+</html>
