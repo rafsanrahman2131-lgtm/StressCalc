@@ -51,7 +51,7 @@
     <div class="auth-container">
         <!-- Visual Left (Dynamic Carousel) -->
         <div class="auth-visual" id="dynamic-carousel">
-            <!-- Images will be injected here by JS JIT Loader -->
+            <!-- Images will be injected here by JS Strict Preloader -->
             <div class="auth-quote-overlay">
                 <p class="auth-quote" id="quote-text">"Your focus determines your reality. Protect your cognitive bandwidth like your most precious metabolic asset."</p>
                 <span class="auth-quote-author" id="quote-author">— Quantified Self Principle</span>
@@ -113,7 +113,7 @@
     </div>
 
     <script src="js/app.js"></script>
-    <!-- Carousel JavaScript (JIT Loading) -->
+    <!-- Carousel JavaScript (Strict Preload & Memory Cleanup) -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const carouselContainer = document.getElementById('dynamic-carousel');
@@ -132,53 +132,64 @@
                 "1497015455546-1a704e6c1e34", "1497015509746-17b204da2889", "1497015694769-d41bd9fdf7d1"
             ];
 
-            const slides = []; // Array to hold the created image elements
+            let currentIndex = 0;
 
-            // Helper function to create and inject an image safely
-            function injectSlide(index) {
-                if (slides[index]) return; // Skip if already injected
+            // 1. Initialize the first image immediately so the page isn't blank
+            const initImg = document.createElement('img');
+            initImg.src = `https://images.unsplash.com/photo-${photoIDs[0]}?auto=format&fit=crop&w=1200&q=80`;
+            initImg.className = 'auth-slide active';
+            initImg.alt = 'Focus Environment';
+            carouselContainer.insertBefore(initImg, overlay);
 
-                const img = document.createElement('img');
-                img.src = `https://images.unsplash.com/photo-${photoIDs[index]}?auto=format&fit=crop&w=1200&q=80`;
-                img.className = 'auth-slide';
-                img.alt = `Focus Environment ${index + 1}`;
-                
-                // Insert directly behind the quote overlay
-                carouselContainer.insertBefore(img, overlay);
-                slides[index] = img;
-            }
+            let currentSlideEl = initImg;
 
-            // Initialization: Inject just the first two images on load
-            injectSlide(0);
-            injectSlide(1);
-            
-            // A small delay ensures the DOM registers the first image before fading in
-            setTimeout(() => {
-                slides[0].classList.add('active');
-            }, 100);
-
-            let currentSlide = 0;
-            
-            // Start the crossfade loop
+            // 2. Start the Strict Preload Loop
             setInterval(() => {
-                // Fade out current slide
-                slides[currentSlide].classList.remove('active');
+                const nextIndex = (currentIndex + 1) % photoIDs.length;
                 
-                // Calculate next slide index
-                currentSlide = (currentSlide + 1) % photoIDs.length;
+                // Create the image in browser memory ONLY (not in the DOM yet)
+                const nextImg = new Image();
                 
-                // Ensure the current slide is injected (fallback)
-                injectSlide(currentSlide);
-                
-                // PRE-LOAD the *next* slide ahead of time so it downloads over the next 5 seconds
-                injectSlide((currentSlide + 1) % photoIDs.length);
-                
-                // Fade in the new current slide
-                setTimeout(() => {
-                    slides[currentSlide].classList.add('active');
-                }, 50);
-                
-            }, 5000); // Crossfade every 5 seconds
+                // ONLY execute this code block WHEN the image is 100% fully downloaded
+                nextImg.onload = () => {
+                    nextImg.className = 'auth-slide';
+                    nextImg.alt = 'Focus Environment';
+                    
+                    // Put it in the DOM behind the text overlay
+                    carouselContainer.insertBefore(nextImg, overlay);
+                    
+                    // Trigger a micro-reflow so the browser registers the element before transitioning
+                    void nextImg.offsetWidth; 
+                    
+                    // Fade in the newly loaded image
+                    nextImg.classList.add('active');
+                    
+                    // Fade out the old image
+                    currentSlideEl.classList.remove('active');
+                    
+                    // Remove the old image from the DOM entirely to prevent memory crashes
+                    const staleEl = currentSlideEl;
+                    setTimeout(() => {
+                        if (staleEl.parentNode) {
+                            staleEl.parentNode.removeChild(staleEl);
+                        }
+                    }, 1500); // Wait for the 1.5s CSS transition to finish before deleting
+                    
+                    // Update pointers for the next cycle
+                    currentSlideEl = nextImg;
+                    currentIndex = nextIndex;
+                };
+
+                // If the Unsplash server fails or the network drops, skip the cycle gracefully
+                nextImg.onerror = () => {
+                    console.warn('Image failed to download due to network. Skipping to next cycle.');
+                    currentIndex = nextIndex; // Move index forward so it tries a new image next time
+                };
+
+                // Trigger the background download
+                nextImg.src = `https://images.unsplash.com/photo-${photoIDs[nextIndex]}?auto=format&fit=crop&w=1200&q=80`;
+
+            }, 5000); // Attempt a new image transition every 5 seconds
         });
     </script>
 </body>
