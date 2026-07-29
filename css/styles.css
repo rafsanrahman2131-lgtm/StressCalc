@@ -1,6 +1,6 @@
 /* ==========================================
-   StressCalculator Structural CSS Fixes
-   Levels.com "Quantified Self" Theme Engine
+   StressCalculator Complete Stylesheet
+   Includes Auth Gateway Split Screen Layout
    ========================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
@@ -201,9 +201,7 @@ html[data-theme="contrast"] .btn-primary {
   font-size: 0.875rem;
 }
 
-/* ===================================================
-   1. FIX: Floating Navigation Header (Z-Index & Sticky)
-   =================================================== */
+/* --- Navigation Header --- */
 .header {
   position: sticky;
   top: 0;
@@ -304,7 +302,7 @@ html[data-theme="contrast"] .logo-icon {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* --- Hero Section --- */
+/* --- Hero & Sections --- */
 .hero {
   padding-top: 6rem;
   padding-bottom: 4rem;
@@ -342,7 +340,6 @@ html[data-theme="contrast"] .logo-icon {
   flex-wrap: wrap;
 }
 
-/* Section Titles */
 .section-title {
   font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
@@ -357,9 +354,7 @@ html[data-theme="contrast"] .logo-icon {
   margin: 0 auto 3rem auto;
 }
 
-/* ===================================================
-   2. FIX: "Sneaky Stressors" 4-Column Grid
-   =================================================== */
+/* Grids */
 .stressors-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -425,9 +420,6 @@ html[data-theme="contrast"] .logo-icon {
   line-height: 1.5;
 }
 
-/* ===================================================
-   3. FIX: "Inside StressCalc" 2x2 Feature Grid
-   =================================================== */
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -497,9 +489,7 @@ html[data-theme="contrast"] .logo-icon {
   line-height: 1.5;
 }
 
-/* ===================================================
-   4. FIX: Data Integration Split-Screen (Overlapping text)
-   =================================================== */
+/* Split-Screen */
 .split-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -566,7 +556,7 @@ html[data-theme="contrast"] .logo-icon {
   align-items: center;
 }
 
-/* --- Pricing Section --- */
+/* Pricing */
 .pricing-grid {
   display: flex;
   justify-content: center;
@@ -658,7 +648,7 @@ html[data-theme="contrast"] .badge-featured {
   color: var(--text-secondary);
 }
 
-/* --- Footer CTA Banner & Footer --- */
+/* Footer Banner & Footer */
 .cta-banner {
   background: var(--surface);
   border: var(--card-border-width) solid var(--border-color);
@@ -693,4 +683,205 @@ html[data-theme="contrast"] .badge-featured {
 
 .footer-links a:hover {
   color: var(--accent);
+}
+
+/* ===================================================
+   AUTH GATEWAY SPLIT-SCREEN LAYOUT STYLES (auth.html)
+   =================================================== */
+.auth-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .auth-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .auth-visual {
+    display: none;
+  }
+}
+
+.auth-visual {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  background-color: #09090B;
+}
+
+.auth-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.85);
+}
+
+.auth-quote-box {
+  position: absolute;
+  bottom: 3rem;
+  left: 3rem;
+  right: 3rem;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2rem;
+  color: #FFFFFF;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.auth-quote-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.auth-quote-author {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.auth-form-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem 4rem;
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+}
+
+@media (max-width: 600px) {
+  .auth-form-column {
+    padding: 2rem 1.5rem;
+  }
+}
+
+.auth-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.back-home-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.back-home-link:hover {
+  color: var(--accent);
+}
+
+.auth-card-container {
+  max-width: 420px;
+  width: 100%;
+  margin: auto auto;
+}
+
+.auth-header {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.auth-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.auth-tab-group {
+  display: flex;
+  background: var(--toggle-bg);
+  padding: 4px;
+  border-radius: 9999px;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 0.65rem;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 9999px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.auth-tab.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.input-group label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background-color: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.forgot-link {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: right;
+  display: block;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.forgot-link:hover {
+  color: var(--accent);
+}
+
+.auth-footer-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 1.5rem;
 }

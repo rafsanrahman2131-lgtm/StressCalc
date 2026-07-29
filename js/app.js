@@ -1,6 +1,6 @@
 /* ==========================================
    StressCalculator Application Logic
-   Refactored 3-Tier Theme Switcher
+   Theme Engine & Auth Gateway Interactions
    ========================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('stresscalc_theme') || 'light';
   setTheme(savedTheme);
 
-  // 2. Add Click Listeners to Theme Toggle UI Buttons
+  // Add click handlers for theme toggle buttons
   themeButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const selectedTheme = btn.getAttribute('data-set-theme');
@@ -21,19 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Function to apply theme and persist in localStorage
   function setTheme(theme) {
     if (!['light', 'dark', 'contrast'].includes(theme)) {
       theme = 'light';
     }
 
-    // Update data-theme attribute on <html>
     htmlElement.setAttribute('data-theme', theme);
-
-    // Save user preference
     localStorage.setItem('stresscalc_theme', theme);
 
-    // Toggle active state class on buttons
     themeButtons.forEach((btn) => {
       if (btn.getAttribute('data-set-theme') === theme) {
         btn.classList.add('active');
@@ -43,7 +38,93 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Smooth Scrolling for Navigation Links
+  // 2. Auth Gateway Mode Switcher (Sign In vs Create Account)
+  const tabSignin = document.getElementById('tab-signin');
+  const tabSignup = document.getElementById('tab-signup');
+  const authTitle = document.getElementById('auth-title');
+  const authSubtitle = document.getElementById('auth-subtitle');
+  const submitBtnText = document.getElementById('submit-btn-text');
+  const nameGroup = document.getElementById('group-name');
+  const confirmPasswordGroup = document.getElementById('group-confirm-password');
+  const forgotLink = document.getElementById('forgot-link');
+  const authForm = document.getElementById('auth-form');
+
+  if (tabSignin && tabSignup) {
+    tabSignin.addEventListener('click', () => switchAuthMode('signin'));
+    tabSignup.addEventListener('click', () => switchAuthMode('signup'));
+  }
+
+  function switchAuthMode(mode) {
+    if (mode === 'signin') {
+      tabSignin.classList.add('active');
+      tabSignup.classList.remove('active');
+
+      authTitle.textContent = 'Welcome back';
+      authSubtitle.textContent = 'Enter your details to access your cognitive telemetry dashboard.';
+      submitBtnText.textContent = 'Enter Dashboard';
+
+      if (nameGroup) nameGroup.style.display = 'none';
+      if (confirmPasswordGroup) confirmPasswordGroup.style.display = 'none';
+      if (forgotLink) forgotLink.style.display = 'block';
+    } else {
+      tabSignup.classList.add('active');
+      tabSignin.classList.remove('active');
+
+      authTitle.textContent = 'Create your account';
+      authSubtitle.textContent = 'Start tracking your focus and protecting your daily bandwidth.';
+      submitBtnText.textContent = 'Create Account & Enter';
+
+      if (nameGroup) nameGroup.style.display = 'flex';
+      if (confirmPasswordGroup) confirmPasswordGroup.style.display = 'flex';
+      if (forgotLink) forgotLink.style.display = 'none';
+    }
+  }
+
+  // Form Submission Handler (navigates to dashboard / backend prep)
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // Temporary redirection until Java Spring Boot backend integration
+      window.location.href = 'index.html';
+    });
+  }
+
+  // 3. Motivational Quotes Rotator for Auth Page
+  const quotes = [
+    {
+      text: "“Your focus determines your reality. Protect your cognitive bandwidth like your most precious metabolic asset.”",
+      author: "Quantified Self Principle"
+    },
+    {
+      text: "“Context switching isn't free—it charges a heavy tax on working memory. Track your telemetry.”",
+      author: "Cognitive Ergonomics"
+    },
+    {
+      text: "“In an age of constant notification noise, deep focus is a superpower.”",
+      author: "StressCalc System"
+    }
+  ];
+
+  const quoteText = document.getElementById('quote-text');
+  const quoteAuthor = document.getElementById('quote-author');
+
+  if (quoteText && quoteAuthor) {
+    let quoteIndex = 0;
+    setInterval(() => {
+      quoteIndex = (quoteIndex + 1) % quotes.length;
+      quoteText.style.opacity = '0';
+      quoteAuthor.style.opacity = '0';
+
+      setTimeout(() => {
+        quoteText.textContent = quotes[quoteIndex].text;
+        quoteAuthor.textContent = quotes[quoteIndex].author;
+        quoteText.style.opacity = '1';
+        quoteAuthor.style.opacity = '1';
+      }, 300);
+    }, 6000);
+  }
+
+  // Smooth scroll helper
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       e.preventDefault();
