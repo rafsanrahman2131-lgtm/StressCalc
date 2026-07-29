@@ -239,9 +239,9 @@
             position: fixed;
             bottom: 24px;
             right: 24px;
-            width: 160px;
-            height: 120px;
-            background: rgba(24, 24, 27, 0.85);
+            width: 180px;
+            height: 140px;
+            background: rgba(24, 24, 27, 0.9);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -254,10 +254,11 @@
         }
 
         .pip-header {
-            padding: 4px 8px;
-            background: rgba(0, 0, 0, 0.5);
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 6px;
             font-size: 0.7rem;
             color: #ffffff;
@@ -269,6 +270,23 @@
             height: 6px;
             background-color: #22c55e;
             border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .camera-toggle-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .camera-toggle-btn:hover {
+            transform: scale(1.05);
         }
 
         #webcamFeed {
@@ -276,6 +294,7 @@
             height: 100%;
             object-fit: cover;
             transform: scaleX(-1); /* Mirror camera */
+            background-color: #18181b;
         }
     </style>
 </head>
@@ -378,11 +397,14 @@
         </div>
     </main>
 
-    <!-- PIP Picture-in-Picture Webcam Element -->
+    <!-- PIP Picture-in-Picture Webcam Element with Privacy Toggle -->
     <div class="pip-webcam-container">
         <div class="pip-header">
-            <div class="pip-dot"></div>
-            <span id="cameraStatusText" style="font-size: 0.75rem; font-weight: 600;">MediaPipe Active</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="pip-dot" id="cameraStatusDot"></div>
+                <span id="cameraStatusText" style="font-size: 0.7rem; font-weight: 600;">Active</span>
+            </div>
+            <button id="cameraToggleBtn" class="camera-toggle-btn" title="Toggle Webcam Privacy">📷 Mute Cam</button>
         </div>
         <video id="webcamFeed" autoplay muted playsinline></video>
     </div>
