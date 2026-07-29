@@ -34,7 +34,7 @@ public class AssessmentController {
 
     /**
      * TASK 1: Backend Data Retrieval GET /api/history
-     * MySQL query selects last 30 days of data from stress_assessments table, ordered by timestamp descending.
+     * MySQL query selects last 30 days of real data from stress_assessments table, ordered by timestamp descending.
      */
     @GetMapping(value = "/history", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAssessmentHistory(HttpSession session) {
@@ -214,6 +214,7 @@ public class AssessmentController {
             assessment.setReactionTimeMs(reactionTimeMs);
             assessment.setErrorRatePercent(errorRatePercent);
             assessment.setFinalStressIndex(finalStressIndex);
+            assessment.setTimestamp(LocalDateTime.now());
             
             assessmentRepository.save(assessment);
 
