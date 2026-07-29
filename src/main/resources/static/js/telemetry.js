@@ -1,16 +1,17 @@
 /**
  * StressCalculator — Behavioral Telemetry Engine
- * Features: Live Dynamic Chart Streaming to dashboard Chart.js!
+ * Dynamic Real-Time Cognitive Bandwidth & Focus Index Model
+ * Ensures Cognitive Bandwidth dynamically fluctuates and updates in real-time.
  */
 
 class TelemetryEngine {
     constructor() {
         this.state = {
-            cognitiveBandwidth: 92,
+            cognitiveBandwidth: 88,
             contextSwitches: 0,
             recentSwitches: 0,
             uninterruptedSeconds: 0,
-            focusIndex: 9.2,
+            focusIndex: 8.8,
             isFocused: true,
             ambientNoiseDb: 42,
             tabDensity: 6,
@@ -25,7 +26,7 @@ class TelemetryEngine {
     }
 
     init() {
-        // 1. Continuous 1-second Loop (Pushes live points to Chart.js stream)
+        // 1. Continuous 1-second Loop (Updates metrics & DOM live every second)
         setInterval(() => {
             if (this.state.isFocused) {
                 this.state.uninterruptedSeconds++;
@@ -35,7 +36,7 @@ class TelemetryEngine {
                 this.state.mouseJitterCount--;
             }
 
-            if (this.state.uninterruptedSeconds > 0 && this.state.uninterruptedSeconds % 12 === 0) {
+            if (this.state.uninterruptedSeconds > 0 && this.state.uninterruptedSeconds % 10 === 0) {
                 if (this.state.recentSwitches > 0) {
                     this.state.recentSwitches--;
                 }
@@ -45,7 +46,7 @@ class TelemetryEngine {
             this.updateDerivedMetrics();
             this.updateDashboardUI();
 
-            // Stream live point to Chart.js graph!
+            // Stream live point to Chart.js graph
             if (typeof window.pushLiveChartPoint === 'function') {
                 window.pushLiveChartPoint(this.state.focusIndex);
             }
@@ -88,7 +89,8 @@ class TelemetryEngine {
                 this.state.mouseDistancePx += Math.round(dist);
 
                 if (this.state.isFocused) {
-                    this.state.uninterruptedSeconds += 0.02;
+                    // Continuous work engagement reward
+                    this.state.uninterruptedSeconds += 0.03;
                 }
 
                 if (speed > 6500) {
@@ -105,26 +107,37 @@ class TelemetryEngine {
 
     simulateAmbientNoise() {
         const base = 42;
-        const delta = Math.floor(Math.random() * 6) - 2;
-        this.state.ambientNoiseDb = Math.max(35, Math.min(55, base + delta));
+        const delta = Math.floor(Math.random() * 8) - 4; // Dynamic sound variation (+/- 4dB)
+        this.state.ambientNoiseDb = Math.max(34, Math.min(58, base + delta));
         this.state.tabDensity = 6;
     }
 
+    /**
+     * Fully Dynamic Real-Time Metrics Engine:
+     * Focus Index (3.5 - 10.0)
+     * Cognitive Bandwidth (40% - 98%)
+     * Visibly responds in real-time to focus duration, context switches, noise & cursor dynamics!
+     */
     updateDerivedMetrics() {
-        const baseline = 9.0;
+        const baselineFocus = 8.5;
         
-        const flowReward = (this.state.uninterruptedSeconds / 8.0) * 0.1;
-        const switchPenalty = this.state.recentSwitches * 0.15;
-        const jitterPenalty = (this.state.mouseJitterCount * 0.05);
+        // Flow reward: +0.1 per 6s of active engagement
+        const flowReward = (this.state.uninterruptedSeconds / 6.0) * 0.1;
+        const switchPenalty = this.state.recentSwitches * 0.25;
+        const jitterPenalty = (this.state.mouseJitterCount * 0.08);
 
-        let calculatedFocus = baseline + flowReward - switchPenalty - jitterPenalty;
-        this.state.focusIndex = Math.max(5.0, Math.min(10.0, Math.round(calculatedFocus * 10) / 10));
+        let calculatedFocus = baselineFocus + flowReward - switchPenalty - jitterPenalty;
+        this.state.focusIndex = Math.max(4.0, Math.min(10.0, Math.round(calculatedFocus * 10) / 10));
 
-        let baseBandwidth = Math.round(this.state.focusIndex * 9.8);
-        let flowBonusPct = Math.floor(this.state.uninterruptedSeconds / 4);
-        
-        let calculatedBandwidth = baseBandwidth + flowBonusPct;
-        this.state.cognitiveBandwidth = Math.max(60, Math.min(100, calculatedBandwidth));
+        // Dynamic Cognitive Bandwidth formula:
+        // Focus component (0-100) - Recent Switches penalty - Noise load - Tremor load + Active flow bonus
+        const focusComp = this.state.focusIndex * 9.5;
+        const switchComp = this.state.recentSwitches * 3.5;
+        const noiseComp = (this.state.ambientNoiseDb - 35) * 0.3;
+        const flowBonus = Math.min(12, Math.floor(this.state.uninterruptedSeconds / 3));
+
+        let rawBandwidth = Math.round(focusComp - switchComp - noiseComp + flowBonus);
+        this.state.cognitiveBandwidth = Math.max(40, Math.min(98, rawBandwidth));
     }
 
     updateDashboardUI() {
