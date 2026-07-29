@@ -476,7 +476,7 @@
             accent-color: #22c55e;
         }
 
-        /* Step 3 Stroop Game */
+        /* Dynamic Stroop / Math / Pattern Grid */
         .stroop-word {
             font-size: 3rem;
             font-weight: 900;
@@ -520,6 +520,18 @@
             font-size: 0.95rem;
             cursor: pointer;
             margin-top: 1rem;
+        }
+
+        /* AI Recommendation Banner */
+        .ai-recommend-banner {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 0.82rem;
+            color: #22c55e;
+            margin-bottom: 1rem;
+            line-height: 1.4;
         }
 
         /* Assessment Glassmorphic Toast Notification */
@@ -719,26 +731,28 @@
                 <div class="slider-group">
                     <label>
                         <span>Current energy level:</span>
-                        <span style="color: #22c55e;"><span id="energyVal">7</span> / 10</span>
+                        <span style="color: #22c55e;"><span id="overwhelmVal">7</span> / 10</span>
                     </label>
                     <input type="range" id="energyInput" class="wizard-range-input" min="1" max="10" value="7">
                 </div>
 
-                <button id="step2NextBtn" class="btn-wizard-primary">Proceed to Cognitive Test &rarr;</button>
+                <button id="step2NextBtn" class="btn-wizard-primary">Analyze Telemetry & Prompt Adaptive Challenge &rarr;</button>
             </div>
 
+            <!-- Step 3: DYNAMIC AI ADAPTIVE CHALLENGE STEP -->
             <div id="step3" class="wizard-step">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800;">Step 3: Stroop Test</h2>
-                    <span id="stroopRoundCounter" style="font-size: 0.8rem; font-weight: 700; opacity: 0.7;">Prompt 1 / 10</span>
-                </div>
-                <div style="margin-top: 6px; font-size: 0.8rem; color: #f59e0b; font-weight: 600;">
-                    ⚠️ Rule: Click the color of the INK, NOT the text word!
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h2 id="adaptiveGameTitle" style="margin: 0; font-size: 1.35rem; font-weight: 800;">Tailored Adaptive Challenge</h2>
+                    <span style="font-size: 0.75rem; background: rgba(34,197,94,0.15); color: #22c55e; font-weight: 800; padding: 2px 8px; border-radius: 6px;">AI Tailored</span>
                 </div>
 
-                <div id="stroopTargetWord" class="stroop-word">GREEN</div>
+                <!-- AI Decision Banner -->
+                <div id="adaptiveAiReason" class="ai-recommend-banner">
+                    🤖 <strong>AI Decision Engine:</strong> Evaluating live focus index, noise level, and context switches...
+                </div>
 
-                <div id="stroopOptionsContainer" class="stroop-grid"></div>
+                <!-- Dynamic Container populated by workflow.js -->
+                <div id="adaptiveGameContainer"></div>
             </div>
         </div>
     </div>

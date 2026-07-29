@@ -29,6 +29,73 @@ public class AssessmentController {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String ML_SERVICE_URL = "http://127.0.0.1:5000/predict";
+    private final String ML_RECOMMEND_URL = "http://127.0.0.1:5000/recommend-game";
+
+    @PostMapping(value = "/recommend-game", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> recommendAdaptiveGame(@RequestBody Map<String, Object> payload) {
+        try {
+            double focusIndex = payload.containsKey("focusIndex") ? ((Number) payload.get("focusIndex")).doubleValue() : 8.5;
+            int cognitiveBandwidth = payload.containsKey("cognitiveBandwidth") ? ((Number) payload.get("cognitiveBandwidth")).intValue() : 85;
+            int ambientNoiseDb = payload.containsKey("ambientNoiseDb") ? ((Number) payload.get("ambientNoiseDb")).intValue() : 42;
+            int contextSwitches = payload.containsKey("contextSwitches") ? ((Number) payload.get("contextSwitches")).intValue() : 0;
+            double facialTension = payload.containsKey("facialTension") ? ((Number) payload.get("facialTension")).doubleValue() : 20.0;
+            int overwhelmScore = payload.containsKey("overwhelmScore") ? ((Number) payload.get("overwhelmScore")).intValue() : 5;
+
+            // Try Python FastAPI ML Recommendation Service
+            try {
+                Map<String, Object> mlReq = new HashMap<>();
+                mlReq.put("focus_index", focusIndex);
+                mlReq.put("cognitive_bandwidth", cognitiveBandwidth);
+                mlReq.put("ambient_noise_db", ambientNoiseDb);
+                mlReq.put("context_switches", contextSwitches);
+                mlReq.put("facial_tension", facialTension);
+                mlReq.put("overwhelm_score", overwhelmScore);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(mlReq, headers);
+
+                ResponseEntity<Map> mlResponse = restTemplate.postForEntity(ML_RECOMMEND_URL, entity, Map.class);
+                if (mlResponse.getStatusCode() == HttpStatus.OK && mlResponse.getBody() != null) {
+                    return ResponseEntity.ok(mlResponse.getBody());
+                }
+            } catch (Exception mlEx) {
+                System.err.println("ML Recommendation Service unavailable, utilizing intelligent fallback evaluator: " + mlEx.getMessage());
+            }
+
+            // Java Fallback Decision Matrix
+            String gameType = "stroop";
+            String gameTitle = "Stroop Executive Function Test";
+            String reason = "Optimal capacity baseline. Prompted Stroop reaction speed test.";
+
+            if (overwhelmScore >= 7 || contextSwitches >= 3 || (cognitiveBandwidth < 60 && focusIndex < 6.0)) {
+                gameType = "breathing";
+                gameTitle = "4-7-8 Box Breathing Grounding";
+                reason = "High stress & context switching detected. Recommended a calming vagus nerve reset.";
+            } else if (focusIndex < 7.2 || ambientNoiseDb >= 60) {
+                gameType = "math_speed";
+                gameTitle = "Rapid Mental Math Speed Challenge";
+                reason = "Sub-optimal focus & ambient noise detected. Recommended rapid arithmetic to re-engage focus.";
+            } else if (facialTension >= 30.0) {
+                gameType = "pattern_memory";
+                gameTitle = "Visual Pattern Memory Flash Game";
+                reason = "Elevated facial muscle tension detected. Recommended visual spatial memory exercise.";
+            }
+
+            Map<String, Object> fallbackResp = new HashMap<>();
+            fallbackResp.put("status", "success");
+            fallbackResp.put("game_type", gameType);
+            fallbackResp.put("game_title", gameTitle);
+            fallbackResp.put("recommendation_reason", reason);
+
+            return ResponseEntity.ok(fallbackResp);
+
+        } catch (Exception e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Recommendation engine error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        }
+    }
 
     @PostMapping(value = "/assessment", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createAssessment(@RequestBody Map<String, Object> payload, HttpSession session) {
