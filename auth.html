@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In / Sign Up — StressCalculator</title>
-  <meta name="description" content="Access your StressCalculator cognitive telemetry dashboard. Quantify your focus and protect your mental bandwidth.">
+  <title>Authentication — StressCalculator</title>
+  <meta name="description" content="Access your StressCalculator cognitive telemetry dashboard. Quantify your focus and protect your daily bandwidth.">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <!-- Right Column: Form Gateway -->
+    <!-- Right Column: Java Backend Ready Form Gateway -->
     <div class="auth-form-column">
       <!-- Top Navigation -->
       <nav class="auth-nav-bar">
@@ -61,11 +61,11 @@
         </div>
       </nav>
 
-      <!-- Center Auth Form Card -->
+      <!-- Center Auth Form Container -->
       <div class="auth-card-container">
         <div class="auth-header">
           <h1 id="auth-title">Welcome back</h1>
-          <p id="auth-subtitle">Enter your details to access your cognitive telemetry dashboard.</p>
+          <p id="auth-subtitle">Enter your credentials to access your cognitive telemetry dashboard.</p>
         </div>
 
         <!-- Sign In / Sign Up Toggle -->
@@ -74,36 +74,36 @@
           <button type="button" class="auth-tab" id="tab-signup">Create Account</button>
         </div>
 
-        <!-- Form -->
-        <form id="auth-form" action="#" method="POST">
-          <!-- Full Name Field (Hidden by default in Sign In) -->
+        <!-- Native Java Form (POST action dynamically toggles between /login and /register) -->
+        <form id="auth-form" action="/login" method="POST">
+          <!-- Full Name Field (Java parameter: userName) -->
           <div class="input-group" id="group-name" style="display: none;">
             <label for="input-name">Full Name</label>
-            <input type="text" id="input-name" class="input-field" placeholder="Rafsan Rahman">
+            <input type="text" id="input-name" name="userName" class="input-field" placeholder="Rafsan Rahman">
           </div>
 
-          <!-- Email Field -->
+          <!-- Work Email Field (Java parameter: userEmail) -->
           <div class="input-group">
             <label for="input-email">Work Email</label>
-            <input type="email" id="input-email" class="input-field" placeholder="name@company.com" required>
+            <input type="email" id="input-email" name="userEmail" class="input-field" placeholder="name@company.com" required>
           </div>
 
-          <!-- Password Field -->
+          <!-- Password Field (Java parameter: userPassword) -->
           <div class="input-group">
             <label for="input-password">Password</label>
-            <input type="password" id="input-password" class="input-field" placeholder="••••••••••••" required>
+            <input type="password" id="input-password" name="userPassword" class="input-field" placeholder="••••••••••••" required>
           </div>
 
-          <!-- Confirm Password Field (Hidden by default in Sign In) -->
+          <!-- Confirm Password Field (Java parameter: confirmPassword) -->
           <div class="input-group" id="group-confirm-password" style="display: none;">
             <label for="input-confirm-password">Confirm Password</label>
-            <input type="password" id="input-confirm-password" class="input-field" placeholder="••••••••••••">
+            <input type="password" id="input-confirm-password" name="confirmPassword" class="input-field" placeholder="••••••••••••">
           </div>
 
           <a href="#" class="forgot-link" id="forgot-link">Forgot password?</a>
 
           <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 9999px;">
-            <span id="submit-btn-text">Enter Dashboard</span>
+            <span id="submit-btn-text">Sign In to Dashboard</span>
           </button>
         </form>
 
@@ -114,7 +114,7 @@
 
       <!-- Footer Space -->
       <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
-        &copy; 2026 StressCalculator Inc.
+        &copy; 2026 StressCalculator Inc. Java Spring Boot & MySQL Ready.
       </div>
     </div>
   </div>

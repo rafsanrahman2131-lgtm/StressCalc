@@ -1,6 +1,6 @@
 /* ==========================================
    StressCalculator Application Logic
-   Theme Engine & Auth Gateway Interactions
+   Theme Engine & Java Backend-Ready Auth Logic
    ========================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Auth Gateway Mode Switcher (Sign In vs Create Account)
+  // 2. Auth Gateway Java Form Toggle Logic (/login vs /register)
   const tabSignin = document.getElementById('tab-signin');
   const tabSignup = document.getElementById('tab-signup');
   const authTitle = document.getElementById('auth-title');
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const forgotLink = document.getElementById('forgot-link');
   const authForm = document.getElementById('auth-form');
 
-  if (tabSignin && tabSignup) {
+  if (tabSignin && tabSignup && authForm) {
     tabSignin.addEventListener('click', () => switchAuthMode('signin'));
     tabSignup.addEventListener('click', () => switchAuthMode('signup'));
   }
@@ -59,9 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
       tabSignin.classList.add('active');
       tabSignup.classList.remove('active');
 
+      authForm.setAttribute('action', '/login');
       authTitle.textContent = 'Welcome back';
-      authSubtitle.textContent = 'Enter your details to access your cognitive telemetry dashboard.';
-      submitBtnText.textContent = 'Enter Dashboard';
+      authSubtitle.textContent = 'Enter your credentials to access your cognitive telemetry dashboard.';
+      submitBtnText.textContent = 'Sign In to Dashboard';
 
       if (nameGroup) nameGroup.style.display = 'none';
       if (confirmPasswordGroup) confirmPasswordGroup.style.display = 'none';
@@ -70,23 +71,15 @@ document.addEventListener('DOMContentLoaded', () => {
       tabSignup.classList.add('active');
       tabSignin.classList.remove('active');
 
+      authForm.setAttribute('action', '/register');
       authTitle.textContent = 'Create your account';
       authSubtitle.textContent = 'Start tracking your focus and protecting your daily bandwidth.';
-      submitBtnText.textContent = 'Create Account & Enter';
+      submitBtnText.textContent = 'Create Account & Register';
 
       if (nameGroup) nameGroup.style.display = 'flex';
       if (confirmPasswordGroup) confirmPasswordGroup.style.display = 'flex';
       if (forgotLink) forgotLink.style.display = 'none';
     }
-  }
-
-  // Form Submission Handler (navigates to dashboard / backend prep)
-  if (authForm) {
-    authForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      // Temporary redirection until Java Spring Boot backend integration
-      window.location.href = 'index.html';
-    });
   }
 
   // 3. Motivational Quotes Rotator for Auth Page
