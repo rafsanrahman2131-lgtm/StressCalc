@@ -11,6 +11,10 @@
     <!-- Include Chart.js Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- MediaPipe Face Mesh & Camera Utils CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
     <style>
         /* Dashboard Specific Layout */
         body {
@@ -130,7 +134,7 @@
         /* Grid Layouts */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -229,6 +233,50 @@
             border-color: #22c55e;
             color: #22c55e;
         }
+
+        /* PIP Picture-in-Picture Webcam Style */
+        .pip-webcam-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 160px;
+            height: 120px;
+            background: rgba(24, 24, 27, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pip-header {
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pip-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #22c55e;
+            border-radius: 50%;
+        }
+
+        #webcamFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror camera */
+        }
     </style>
 </head>
 <body>
@@ -283,6 +331,12 @@
                 <div class="metric-value" id="val-focus">8.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
                 <div class="metric-sub">Sustained Flow State</div>
             </div>
+            <!-- MediaPipe Facial Tension Metric Card -->
+            <div class="glass-card">
+                <div class="metric-title">Facial Tension Level</div>
+                <div class="metric-value" id="val-tension" style="color: #10B981;">18%</div>
+                <div class="metric-sub" id="sub-tension" style="color: #22c55e;">Calm Baseline</div>
+            </div>
         </div>
 
         <!-- Main Live Chart.js Panel -->
@@ -292,7 +346,7 @@
                 <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">● Live Stream</span>
             </div>
             <div class="chart-wrapper">
-                <!-- Live Chart.js Canvas Tag replacing the static SVG placeholder -->
+                <!-- Live Chart.js Canvas Tag -->
                 <canvas id="telemetryChart"></canvas>
             </div>
         </div>
@@ -324,11 +378,22 @@
         </div>
     </main>
 
+    <!-- PIP Picture-in-Picture Webcam Element -->
+    <div class="pip-webcam-container">
+        <div class="pip-header">
+            <div class="pip-dot"></div>
+            <span id="cameraStatusText" style="font-size: 0.75rem; font-weight: 600;">MediaPipe Active</span>
+        </div>
+        <video id="webcamFeed" autoplay muted playsinline></video>
+    </div>
+
+    <!-- Vision Telemetry Script -->
+    <script src="js/vision_telemetry.js"></script>
+
     <!-- Chart.js Async Fetch & Theme Toggle Logic -->
     <script>
         let telemetryChart = null;
 
-        // 1. ASYNC CHART.JS DATA FETCH & RENDER FUNCTION
         async function loadChartData() {
             try {
                 const response = await fetch('/api/telemetry-data');
@@ -337,14 +402,9 @@
                 }
 
                 const data = await response.json();
-                
-                // Extract timestamps for X-axis labels (HH:MM)
                 const labels = data.map(item => item.timestamp);
-                
-                // Extract focus_index for Y-axis data points
                 const focusData = data.map(item => item.focus_index);
 
-                // Update metric card values dynamically from the latest log entry
                 if (data.length > 0) {
                     const latest = data[data.length - 1];
                     if (latest.bandwidth_percent) document.getElementById('val-bandwidth').textContent = `${latest.bandwidth_percent}%`;
@@ -353,11 +413,9 @@
                     if (latest.tab_density) document.getElementById('val-tabs').textContent = `${latest.tab_density} open`;
                 }
 
-                // Render Chart.js Line Graph
                 const ctx = document.getElementById('telemetryChart').getContext('2d');
-                
                 if (telemetryChart) {
-                    telemetryChart.destroy(); // Prevent memory leaks on re-renders
+                    telemetryChart.destroy();
                 }
 
                 telemetryChart = new Chart(ctx, {
@@ -367,11 +425,11 @@
                         datasets: [{
                             label: 'Focus Index',
                             data: focusData,
-                            borderColor: '#22c55e', // Neon green border
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)', // Semi-transparent green fill
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
                             borderWidth: 2.5,
                             fill: true,
-                            tension: 0.4, // Smooth curved line
+                            tension: 0.4,
                             pointBackgroundColor: '#22c55e',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 1.5,
@@ -383,9 +441,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: {
-                                display: false // Minimal UI - no legend
-                            },
+                            legend: { display: false },
                             tooltip: {
                                 backgroundColor: 'rgba(15, 23, 42, 0.9)',
                                 titleFont: { family: 'Inter', size: 12 },
@@ -401,27 +457,14 @@
                         },
                         scales: {
                             x: {
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.05)', // Dark gridlines
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.6)',
-                                    font: { family: 'Inter', size: 11 }
-                                }
+                                grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                                ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 } }
                             },
                             y: {
                                 min: 0,
                                 max: 10,
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.05)', // Dark gridlines
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.6)',
-                                    font: { family: 'Inter', size: 11 },
-                                    stepSize: 2
-                                }
+                                grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                                ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'Inter', size: 11 }, stepSize: 2 }
                             }
                         }
                     }
@@ -432,7 +475,6 @@
             }
         }
 
-        // 2. THEME ENGINE TOGGLE LOGIC
         function setTheme(theme) {
             if (!['light', 'dark', 'contrast'].includes(theme)) {
                 theme = 'dark';
@@ -440,7 +482,6 @@
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('stresscalc_theme', theme);
 
-            // Redraw chart gridlines dynamically on theme change if chart exists
             if (telemetryChart) {
                 const isLight = theme === 'light';
                 const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)';
@@ -454,7 +495,6 @@
             }
         }
 
-        // Initialize theme and load chart data on page load
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('stresscalc_theme') || 'dark';
             setTheme(savedTheme);

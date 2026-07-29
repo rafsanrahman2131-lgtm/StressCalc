@@ -11,6 +11,10 @@
     <!-- Include Chart.js Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- MediaPipe Face Mesh & Camera Utils CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
     <style>
         /* Dashboard Specific Layout */
         body {
@@ -130,7 +134,7 @@
         /* Grid Layouts */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -229,6 +233,50 @@
             border-color: #22c55e;
             color: #22c55e;
         }
+
+        /* PIP Picture-in-Picture Webcam Style */
+        .pip-webcam-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 160px;
+            height: 120px;
+            background: rgba(24, 24, 27, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pip-header {
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pip-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #22c55e;
+            border-radius: 50%;
+        }
+
+        #webcamFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror camera */
+        }
     </style>
 </head>
 <body>
@@ -283,6 +331,12 @@
                 <div class="metric-value" id="val-focus">8.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
                 <div class="metric-sub">Sustained Flow State</div>
             </div>
+            <!-- MediaPipe Facial Tension Metric Card -->
+            <div class="glass-card">
+                <div class="metric-title">Facial Tension Level</div>
+                <div class="metric-value" id="val-tension" style="color: #10B981;">18%</div>
+                <div class="metric-sub" id="sub-tension" style="color: #22c55e;">Calm Baseline</div>
+            </div>
         </div>
 
         <!-- Main Live Chart.js Panel -->
@@ -292,6 +346,7 @@
                 <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">● Live Stream</span>
             </div>
             <div class="chart-wrapper">
+                <!-- Live Chart.js Canvas Tag -->
                 <canvas id="telemetryChart"></canvas>
             </div>
         </div>
@@ -322,6 +377,18 @@
             </div>
         </div>
     </main>
+
+    <!-- PIP Picture-in-Picture Webcam Element -->
+    <div class="pip-webcam-container">
+        <div class="pip-header">
+            <div class="pip-dot"></div>
+            <span id="cameraStatusText" style="font-size: 0.75rem; font-weight: 600;">MediaPipe Active</span>
+        </div>
+        <video id="webcamFeed" autoplay muted playsinline></video>
+    </div>
+
+    <!-- Vision Telemetry Script -->
+    <script src="js/vision_telemetry.js"></script>
 
     <!-- Chart.js Async Fetch & Theme Toggle Logic -->
     <script>

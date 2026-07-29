@@ -73,7 +73,7 @@ public class TelemetryDataController {
 
         } catch (Exception e) {
             Map<String, String> errorMap = new HashMap<>();
-            errorMap.append("error", "Failed to retrieve telemetry logs: " + e.getMessage());
+            errorMap.put("error", "Failed to retrieve telemetry logs: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMap);
         }
     }
