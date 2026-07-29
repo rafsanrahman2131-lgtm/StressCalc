@@ -265,51 +265,80 @@
 
             let currentIndex = 0;
             let textIndex = 0;
+            let currentSlideEl = null;
 
-            // Initialize first image
-            const initImg = document.createElement('img');
-            initImg.src = `https://images.unsplash.com/photo-${photoIDs[0]}?auto=format&fit=crop&w=1200&q=80`;
-            initImg.className = 'auth-slide active';
-            carouselContainer.insertBefore(initImg, overlay);
-            let currentSlideEl = initImg;
-
-            setInterval(() => {
-                const nextIndex = (currentIndex + 1) % photoIDs.length;
-                const nextImg = new Image();
+            // 1. STRICT PRELOAD FOR THE FIRST IMAGE
+            function loadInitialImage(index) {
+                const initImg = new Image();
                 
-                nextImg.onload = () => {
-                    nextImg.className = 'auth-slide';
-                    carouselContainer.insertBefore(nextImg, overlay);
-                    void nextImg.offsetWidth; // Trigger reflow
-                    nextImg.classList.add('active');
-                    currentSlideEl.classList.remove('active');
+                initImg.onload = () => {
+                    initImg.className = 'auth-slide';
+                    // Insert behind the text overlay
+                    carouselContainer.insertBefore(initImg, overlay);
+                    void initImg.offsetWidth; // Trigger browser reflow
+                    initImg.classList.add('active'); // Fade it in smoothly
+                    currentSlideEl = initImg;
                     
-                    // TEXT CROSSFADE LOGIC
-                    quoteEl.style.opacity = 0;
-                    authorEl.style.opacity = 0;
-                    
-                    setTimeout(() => {
-                        textIndex = (textIndex + 1) % texts.length;
-                        quoteEl.textContent = `"${texts[textIndex]}"`;
-                        quoteEl.style.opacity = 1;
-                        authorEl.style.opacity = 1;
-                    }, 500); // Wait for text to fade out before changing content
-                    
-                    const staleEl = currentSlideEl;
-                    setTimeout(() => {
-                        if (staleEl.parentNode) staleEl.parentNode.removeChild(staleEl);
-                    }, 1500);
-                    
-                    currentSlideEl = nextImg;
-                    currentIndex = nextIndex;
+                    // ONLY start the carousel interval AFTER the first image is safely on screen
+                    startCarousel();
                 };
-
-                nextImg.onerror = () => {
-                    currentIndex = nextIndex;
+                
+                initImg.onerror = () => {
+                    console.warn(`Initial image failed to load. Skipping to next image.`);
+                    // If Unsplash fails, immediately try the next ID in the array
+                    currentIndex = (index + 1) % photoIDs.length;
+                    loadInitialImage(currentIndex); 
                 };
+                
+                // Trigger the background download
+                initImg.src = `https://images.unsplash.com/photo-${photoIDs[index]}?auto=format&fit=crop&w=1200&q=80`;
+            }
 
-                nextImg.src = `https://images.unsplash.com/photo-${photoIDs[nextIndex]}?auto=format&fit=crop&w=1200&q=80`;
-            }, 5000);
+            // 2. CAROUSEL INTERVAL LOGIC (Wrapped in a function)
+            function startCarousel() {
+                setInterval(() => {
+                    const nextIndex = (currentIndex + 1) % photoIDs.length;
+                    const nextImg = new Image();
+                    
+                    nextImg.onload = () => {
+                        nextImg.className = 'auth-slide';
+                        carouselContainer.insertBefore(nextImg, overlay);
+                        void nextImg.offsetWidth; 
+                        nextImg.classList.add('active');
+                        
+                        if (currentSlideEl) {
+                            currentSlideEl.classList.remove('active');
+                            const staleEl = currentSlideEl;
+                            setTimeout(() => {
+                                if (staleEl.parentNode) staleEl.parentNode.removeChild(staleEl);
+                            }, 1500);
+                        }
+                        
+                        // TEXT CROSSFADE LOGIC
+                        quoteEl.style.opacity = 0;
+                        authorEl.style.opacity = 0;
+                        
+                        setTimeout(() => {
+                            textIndex = (textIndex + 1) % texts.length;
+                            quoteEl.textContent = `"${texts[textIndex]}"`;
+                            quoteEl.style.opacity = 1;
+                            authorEl.style.opacity = 1;
+                        }, 500);
+                        
+                        currentSlideEl = nextImg;
+                        currentIndex = nextIndex;
+                    };
+
+                    nextImg.onerror = () => {
+                        currentIndex = nextIndex;
+                    };
+
+                    nextImg.src = `https://images.unsplash.com/photo-${photoIDs[nextIndex]}?auto=format&fit=crop&w=1200&q=80`;
+                }, 5000);
+            }
+
+            // Kick off the application by loading the first image safely
+            loadInitialImage(currentIndex);
         });
     </script>
 </body>
