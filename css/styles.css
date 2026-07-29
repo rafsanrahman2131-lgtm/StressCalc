@@ -685,7 +685,7 @@ html[data-theme="contrast"] .badge-featured {
 }
 
 /* ===================================================
-   --- AUTH PAGE STYLES ---
+   --- AUTH PAGE STYLES & DYNAMIC CAROUSEL ---
    =================================================== */
 .auth-body {
     margin: 0;
@@ -707,13 +707,24 @@ html[data-theme="contrast"] .badge-featured {
     height: 100vh;
     width: 100%;
     overflow: hidden;
+    background-color: #1a1a1a;
 }
 
-.auth-hero-img {
+.auth-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+    z-index: 1;
+}
+
+.auth-slide.active {
+    opacity: 1;
+    z-index: 2;
 }
 
 .auth-quote-overlay {
@@ -728,6 +739,7 @@ html[data-theme="contrast"] .badge-featured {
     border-radius: 16px;
     color: #FFFFFF;
     border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 10;
 }
 
 .auth-quote {
