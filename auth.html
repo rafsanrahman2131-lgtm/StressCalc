@@ -79,8 +79,8 @@
                     <h2 id="form-title" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;">Welcome back</h2>
                     <p class="auth-subtext" id="form-subtitle" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Enter your credentials to access your telemetry dashboard.</p>
 
-                    <!-- LOGIN FORM -->
-                    <form id="form-login" action="/login" method="POST" style="display: block;">
+                    <!-- LOGIN FORM (Connected to live Render Java backend) -->
+                    <form id="form-login" action="https://stresscalc.onrender.com/login" method="POST" style="display: block;">
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
                             <input type="email" id="loginEmail" name="loginEmail" placeholder="you@domain.com" required>
@@ -95,8 +95,8 @@
                         <button type="submit" class="btn btn-primary btn-full">Enter Dashboard</button>
                     </form>
 
-                    <!-- SIGNUP FORM (Initially Hidden) -->
-                    <form id="form-signup" action="/register" method="POST" style="display: none;">
+                    <!-- SIGNUP FORM (Connected to live Render Java backend) -->
+                    <form id="form-signup" action="https://stresscalc.onrender.com/register" method="POST" style="display: none;">
                         <div class="form-group">
                             <label for="regName">Full Name</label>
                             <input type="text" id="regName" name="regName" placeholder="Your Name" required>
@@ -273,28 +273,24 @@
                 
                 initImg.onload = () => {
                     initImg.className = 'auth-slide';
-                    // Insert behind the text overlay
                     carouselContainer.insertBefore(initImg, overlay);
                     void initImg.offsetWidth; // Trigger browser reflow
                     initImg.classList.add('active'); // Fade it in smoothly
                     currentSlideEl = initImg;
                     
-                    // ONLY start the carousel interval AFTER the first image is safely on screen
                     startCarousel();
                 };
                 
                 initImg.onerror = () => {
                     console.warn(`Initial image failed to load. Skipping to next image.`);
-                    // If Unsplash fails, immediately try the next ID in the array
                     currentIndex = (index + 1) % photoIDs.length;
                     loadInitialImage(currentIndex); 
                 };
                 
-                // Trigger the background download
                 initImg.src = `https://images.unsplash.com/photo-${photoIDs[index]}?auto=format&fit=crop&w=1200&q=80`;
             }
 
-            // 2. CAROUSEL INTERVAL LOGIC (Wrapped in a function)
+            // 2. CAROUSEL INTERVAL LOGIC
             function startCarousel() {
                 setInterval(() => {
                     const nextIndex = (currentIndex + 1) % photoIDs.length;
@@ -337,7 +333,6 @@
                 }, 5000);
             }
 
-            // Kick off the application by loading the first image safely
             loadInitialImage(currentIndex);
         });
     </script>
