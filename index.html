@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StressCalculator — See how your environment affects your focus</title>
-  <meta name="description" content="StressCalculator tracks context switching, ambient noise, and workload to protect your cognitive bandwidth. Replicate Levels.com quantified-self health tracking for mental energy.">
+  <title>StressCalculator — Quantified Focus & Environment Tracker</title>
+  <meta name="description" content="StressCalculator tracks context switching, ambient noise, and workload to protect your cognitive bandwidth. Replicating Levels.com quantified-self health tracking architecture.">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -27,9 +27,9 @@
       <!-- Right Actions: 3-way Theme Toggle & CTA -->
       <div class="nav-actions">
         <div class="theme-switcher" aria-label="Theme Selector">
-          <!-- Sun Icon (Light Mode) -->
+          <!-- Light Mode Button -->
           <button class="theme-btn active" data-set-theme="light" title="Light Mode">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
               <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -37,19 +37,17 @@
               <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
               <line x1="1" y1="12" x2="3" y2="12"></line>
               <line x1="21" y1="12" x2="23" y2="12"></line>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
           </button>
-          <!-- Moon Icon (Dark Mode) -->
+          <!-- Dark Mode Button -->
           <button class="theme-btn" data-set-theme="dark" title="Dark Mode">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
           </button>
-          <!-- Contrast Eye Icon (High-Impact / Dev Aesthetic) -->
+          <!-- Contrast Mode Button -->
           <button class="theme-btn" data-set-theme="contrast" title="High Contrast Mode">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
@@ -82,122 +80,118 @@
           <a href="#pricing" class="btn btn-primary">Get Started</a>
           <a href="#features" class="btn btn-outline">See How It Works</a>
         </div>
-
-        <div class="social-proof">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          <span>Log your focus, track your stress, protect your bandwidth.</span>
-        </div>
       </div>
     </section>
 
-    <!-- Sneaky Stressors Section -->
+    <!-- Sneaky Stressors Section (Media-Driven) -->
     <section class="section-padding container text-center">
       <h2 class="section-title">Sneaky Stressors draining your day</h2>
-      <p class="section-subtitle">Invisible environmental factors constantly fragment your concentration without your realization.</p>
+      <p class="section-subtitle">Real-world environmental triggers that drain your focus reserve without warning.</p>
 
       <div class="stressors-grid">
-        <div class="stressor-card">
-          <div class="stressor-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"></polyline>
-              <polyline points="1 20 1 14 7 14"></polyline>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
+        <!-- Card 1: Context Switching -->
+        <div class="media-card">
+          <div class="media-card-img-wrapper">
+            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80" alt="Context Switching - Multiple Screens" loading="lazy">
           </div>
-          <h3>Context Switching</h3>
-          <p>Jumping between Slack, email, and IDEs drains up to 40% of productive mental capacity every hour.</p>
+          <div class="stressor-card-content">
+            <h3>Context Switching</h3>
+            <p>Jumping between Slack, IDEs, and browser tabs drains up to 40% of productive mental bandwidth every hour.</p>
+          </div>
         </div>
 
-        <div class="stressor-card">
-          <div class="stressor-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
+        <!-- Card 2: Workspace Noise -->
+        <div class="media-card">
+          <div class="media-card-img-wrapper">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80" alt="Workspace Noise - Open Office" loading="lazy">
           </div>
-          <h3>Workspace Noise</h3>
-          <p>Subtle ambient decibels trigger micro-cortisol spikes that erode deep work flow states silently.</p>
+          <div class="stressor-card-content">
+            <h3>Workspace Noise</h3>
+            <p>Ambient decibel spikes induce background cortisol release, silently breaking deep work flow states.</p>
+          </div>
         </div>
 
-        <div class="stressor-card">
-          <div class="stressor-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
+        <!-- Card 3: Micro-Interrupts -->
+        <div class="media-card">
+          <div class="media-card-img-wrapper">
+            <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80" alt="Micro-Interrupts - Phone Notifications" loading="lazy">
           </div>
-          <h3>Micro-Interrupts</h3>
-          <p>Notifications under 5 seconds long add invisible cognitive drag, requiring 23 minutes to fully refocus.</p>
+          <div class="stressor-card-content">
+            <h3>Micro-Interrupts</h3>
+            <p>Rapid notifications under 5 seconds create subtle cognitive debt, taking up to 23 minutes to refocus.</p>
+          </div>
         </div>
 
-        <div class="stressor-card">
-          <div class="stressor-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
+        <!-- Card 4: Task Overload -->
+        <div class="media-card">
+          <div class="media-card-img-wrapper">
+            <img src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=600&q=80" alt="Task Overload - Busy Desk" loading="lazy">
           </div>
-          <h3>Task Overload</h3>
-          <p>Carrying unprioritized backlogs in active memory induces sustained low-grade panic and mental fatigue.</p>
+          <div class="stressor-card-content">
+            <h3>Task Overload</h3>
+            <p>Unstructured task backlogs clog working memory, causing sustained low-grade fatigue and paralysis.</p>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Inside StressCalc 2x2 Feature Grid -->
+    <!-- Inside StressCalc 2x2 Feature Grid (Video/Image Driven) -->
     <section id="features" class="section-padding container text-center">
       <h2 class="section-title">Your system for cognitive clarity.</h2>
-      <p class="section-subtitle">Real-time telemetry and metabolic-style tracking for your daily attention span.</p>
+      <p class="section-subtitle">Real-time telemetry and metabolic-style tracking for high-performance work.</p>
 
       <div class="feature-grid">
-        <div class="feature-card">
-          <div>
-            <div class="feature-tag">Telemetry</div>
+        <!-- Feature Card 1: Environment Scoring -->
+        <div class="feature-media-card">
+          <div class="feature-media-wrapper">
+            <video autoplay loop muted playsinline poster="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80">
+              <source src="https://assets.mixkit.co/videos/preview/mixkit-developer-working-on-code-41551-large.mp4" type="video/mp4">
+              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="Environment Scoring Telemetry">
+            </video>
+          </div>
+          <div class="feature-body">
+            <div class="feature-tag">Telemetry Engine</div>
             <h3>Environment Scoring</h3>
-            <p>Continuous telemetry combines ambient acoustic levels, tab density, and task complexity into a single live baseline index.</p>
-          </div>
-          <div class="feature-metric-preview">
-            <span>Environment Score</span>
-            <span class="metric-val mono">92 / 100</span>
+            <p>Continuous telemetry combines ambient acoustic levels, tab density, and task complexity into a live focus baseline.</p>
           </div>
         </div>
 
-        <div class="feature-card">
-          <div>
-            <div class="feature-tag">Analytics</div>
+        <!-- Feature Card 2: Context Switch Tracker -->
+        <div class="feature-media-card">
+          <div class="feature-media-wrapper">
+            <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Context Switch Analytics" loading="lazy">
+          </div>
+          <div class="feature-body">
+            <div class="feature-tag">Real-Time Telemetry</div>
             <h3>Context Switch Tracker</h3>
-            <p>Automatically logs every tab swap, window focus change, and app jump to quantify your distraction surface area.</p>
-          </div>
-          <div class="feature-metric-preview">
-            <span>Switches Today</span>
-            <span class="metric-val mono">14 Switches/hr</span>
+            <p>Automatically logs every window swap, app change, and notification jump to measure mental distraction area.</p>
           </div>
         </div>
 
-        <div class="feature-card">
-          <div>
-            <div class="feature-tag">Protection</div>
+        <!-- Feature Card 3: Real-Time Triage -->
+        <div class="feature-media-card">
+          <div class="feature-media-wrapper">
+            <video autoplay loop muted playsinline poster="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80">
+              <source src="https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-a-laptop-keyboard-41549-large.mp4" type="video/mp4">
+              <img src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80" alt="Real-Time Triage Focus Shield">
+            </video>
+          </div>
+          <div class="feature-body">
+            <div class="feature-tag">Shield Protocol</div>
             <h3>Real-Time Triage</h3>
-            <p>Dynamic shields automatically silence non-critical notifications when your cognitive load crosses high-stress thresholds.</p>
-          </div>
-          <div class="feature-metric-preview">
-            <span>Shield Status</span>
-            <span class="metric-val mono" style="color: var(--accent);">Active</span>
+            <p>Dynamic shields automatically suppress low-priority alerts when cognitive friction crosses peak stress thresholds.</p>
           </div>
         </div>
 
-        <div class="feature-card">
-          <div>
-            <div class="feature-tag">Optimization</div>
-            <h3>Bandwidth Analytics</h3>
-            <p>Longitudinal trends reveal your peak focus hours and optimal sprint lengths so you can schedule high-impact work effortlessly.</p>
+        <!-- Feature Card 4: Bandwidth Analytics -->
+        <div class="feature-media-card">
+          <div class="feature-media-wrapper">
+            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80" alt="Bandwidth Analytics Data" loading="lazy">
           </div>
-          <div class="feature-metric-preview">
-            <span>Peak Bandwidth</span>
-            <span class="metric-val mono">09:00 - 11:30 AM</span>
+          <div class="feature-body">
+            <div class="feature-tag">Biometric Analytics</div>
+            <h3>Bandwidth Analytics</h3>
+            <p>Longitudinal metrics uncover your daily peak focus windows so you schedule demanding tasks with precision.</p>
           </div>
         </div>
       </div>
@@ -206,75 +200,37 @@
     <!-- Data Integration Split-Screen Section -->
     <section class="section-padding container">
       <div class="split-container">
-        <!-- Left Column -->
+        <!-- Left Text -->
         <div class="split-left">
           <div class="pill-badge" style="margin-bottom: 1rem;">
-            <span>Real-time Dashboard</span>
+            <span>Interactive Telemetry</span>
           </div>
           <h2>Bring your workday into focus.</h2>
           <p>
-            Just like biometric monitoring revolutionizes physical health, StressCalculator gives you clear, actionable metrics for your mental energy. Monitor your daily stress score, protect your focus windows, and avoid burnout before it strikes.
+            Just like biometric monitoring revolutionized physical fitness, StressCalculator gives you quantitative visibility into mental energy. Track daily stress spikes, protect focus windows, and prevent burnout long before it occurs.
           </p>
-
-          <div class="split-features">
-            <div class="split-feature-item">
-              <div class="check-icon">✓</div>
-              <div>
-                <strong>Live Stress Level Dial:</strong> Instant visual feedback on cognitive friction.
-              </div>
+          <div style="display: flex; gap: 1.5rem; margin-top: 1.5rem;">
+            <div>
+              <strong style="font-size: 1.5rem;" class="mono gradient-text">88/100</strong>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">Avg. Focus Index</div>
             </div>
-            <div class="split-feature-item">
-              <div class="check-icon">✓</div>
-              <div>
-                <strong>Predictive Fatigue Warning:</strong> Get alerted before cognitive collapse hits.
-              </div>
-            </div>
-            <div class="split-feature-item">
-              <div class="check-icon">✓</div>
-              <div>
-                <strong>Automated Recovery Protocols:</strong> Guided 3-minute breathwork & context resets.
-              </div>
+            <div>
+              <strong style="font-size: 1.5rem;" class="mono gradient-text">78%</strong>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">Bandwidth Preserved</div>
             </div>
           </div>
         </div>
 
-        <!-- Right Column: Glassmorphism Interactive Preview -->
+        <!-- Right Media Container -->
         <div class="split-right">
-          <div class="dashboard-preview">
-            <div class="dashboard-header">
-              <div class="dash-user">
-                <div class="dash-avatar">SC</div>
-                <div>
-                  <strong>Live Bandwidth Monitor</strong>
-                  <div class="dash-status">● Continuous Syncing</div>
-                </div>
+          <div class="split-right-media">
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80" alt="StressCalculator App Dashboard Preview">
+            <div class="dashboard-badge-overlay">
+              <div>
+                <strong style="font-size: 0.95rem;">Live Dashboard Telemetry</strong>
+                <div style="font-size: 0.8rem; color: var(--accent);">● Real-Time Sync Active</div>
               </div>
-              <div class="pill-badge mono" style="font-size: 0.75rem;">LOW STRESS</div>
-            </div>
-
-            <div class="dash-stats-row">
-              <div class="dash-stat-box">
-                <span>Cognitive Load</span>
-                <strong class="mono">24%</strong>
-              </div>
-              <div class="dash-stat-box">
-                <span>Focus Score</span>
-                <strong class="mono">88/100</strong>
-              </div>
-              <div class="dash-stat-box">
-                <span>Noise Level</span>
-                <strong class="mono">32 dB</strong>
-              </div>
-            </div>
-
-            <div class="bandwidth-bar-container">
-              <div class="bar-label">
-                <span>Daily Cognitive Bandwidth Remaining</span>
-                <span class="mono">78%</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill"></div>
-              </div>
+              <div class="pill-badge mono" style="font-size: 0.8rem;">OPTIMAL BANDWIDTH</div>
             </div>
           </div>
         </div>
@@ -284,14 +240,14 @@
     <!-- Pricing Section -->
     <section id="pricing" class="section-padding container text-center">
       <h2 class="section-title">Choose your path to mental clarity.</h2>
-      <p class="section-subtitle">Transparent pricing designed for individuals and high-performance teams.</p>
+      <p class="section-subtitle">Flexible plans for individuals and high-performance engineering teams.</p>
 
       <div class="pricing-grid">
         <!-- Card 1 (Basic) -->
         <div class="pricing-card">
           <div>
             <div class="price-title">Core Tracker</div>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Essential monitoring for personal work routine.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Essential focus logging for personal work.</p>
             <div class="price-amount">
               Free <span class="price-period">forever</span>
             </div>
@@ -311,7 +267,7 @@
           <div>
             <div class="price-title gradient-text">StressCalc Pro</div>
             <span class="pill-badge" style="margin-bottom: 0.5rem; font-size: 0.75rem;">Coming Soon</span>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Full quantified cognitive system for peak productivity.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Complete quantified cognitive platform.</p>
             <div class="price-amount">
               250 BDT <span class="price-period">/ month</span>
             </div>
@@ -319,8 +275,8 @@
               <li>✓ Everything in Core Tracker</li>
               <li>✓ Unlimited Bandwidth Analytics</li>
               <li>✓ Automated Notification Triage</li>
-              <li>✓ AI Predictive Fatigue Alerts</li>
-              <li>✓ Unlimited Data History & Export</li>
+              <li>✓ AI Fatigue Risk Alerts</li>
+              <li>✓ Export Telemetry & Integrations</li>
             </ul>
           </div>
           <a href="#" class="btn btn-primary" style="width: 100%;">Upgrade to Pro</a>

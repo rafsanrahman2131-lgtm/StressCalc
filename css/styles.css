@@ -1,6 +1,6 @@
 /* ==========================================
-   StressCalculator Design System & Stylesheet
-   Levels.com "Quantified Self" Theme Engine
+   StressCalculator Refactored Stylesheet
+   Levels.com "Quantified Self" Design System
    ========================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
@@ -78,7 +78,7 @@ html[data-theme="contrast"] {
   --badge-text: #000000;
 }
 
-/* --- Universal Reset & Transitions --- */
+/* --- Universal Reset & Smoothness --- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -106,7 +106,7 @@ a {
   text-decoration: none;
 }
 
-/* --- Utility Typography & Layout --- */
+/* --- Utility Classes --- */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -136,7 +136,6 @@ a {
   background-color: var(--badge-bg);
   color: var(--badge-text);
   border: 1px solid var(--border-color);
-  letter-spacing: 0.02em;
 }
 
 .badge-dot {
@@ -299,7 +298,6 @@ html[data-theme="contrast"] .logo-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
 }
 
 .theme-btn:hover {
@@ -315,13 +313,12 @@ html[data-theme="contrast"] .logo-icon {
 /* --- Hero Section --- */
 .hero {
   padding-top: 10rem;
-  padding-bottom: 5rem;
+  padding-bottom: 4rem;
   text-align: center;
-  position: relative;
 }
 
 .hero-content {
-  max-width: 820px;
+  max-width: 840px;
   margin: 0 auto;
 }
 
@@ -338,7 +335,7 @@ html[data-theme="contrast"] .logo-icon {
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 2.5rem;
-  max-width: 720px;
+  max-width: 740px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -352,21 +349,39 @@ html[data-theme="contrast"] .logo-icon {
   flex-wrap: wrap;
 }
 
-.social-proof {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  padding: 0.5rem 1.25rem;
-  background: var(--surface);
-  border: 1px solid var(--border-color);
-  border-radius: 9999px;
+/* --- Media Formatting System --- */
+.media-card {
+  overflow: hidden;
+  border-radius: 16px;
+  background-color: var(--surface);
+  border: var(--card-border-width) solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
 }
 
-/* --- Sneaky Stressors Section --- */
+.media-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-hover);
+}
+
+.media-card-img-wrapper {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+}
+
+.media-card img, 
+.media-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- Sneaky Stressors Section (Media-Driven) --- */
 .section-title {
   font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
@@ -383,52 +398,28 @@ html[data-theme="contrast"] .logo-icon {
 
 .stressors-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.5rem;
 }
 
-.stressor-card {
-  background-color: var(--surface);
-  border: var(--card-border-width) solid var(--border-color);
-  border-radius: 20px;
-  padding: 2rem 1.5rem;
+.stressor-card-content {
+  padding: 1.5rem;
   text-align: left;
-  box-shadow: var(--card-shadow);
-  position: relative;
-  overflow: hidden;
 }
 
-.stressor-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-highlight);
-}
-
-.stressor-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background-color: var(--accent-light);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.stressor-card h3 {
-  font-size: 1.2rem;
+.stressor-card-content h3 {
+  font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
-.stressor-card p {
+.stressor-card-content p {
   color: var(--text-secondary);
-  font-size: 0.925rem;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 
-/* --- 2x2 Feature Grid --- */
+/* --- Inside StressCalc 2x2 Feature Grid (Video/Image Driven) --- */
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -441,20 +432,40 @@ html[data-theme="contrast"] .logo-icon {
   }
 }
 
-.feature-card {
+.feature-media-card {
+  overflow: hidden;
+  border-radius: 16px;
   background-color: var(--surface);
   border: var(--card-border-width) solid var(--border-color);
-  border-radius: 24px;
-  padding: 2.5rem;
   box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
-.feature-card:hover {
+.feature-media-card:hover {
   border-color: var(--accent);
   box-shadow: var(--shadow-hover);
+}
+
+.feature-media-wrapper {
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--bg-secondary);
+}
+
+.feature-media-wrapper img, 
+.feature-media-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.feature-body {
+  padding: 2rem;
+  text-align: left;
 }
 
 .feature-tag {
@@ -463,39 +474,22 @@ html[data-theme="contrast"] .logo-icon {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
-.feature-card h3 {
-  font-size: 1.5rem;
+.feature-body h3 {
+  font-size: 1.35rem;
   font-weight: 800;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
-.feature-card p {
+.feature-body p {
   color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-.feature-metric-preview {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.metric-val {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--accent);
-}
-
-/* --- Split Screen Section --- */
+/* --- Data Integration Split-Screen Section --- */
 .split-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -523,127 +517,38 @@ html[data-theme="contrast"] .logo-icon {
   margin-bottom: 2rem;
 }
 
-.split-features {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.split-feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.check-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: var(--accent-light);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-/* Glassmorphism Dashboard Preview */
-.dashboard-preview {
-  background-color: var(--surface);
+.split-right-media {
+  overflow: hidden;
+  border-radius: 16px;
   border: var(--card-border-width) solid var(--border-color);
-  border-radius: 28px;
-  padding: 2rem;
   box-shadow: var(--card-shadow);
-  backdrop-filter: blur(12px);
+  height: 380px;
   position: relative;
 }
 
-.dashboard-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.dash-user {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.dash-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: #FFFFFF;
-}
-
-.dash-status {
-  font-size: 0.8rem;
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.dash-stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.dash-stat-box {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  padding: 1rem;
-  border-radius: 16px;
-  text-align: center;
-}
-
-.dash-stat-box span {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.dash-stat-box strong {
-  font-size: 1.25rem;
-  font-weight: 800;
-}
-
-.bandwidth-bar-container {
-  margin-top: 1rem;
-}
-
-.bar-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.progress-track {
-  height: 10px;
-  background: var(--bg-secondary);
-  border-radius: 9999px;
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-}
-
-.progress-fill {
+.split-right-media img, 
+.split-right-media video {
+  width: 100%;
   height: 100%;
-  width: 78%;
-  background: var(--accent-gradient);
-  border-radius: 9999px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Overlay Stats Badge on Dashboard Image */
+.dashboard-badge-overlay {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* --- Pricing Section --- */
@@ -665,7 +570,7 @@ html[data-theme="contrast"] .logo-icon {
   flex: 1;
   background-color: var(--surface);
   border: var(--card-border-width) solid var(--border-color);
-  border-radius: 28px;
+  border-radius: 24px;
   padding: 2.5rem;
   box-shadow: var(--card-shadow);
   display: flex;
@@ -727,6 +632,7 @@ html[data-theme="contrast"] .badge-featured {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  text-align: left;
 }
 
 .price-features li {

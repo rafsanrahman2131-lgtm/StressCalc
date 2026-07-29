@@ -1,6 +1,6 @@
 /* ==========================================
    StressCalculator Application Logic
-   Theme Engine & Interactive Features
+   Refactored 3-Tier Theme Switcher
    ========================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('stresscalc_theme') || 'light';
   setTheme(savedTheme);
 
-  // 2. Add Click Listeners to Theme Toggle Buttons
+  // 2. Add Click Listeners to Theme Toggle UI Buttons
   themeButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const selectedTheme = btn.getAttribute('data-set-theme');
@@ -23,18 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Function to apply theme and persist in localStorage
   function setTheme(theme) {
-    // Valid options: 'light', 'dark', 'contrast'
     if (!['light', 'dark', 'contrast'].includes(theme)) {
       theme = 'light';
     }
 
-    // Set data-theme attribute on <html>
+    // Update data-theme attribute on <html>
     htmlElement.setAttribute('data-theme', theme);
 
-    // Save to localStorage
+    // Save user preference
     localStorage.setItem('stresscalc_theme', theme);
 
-    // Update UI active state on buttons
+    // Toggle active state class on buttons
     themeButtons.forEach((btn) => {
       if (btn.getAttribute('data-set-theme') === theme) {
         btn.classList.add('active');
@@ -44,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Smooth scroll helper for anchor links
+  // Smooth Scrolling for Navigation Links
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       e.preventDefault();
