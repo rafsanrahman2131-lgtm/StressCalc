@@ -1,0 +1,6 @@
+com\stresscalc\controller\ViewController.class
+com\stresscalc\controller\AuthController.class
+com\stresscalc\StressCalculatorApplication.class
+com\stresscalc\model\TelemetryLog.class
+com\stresscalc\repository\UserRepository.class
+com\stresscalc\model\User.class

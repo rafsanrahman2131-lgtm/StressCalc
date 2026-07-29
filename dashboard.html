@@ -8,6 +8,9 @@
     <!-- Link to global styles for theme variables -->
     <link rel="stylesheet" href="css/styles.css">
     
+    <!-- Include Chart.js Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         /* Dashboard Specific Layout */
         body {
@@ -113,15 +116,15 @@
         .pulse-dot {
             width: 8px;
             height: 8px;
-            background-color: var(--accent, #10B981);
+            background-color: #22c55e;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
 
         /* Grid Layouts */
@@ -160,18 +163,23 @@
         .metric-sub {
             font-size: 0.85rem;
             margin-top: 0.5rem;
-            color: var(--accent, #10B981);
+            color: #22c55e;
             font-weight: 600;
         }
 
         /* Chart Area */
         .chart-panel {
-            height: 300px;
+            height: 320px;
             margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
+            position: relative;
+            padding: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 30px);
         }
 
         /* Lower Grid */
@@ -218,8 +226,8 @@
         }
 
         .theme-btn-dash:hover {
-            border-color: var(--accent);
-            color: var(--accent);
+            border-color: #22c55e;
+            color: #22c55e;
         }
     </style>
 </head>
@@ -228,7 +236,7 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
         <div class="logo">
-            <div class="logo-icon" style="width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem;">SC</div>
+            <div class="logo-icon" style="width: 28px; height: 28px; background: #22c55e; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem;">SC</div>
             <span>Stress<span class="gradient-text">Calc</span></span>
         </div>
         <ul class="nav-menu">
@@ -262,31 +270,30 @@
         <div class="metrics-grid">
             <div class="glass-card">
                 <div class="metric-title">Cognitive Bandwidth</div>
-                <div class="metric-value gradient-text">78%</div>
+                <div class="metric-value gradient-text" id="val-bandwidth">78%</div>
                 <div class="metric-sub">Optimal capacity</div>
             </div>
             <div class="glass-card">
                 <div class="metric-title">Context Switches</div>
-                <div class="metric-value">14</div>
+                <div class="metric-value" id="val-switches">14</div>
                 <div class="metric-sub" style="color: #ef4444;">Warning: +4 vs Baseline</div>
             </div>
             <div class="glass-card">
                 <div class="metric-title">Focus Index</div>
-                <div class="metric-value">8.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
+                <div class="metric-value" id="val-focus">8.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
                 <div class="metric-sub">Sustained Flow State</div>
             </div>
         </div>
 
-        <!-- Main Chart Panel -->
+        <!-- Main Live Chart.js Panel -->
         <div class="glass-card chart-panel">
-            <div style="opacity: 0.6; margin-bottom: 1rem; font-weight: 700; font-size: 0.9rem;" class="mono">[ Cognitive Load vs Time Telemetry Chart ]</div>
-            <div style="width: 90%; height: 65%; border-bottom: 1px solid var(--border-color); border-left: 1px solid var(--border-color); position: relative; opacity: 0.85;">
-                <!-- Mock SVG telemetry graph -->
-                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <polyline points="0,80 20,60 40,75 60,30 80,45 100,20" fill="none" stroke="var(--accent)" stroke-width="2.5" />
-                    <circle cx="60" cy="30" r="3" fill="var(--accent)" />
-                    <circle cx="100" cy="20" r="3" fill="var(--accent)" />
-                </svg>
+            <div style="opacity: 0.8; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>Cognitive Load vs Time Telemetry</span>
+                <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">● Live Stream</span>
+            </div>
+            <div class="chart-wrapper">
+                <!-- Live Chart.js Canvas Tag replacing the static SVG placeholder -->
+                <canvas id="telemetryChart"></canvas>
             </div>
         </div>
 
@@ -297,11 +304,11 @@
                 <div style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
                     <div>
                         <div class="metric-title">Ambient Noise</div>
-                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono">45 dB</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono" id="val-noise">45 dB</div>
                     </div>
                     <div>
                         <div class="metric-title">Tab Density</div>
-                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono">8 open</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono" id="val-tabs">8 open</div>
                     </div>
                 </div>
             </div>
@@ -317,21 +324,142 @@
         </div>
     </main>
 
-    <!-- Script for Theme Engine Integration & Persistence -->
+    <!-- Chart.js Async Fetch & Theme Toggle Logic -->
     <script>
-        // Load saved theme on initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('stresscalc_theme') || 'dark';
-            setTheme(savedTheme);
-        });
+        let telemetryChart = null;
 
+        // 1. ASYNC CHART.JS DATA FETCH & RENDER FUNCTION
+        async function loadChartData() {
+            try {
+                const response = await fetch('/api/telemetry-data');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Extract timestamps for X-axis labels (HH:MM)
+                const labels = data.map(item => item.timestamp);
+                
+                // Extract focus_index for Y-axis data points
+                const focusData = data.map(item => item.focus_index);
+
+                // Update metric card values dynamically from the latest log entry
+                if (data.length > 0) {
+                    const latest = data[data.length - 1];
+                    if (latest.bandwidth_percent) document.getElementById('val-bandwidth').textContent = `${latest.bandwidth_percent}%`;
+                    if (latest.focus_index) document.getElementById('val-focus').innerHTML = `${latest.focus_index}<span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
+                    if (latest.ambient_noise_db) document.getElementById('val-noise').textContent = `${latest.ambient_noise_db} dB`;
+                    if (latest.tab_density) document.getElementById('val-tabs').textContent = `${latest.tab_density} open`;
+                }
+
+                // Render Chart.js Line Graph
+                const ctx = document.getElementById('telemetryChart').getContext('2d');
+                
+                if (telemetryChart) {
+                    telemetryChart.destroy(); // Prevent memory leaks on re-renders
+                }
+
+                telemetryChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Focus Index',
+                            data: focusData,
+                            borderColor: '#22c55e', // Neon green border
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)', // Semi-transparent green fill
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.4, // Smooth curved line
+                            pointBackgroundColor: '#22c55e',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 1.5,
+                            pointRadius: 4,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false // Minimal UI - no legend
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: 'Inter', size: 12 },
+                                bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
+                                padding: 12,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Focus Score: ${context.parsed.y} / 10`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)', // Dark gridlines
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    font: { family: 'Inter', size: 11 }
+                                }
+                            },
+                            y: {
+                                min: 0,
+                                max: 10,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)', // Dark gridlines
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    font: { family: 'Inter', size: 11 },
+                                    stepSize: 2
+                                }
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Failed to load telemetry chart data:", error);
+            }
+        }
+
+        // 2. THEME ENGINE TOGGLE LOGIC
         function setTheme(theme) {
             if (!['light', 'dark', 'contrast'].includes(theme)) {
                 theme = 'dark';
             }
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('stresscalc_theme', theme);
+
+            // Redraw chart gridlines dynamically on theme change if chart exists
+            if (telemetryChart) {
+                const isLight = theme === 'light';
+                const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)';
+                const tickColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.6)';
+                
+                telemetryChart.options.scales.x.grid.color = gridColor;
+                telemetryChart.options.scales.x.ticks.color = tickColor;
+                telemetryChart.options.scales.y.grid.color = gridColor;
+                telemetryChart.options.scales.y.ticks.color = tickColor;
+                telemetryChart.update();
+            }
         }
+
+        // Initialize theme and load chart data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('stresscalc_theme') || 'dark';
+            setTheme(savedTheme);
+            loadChartData();
+        });
     </script>
 </body>
 </html>
