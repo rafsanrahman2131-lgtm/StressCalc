@@ -79,8 +79,8 @@
                     <h2 id="form-title" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;">Welcome back</h2>
                     <p class="auth-subtext" id="form-subtitle" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Enter your credentials to access your telemetry dashboard.</p>
 
-                    <!-- LOGIN FORM (Connected to live Render Java backend) -->
-                    <form id="form-login" action="https://stresscalc.onrender.com/login" method="POST" style="display: block;">
+                    <!-- LOGIN FORM (Connected to live Alwaysdata Java backend) -->
+                    <form id="form-login" action="http://stresscalcu.alwaysdata.net/login" method="POST" style="display: block;">
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
                             <input type="email" id="loginEmail" name="loginEmail" placeholder="you@domain.com" required>
@@ -95,8 +95,8 @@
                         <button type="submit" class="btn btn-primary btn-full">Enter Dashboard</button>
                     </form>
 
-                    <!-- SIGNUP FORM (Connected to live Render Java backend) -->
-                    <form id="form-signup" action="https://stresscalc.onrender.com/register" method="POST" style="display: none;">
+                    <!-- SIGNUP FORM (Connected to live Alwaysdata Java backend) -->
+                    <form id="form-signup" action="http://stresscalcu.alwaysdata.net/register" method="POST" style="display: none;">
                         <div class="form-group">
                             <label for="regName">Full Name</label>
                             <input type="text" id="regName" name="regName" placeholder="Your Name" required>
@@ -140,9 +140,7 @@
     </div>
 
     <script src="js/app.js"></script>
-    <!-- Unified Script: Tabs + JIT Carousel + Dynamic 50 Texts -->
     <script>
-        // TAB SWITCHING LOGIC
         function switchTab(tab) {
             const loginForm = document.getElementById('form-login');
             const signupForm = document.getElementById('form-signup');
@@ -168,48 +166,45 @@
             }
         }
 
-        // CAROUSEL & TEXT LOGIC
         document.addEventListener('DOMContentLoaded', () => {
             const carouselContainer = document.getElementById('dynamic-carousel');
             const overlay = document.querySelector('.auth-quote-overlay');
             const quoteEl = document.getElementById('dynamic-quote');
             const authorEl = document.getElementById('dynamic-author');
             
-            // 30 Images curated for Mental Health, Calm, Mindfulness, and Cognitive Recovery
             const photoIDs = [
-                "1518147895015-4dcfa84be013", // Zen stones/balance
-                "1528319725582-ddc096101511", // Calm person meditating
-                "1499209974431-9cbcece7f88d", // Peaceful mountain lake
-                "1506126613408-eca07ce68773", // Relaxing tea/calm setting
-                "1475924156734-496f6cac6ec1", // Nature walk/breathe
-                "1447452001602-7090c7ab2db3", // Serene forest light
-                "1508672019048-805c876b67e2", // Smooth water ripples
-                "1469474968028-56623f02e42e", // Person looking at peaceful view
-                "1434030216411-0b793f4b4273", // Mist over calm water
-                "1515023115689-589c33041d3c", // Yoga/stretching silhouette
-                "1515377905703-c4788e51af15", // Peaceful morning sunlight
-                "1529333166437-7750a6dd5a70", // Minimalist calm interior
-                "1493721515592-225381cd09fa", // Abstract smooth waves
-                "1446071103084-c257b5f70672", // Deep breathing in nature
-                "1505684617551-92be098e9a65", // Calm beach walk
-                "1536622204-7407a9e3fc15", // Sun rays through trees
-                "1464822759023-fed622ff2c3b", // Peaceful mountains
-                "1445462529983-5596cb10eecc", // Autumn leaves calm
-                "1512411993460-e883e05a8f9c", // Minimalist sky and clouds
-                "1470724610486-1d37b7ce7009", // Rain drops on window (calming)
-                "1498661726053-eb3e9db29986", // Flowing stream
-                "1519681393608-41078f40c115", // Mindfulness space
-                "1495954484750-af469f2f9be5", // Open expansive landscape
-                "1494587351196-bbf5f29cff42", // Gentle ocean waves
-                "1507281736553-f4226b9fbb66", // Person resting outdoors
-                "1499209974431-9cbcece7f88d", // Quiet reflection
-                "1522204523171-d6152a5dc837", // Soft abstract textures
-                "1511216113886-f3089d1b6a37", // Botanical/plant close up
-                "1472214103451-9374bd1c798e", // Serene sunset
-                "1532453288672-3a27e9be9efd"  // Calming atmospheric light
+                "1518147895015-4dcfa84be013",
+                "1528319725582-ddc096101511",
+                "1499209974431-9cbcece7f88d",
+                "1506126613408-eca07ce68773",
+                "1475924156734-496f6cac6ec1",
+                "1447452001602-7090c7ab2db3",
+                "1508672019048-805c876b67e2",
+                "1469474968028-56623f02e42e",
+                "1434030216411-0b793f4b4273",
+                "1515023115689-589c33041d3c",
+                "1515377905703-c4788e51af15",
+                "1529333166437-7750a6dd5a70",
+                "1493721515592-225381cd09fa",
+                "1446071103084-c257b5f70672",
+                "1505684617551-92be098e9a65",
+                "1536622204-7407a9e3fc15",
+                "1464822759023-fed622ff2c3b",
+                "1445462529983-5596cb10eecc",
+                "1512411993460-e883e05a8f9c",
+                "1470724610486-1d37b7ce7009",
+                "1498661726053-eb3e9db29986",
+                "1519681393608-41078f40c115",
+                "1495954484750-af469f2f9be5",
+                "1494587351196-bbf5f29cff42",
+                "1507281736553-f4226b9fbb66",
+                "1499209974431-9cbcece7f88d",
+                "1522204523171-d6152a5dc837",
+                "1511216113886-f3089d1b6a37",
+                "1472214103451-9374bd1c798e",
+                "1532453288672-3a27e9be9efd"
             ];
 
-            // 50 Unique Texts about Focus, Stress, and Cognitive Load
             const texts = [
                 "Context switching isn't free—it charges a heavy tax on working memory.",
                 "Protect your cognitive bandwidth like your most precious metabolic asset.",
@@ -267,22 +262,20 @@
             let textIndex = 0;
             let currentSlideEl = null;
 
-            // 1. STRICT PRELOAD FOR THE FIRST IMAGE
             function loadInitialImage(index) {
                 const initImg = new Image();
                 
                 initImg.onload = () => {
                     initImg.className = 'auth-slide';
                     carouselContainer.insertBefore(initImg, overlay);
-                    void initImg.offsetWidth; // Trigger browser reflow
-                    initImg.classList.add('active'); // Fade it in smoothly
+                    void initImg.offsetWidth;
+                    initImg.classList.add('active');
                     currentSlideEl = initImg;
                     
                     startCarousel();
                 };
                 
                 initImg.onerror = () => {
-                    console.warn(`Initial image failed to load. Skipping to next image.`);
                     currentIndex = (index + 1) % photoIDs.length;
                     loadInitialImage(currentIndex); 
                 };
@@ -290,7 +283,6 @@
                 initImg.src = `https://images.unsplash.com/photo-${photoIDs[index]}?auto=format&fit=crop&w=1200&q=80`;
             }
 
-            // 2. CAROUSEL INTERVAL LOGIC
             function startCarousel() {
                 setInterval(() => {
                     const nextIndex = (currentIndex + 1) % photoIDs.length;
@@ -310,7 +302,6 @@
                             }, 1500);
                         }
                         
-                        // TEXT CROSSFADE LOGIC
                         quoteEl.style.opacity = 0;
                         authorEl.style.opacity = 0;
                         
