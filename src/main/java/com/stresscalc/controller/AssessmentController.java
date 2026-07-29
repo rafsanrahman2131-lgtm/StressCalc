@@ -164,6 +164,9 @@ public class AssessmentController {
             int accuracy = payload.containsKey("accuracy") ? ((Number) payload.get("accuracy")).intValue() : 90;
             int errorRatePercent = Math.max(0, 100 - accuracy);
 
+            int noiseDb = payload.containsKey("ambientNoiseDb") ? ((Number) payload.get("ambientNoiseDb")).intValue() : (38 + (int)(Math.random() * 25));
+            int tabCount = payload.containsKey("tabDensity") ? ((Number) payload.get("tabDensity")).intValue() : (4 + (int)(Math.random() * 12));
+
             // AUTHORITATIVE FORMULA CALCULATION:
             // 1. Subjective Overwhelm normalized to 100-point scale
             double overwhelm100 = overwhelm * 10.0;
@@ -222,8 +225,8 @@ public class AssessmentController {
             log.setCognitiveBandwidth(predictedBandwidth);
             log.setContextSwitches(10 + (int)(Math.random() * 5));
             log.setFocusIndex(BigDecimal.valueOf(predictedFocus).setScale(1, RoundingMode.HALF_UP));
-            log.setAmbientNoiseDb(42 + (int)(Math.random() * 8));
-            log.setTabDensity(6);
+            log.setAmbientNoiseDb(noiseDb);
+            log.setTabDensity(tabCount);
             log.setLogTimestamp(localNow);
             
             telemetryRepository.save(log);
