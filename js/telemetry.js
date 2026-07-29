@@ -1,9 +1,11 @@
 /**
  * StressCalculator — Behavioral Telemetry Engine
- * Features:
- * 1. Web Audio API Auto-Resume & Continuous Microphone Tracking (Fixes audioContext suspension freeze)
- * 2. Dynamic Real-Time Recent Stressors Event Logger
- * 3. Tab & Context Switch Live Engine
+ * Precise Event Categorization:
+ * - "Tab Switched"
+ * - "Tab Minimized"
+ * - "Tab Restored"
+ * - "Acoustic Noise Spike"
+ * - "Erratic Motion Tremor"
  */
 
 class TelemetryEngine {
@@ -36,14 +38,14 @@ class TelemetryEngine {
         // 1. Initialize Real Microphone Audio Decibel Tracking
         this.initRealMicrophoneAudio();
 
-        // 2. Resume AudioContext on any page click/keypress to prevent browser suspension
+        // 2. Resume AudioContext on user interaction
         window.addEventListener('click', () => this.resumeAudio());
         window.addEventListener('keydown', () => this.resumeAudio());
 
         // 3. Initial Stressor Log item
         this.logStressorEvent("System Initialized", "Telemetry Engine active");
 
-        // 4. Continuous 1-second Loop (ALWAYS RUNS 100% OF THE TIME)
+        // 4. Continuous 1-second Loop
         setInterval(() => {
             if (this.state.isFocused) {
                 this.state.uninterruptedSeconds++;
@@ -69,27 +71,51 @@ class TelemetryEngine {
             }
         }, 1000);
 
-        // 5. Window Focus & Blur Listeners
-        window.addEventListener('blur', () => {
-            this.state.isFocused = false;
-            this.state.contextSwitches++;
-            this.state.recentSwitches++;
-            
+        // 5. Visibility Change Listener (Tab Minimized vs Tab Switched)
+        document.addEventListener('visibilitychange', () => {
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            this.logStressorEvent(timeStr, `IDE to Browser Switch (#${this.state.contextSwitches})`);
+
+            if (document.hidden) {
+                this.state.isFocused = false;
+                this.state.contextSwitches++;
+                this.state.recentSwitches++;
+                this.logStressorEvent(timeStr, `Tab Minimized (#${this.state.contextSwitches})`);
+            } else {
+                this.state.isFocused = true;
+                this.resumeAudio();
+                this.logStressorEvent(timeStr, "Tab Restored");
+            }
 
             this.updateDerivedMetrics();
             this.updateDashboardUI();
+        });
+
+        // 6. Window Blur & Focus Event Listeners (Window Context Switches)
+        window.addEventListener('blur', () => {
+            // Only log Tab Switched if document visibility didn't already trigger Tab Minimized
+            if (!document.hidden && this.state.isFocused) {
+                this.state.isFocused = false;
+                this.state.contextSwitches++;
+                this.state.recentSwitches++;
+                
+                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                this.logStressorEvent(timeStr, `Tab Switched (#${this.state.contextSwitches})`);
+
+                this.updateDerivedMetrics();
+                this.updateDashboardUI();
+            }
         });
 
         window.addEventListener('focus', () => {
-            this.state.isFocused = true;
-            this.resumeAudio();
-            this.updateDerivedMetrics();
-            this.updateDashboardUI();
+            if (!this.state.isFocused) {
+                this.state.isFocused = true;
+                this.resumeAudio();
+                this.updateDerivedMetrics();
+                this.updateDashboardUI();
+            }
         });
 
-        // 6. Continuous Mouse Movement Listener
+        // 7. Continuous Mouse Movement Listener
         window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
 
         this.updateDerivedMetrics();
@@ -119,7 +145,7 @@ class TelemetryEngine {
                 console.log("Real Microphone Audio Telemetry connected!");
             }
         } catch (err) {
-            console.warn("Microphone access pending/denied, using acoustic variance fallback:", err.message);
+            console.warn("Microphone access pending/denied, using acoustic fallback:", err.message);
         }
     }
 
@@ -136,19 +162,16 @@ class TelemetryEngine {
             }
             let average = sum / dataArray.length;
 
-            // Micro-variance to ensure values NEVER stay frozen
             let naturalDelta = (Math.random() * 4) - 2;
 
             if (average > 2) {
                 let measuredDb = Math.round(32 + (average / 255.0) * 55 + naturalDelta);
                 this.state.ambientNoiseDb = Math.max(30, Math.min(85, measuredDb));
             } else {
-                // Background ambient room acoustic baseline (34 - 42 dB)
                 let ambientBase = Math.round(36 + naturalDelta);
                 this.state.ambientNoiseDb = Math.max(30, Math.min(50, ambientBase));
             }
 
-            // Log acoustic spike stressor if volume exceeds 68 dB
             if (this.state.ambientNoiseDb > 68 && this.state.isFocused) {
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 this.logStressorEvent(timeStr, `Acoustic Noise Spike (${this.state.ambientNoiseDb} dB)`);
@@ -192,7 +215,7 @@ class TelemetryEngine {
                     this.state.mouseJitterCount = Math.min(3, this.state.mouseJitterCount + 1);
                     if (this.state.mouseJitterCount === 3) {
                         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        this.logStressorEvent(timeStr, "Erratic Motion Tremor Detected");
+                        this.logStressorEvent(timeStr, "Erratic Motion Tremor");
                     }
                 }
             }
