@@ -5,6 +5,7 @@ import com.stresscalc.model.TelemetryLog;
 import com.stresscalc.model.User;
 import com.stresscalc.repository.AssessmentRepository;
 import com.stresscalc.repository.TelemetryRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -14,9 +15,11 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 @RestController
 @RequestMapping("/api")
@@ -31,6 +34,11 @@ public class AssessmentController {
     private final RestTemplate restTemplate = new RestTemplate();
     private final String ML_SERVICE_URL = "http://127.0.0.1:5000/predict";
     private final String ML_RECOMMEND_URL = "http://127.0.0.1:5000/recommend-game";
+
+    @PostConstruct
+    public void initTimeZone() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Dhaka"));
+    }
 
     /**
      * TASK 1: Backend Data Retrieval GET /api/history
@@ -50,7 +58,7 @@ public class AssessmentController {
                 userId = 1L; // Fallback demo user ID
             }
 
-            LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+            LocalDateTime thirtyDaysAgo = LocalDateTime.now(ZoneId.of("Asia/Dhaka")).minusDays(30);
             List<StressAssessment> historyList = assessmentRepository.findLast30DaysByUserId(userId, thirtyDaysAgo);
 
             if (historyList == null || historyList.isEmpty()) {
@@ -194,6 +202,8 @@ public class AssessmentController {
                 // Microservice optional
             }
 
+            LocalDateTime localNow = LocalDateTime.now(ZoneId.of("Asia/Dhaka"));
+
             // Save Assessment to MySQL stress_assessments table
             StressAssessment assessment = new StressAssessment();
             assessment.setUserId(userId);
@@ -202,7 +212,7 @@ public class AssessmentController {
             assessment.setReactionTimeMs(reactionTimeMs);
             assessment.setErrorRatePercent(errorRatePercent);
             assessment.setFinalStressIndex(finalStressIndex);
-            assessment.setTimestamp(LocalDateTime.now());
+            assessment.setTimestamp(localNow);
             
             assessmentRepository.save(assessment);
 
@@ -214,7 +224,7 @@ public class AssessmentController {
             log.setFocusIndex(BigDecimal.valueOf(predictedFocus).setScale(1, RoundingMode.HALF_UP));
             log.setAmbientNoiseDb(42 + (int)(Math.random() * 8));
             log.setTabDensity(6);
-            log.setLogTimestamp(LocalDateTime.now());
+            log.setLogTimestamp(localNow);
             
             telemetryRepository.save(log);
 
