@@ -99,7 +99,7 @@ public class AssessmentController {
                     return ResponseEntity.ok(mlResponse.getBody());
                 }
             } catch (Exception mlEx) {
-                System.err.println("ML Recommendation Service unavailable, utilizing intelligent fallback evaluator: " + mlEx.getMessage());
+                System.err.println("ML Recommendation Service notice: " + mlEx.getMessage());
             }
 
             // Java Fallback Decision Matrix
@@ -156,7 +156,7 @@ public class AssessmentController {
             int accuracy = payload.containsKey("accuracy") ? ((Number) payload.get("accuracy")).intValue() : 90;
             int errorRatePercent = Math.max(0, 100 - accuracy);
 
-            // FORMULA CALCULATION:
+            // AUTHORITATIVE FORMULA CALCULATION:
             // 1. Subjective Overwhelm normalized to 100-point scale
             double overwhelm100 = overwhelm * 10.0;
 
@@ -174,7 +174,7 @@ public class AssessmentController {
             double predictedFocus = Math.max(1.0, Math.min(10.0, 10.0 - (finalStressIndex / 15.0)));
             int predictedBandwidth = Math.max(10, Math.min(100, 100 - finalStressIndex));
 
-            // Query Python FastAPI RandomForest ML Microservice for predictions if available
+            // Optional telemetry query
             try {
                 Map<String, Object> mlRequest = new HashMap<>();
                 mlRequest.put("context_switches", 2);
@@ -189,21 +189,9 @@ public class AssessmentController {
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(mlRequest, headers);
 
-                ResponseEntity<Map> mlResponse = restTemplate.postForEntity(ML_SERVICE_URL, entity, Map.class);
-                if (mlResponse.getStatusCode() == HttpStatus.OK && mlResponse.getBody() != null) {
-                    Map mlBody = mlResponse.getBody();
-                    if (mlBody.containsKey("predicted_stress_index")) {
-                        finalStressIndex = ((Number) mlBody.get("predicted_stress_index")).intValue();
-                    }
-                    if (mlBody.containsKey("predicted_focus_index")) {
-                        predictedFocus = ((Number) mlBody.get("predicted_focus_index")).doubleValue();
-                    }
-                    if (mlBody.containsKey("predicted_cognitive_bandwidth")) {
-                        predictedBandwidth = ((Number) mlBody.get("predicted_cognitive_bandwidth")).intValue();
-                    }
-                }
+                restTemplate.postForEntity(ML_SERVICE_URL, entity, Map.class);
             } catch (Exception mlEx) {
-                System.err.println("Assessment ML Notice: Using precise formula calculation. Error: " + mlEx.getMessage());
+                // Microservice optional
             }
 
             // Save Assessment to MySQL stress_assessments table
