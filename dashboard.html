@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemetry Dashboard | StressCalculator</title>
+    
+    <!-- Link to global styles for theme variables -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        /* Dashboard Specific Layout */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-primary, #09090B);
+            color: var(--text-primary, #FAFAFA);
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            flex-direction: row;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: var(--surface, #18181B);
+            border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-menu li a {
+            text-decoration: none;
+            color: var(--text-primary);
+            opacity: 0.7;
+            padding: 0.75rem 1rem;
+            display: block;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .nav-menu li a:hover, .nav-menu li a.active {
+            opacity: 1;
+            background: var(--accent-light, rgba(16, 185, 129, 0.15));
+            color: var(--accent, #10B981);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 2rem 3rem;
+            overflow-y: auto;
+            background-color: var(--bg-primary, #09090B);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                padding: 1rem;
+            }
+            .main-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent, #10B981);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Grid Layouts */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .glass-card {
+            background: var(--surface, #18181B);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow, 0 8px 32px rgba(0, 0, 0, 0.2));
+        }
+
+        .metric-title {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .metric-sub {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            color: var(--accent, #10B981);
+            font-weight: 600;
+        }
+
+        /* Chart Area */
+        .chart-panel {
+            height: 300px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        /* Lower Grid */
+        .lower-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .lower-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .log-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0 0;
+        }
+
+        .log-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05));
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .theme-btn-dash {
+            background: var(--toggle-bg, rgba(255,255,255,0.05));
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .theme-btn-dash:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon" style="width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem;">SC</div>
+            <span>Stress<span class="gradient-text">Calc</span></span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#" class="active">Telemetry</a></li>
+            <li><a href="#">Action Logs</a></li>
+            <li><a href="#">Environmental</a></li>
+            <li><a href="#">Settings</a></li>
+            <li style="margin-top: auto;"><a href="auth.html" style="color: #ef4444; opacity: 0.9;">Sign Out</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Telemetry Dashboard Content -->
+    <main class="main-content">
+        <header class="dashboard-header">
+            <div>
+                <h1 style="margin: 0; font-size: 1.6rem; font-weight: 800;">Daily Telemetry Overview</h1>
+                <div class="sync-status">
+                    <div class="pulse-dot"></div> Live Sync Active (MySQL Connected)
+                </div>
+            </div>
+            
+            <!-- 3-Way Theme Engine Controls -->
+            <div class="theme-controls" style="display: flex; gap: 8px;">
+                <button class="theme-btn-dash" onclick="setTheme('light')" title="Light Mode">☀️ Light</button>
+                <button class="theme-btn-dash" onclick="setTheme('dark')" title="Dark Mode">🌙 Dark</button>
+                <button class="theme-btn-dash" onclick="setTheme('contrast')" title="Contrast Mode">👁️ Contrast</button>
+            </div>
+        </header>
+
+        <!-- Top Metrics Row -->
+        <div class="metrics-grid">
+            <div class="glass-card">
+                <div class="metric-title">Cognitive Bandwidth</div>
+                <div class="metric-value gradient-text">78%</div>
+                <div class="metric-sub">Optimal capacity</div>
+            </div>
+            <div class="glass-card">
+                <div class="metric-title">Context Switches</div>
+                <div class="metric-value">14</div>
+                <div class="metric-sub" style="color: #ef4444;">Warning: +4 vs Baseline</div>
+            </div>
+            <div class="glass-card">
+                <div class="metric-title">Focus Index</div>
+                <div class="metric-value">8.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
+                <div class="metric-sub">Sustained Flow State</div>
+            </div>
+        </div>
+
+        <!-- Main Chart Panel -->
+        <div class="glass-card chart-panel">
+            <div style="opacity: 0.6; margin-bottom: 1rem; font-weight: 700; font-size: 0.9rem;" class="mono">[ Cognitive Load vs Time Telemetry Chart ]</div>
+            <div style="width: 90%; height: 65%; border-bottom: 1px solid var(--border-color); border-left: 1px solid var(--border-color); position: relative; opacity: 0.85;">
+                <!-- Mock SVG telemetry graph -->
+                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline points="0,80 20,60 40,75 60,30 80,45 100,20" fill="none" stroke="var(--accent)" stroke-width="2.5" />
+                    <circle cx="60" cy="30" r="3" fill="var(--accent)" />
+                    <circle cx="100" cy="20" r="3" fill="var(--accent)" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Lower Grid: Environmental Telemetry & Recent Stressors -->
+        <div class="lower-grid">
+            <div class="glass-card">
+                <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Environmental Telemetry</h3>
+                <div style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
+                    <div>
+                        <div class="metric-title">Ambient Noise</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono">45 dB</div>
+                    </div>
+                    <div>
+                        <div class="metric-title">Tab Density</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono">8 open</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Recent Stressors</h3>
+                <ul class="log-list">
+                    <li class="log-item"><span>10:45 AM</span> <span>Slack Notification Spike</span></li>
+                    <li class="log-item"><span>11:15 AM</span> <span>IDE to Browser Switch</span></li>
+                    <li class="log-item"><span>12:30 PM</span> <span>Context Shift (Meeting)</span></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- Script for Theme Engine Integration & Persistence -->
+    <script>
+        // Load saved theme on initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('stresscalc_theme') || 'dark';
+            setTheme(savedTheme);
+        });
+
+        function setTheme(theme) {
+            if (!['light', 'dark', 'contrast'].includes(theme)) {
+                theme = 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('stresscalc_theme', theme);
+        }
+    </script>
+</body>
+</html>
