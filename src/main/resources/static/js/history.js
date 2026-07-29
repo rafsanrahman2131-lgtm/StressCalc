@@ -2,7 +2,7 @@
  * StressCalculator — Historical Action Logs & Trend Analysis Controller
  * Fetches /api/history and renders:
  * 1. 7-Day Stress Trend Bar Chart with dynamic colors (<30 Green, 31-69 Yellow, >70 Red)
- * 2. Responsive Historical Data Table
+ * 2. Responsive Historical Data Table with accurate local system timestamps
  */
 
 window.historyTrendChartInstance = null;
@@ -31,18 +31,51 @@ async function fetchHistory() {
     }
 }
 
+/**
+ * Format local timestamp without double-timezone offsets
+ */
+function parseLocalDateTimeString(ts) {
+    if (!ts) return null;
+
+    if (Array.isArray(ts)) {
+        const [y, m, d, hh, mm] = ts;
+        return {
+            full: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`,
+            chart: `${m}/${d} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+        };
+    }
+
+    const str = String(ts).replace('T', ' ').split('.')[0];
+    const parts = str.split(' ');
+    if (parts.length >= 2) {
+        const dateParts = parts[0].split('-');
+        const timeParts = parts[1].split(':');
+        if (dateParts.length === 3 && timeParts.length >= 2) {
+            const y = dateParts[0];
+            const m = parseInt(dateParts[1], 10);
+            const d = parseInt(dateParts[2], 10);
+            const hh = timeParts[0];
+            const mm = timeParts[1];
+            return {
+                full: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')} ${hh}:${mm}`,
+                chart: `${m}/${d} ${hh}:${mm}`
+            };
+        }
+    }
+
+    return { full: str, chart: str };
+}
+
 function render7DayTrendChart(data) {
     const ctx = document.getElementById('historyTrendChart');
     if (!ctx) return;
 
-    // Extract last 7 items (or last 7 days)
+    // Extract last 7 items (ordered oldest to newest for chart left-to-right timeline)
     const recent7 = [...data].reverse().slice(-7);
 
     const labels = recent7.map(item => {
-        if (item.timestamp) {
-            const d = new Date(item.timestamp);
-            return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-        }
+        const parsed = parseLocalDateTimeString(item.timestamp);
+        if (parsed) return parsed.chart;
         return item.dateLabel || 'Check-In';
     });
 
@@ -122,9 +155,9 @@ function renderHistoryTable(data) {
         else if (stress >= 31) badgeColor = "#f59e0b";
 
         let formattedDate = item.dateLabel || "Just now";
-        if (item.timestamp) {
-            const d = new Date(item.timestamp);
-            formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const parsed = parseLocalDateTimeString(item.timestamp);
+        if (parsed) {
+            formattedDate = parsed.full;
         }
 
         const tr = document.createElement('tr');
