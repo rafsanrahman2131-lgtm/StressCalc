@@ -234,52 +234,34 @@
             color: #22c55e;
         }
 
-        /* PIP Picture-in-Picture Webcam Style */
-        .pip-webcam-container {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 160px;
-            height: 120px;
-            background: rgba(24, 24, 27, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .pip-header {
-            padding: 4px 8px;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        /* Card Camera Toggle Button */
+        .card-cam-btn {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 3px 8px;
+            border-radius: 8px;
             font-size: 0.7rem;
-            color: #ffffff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .pip-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #22c55e;
-            border-radius: 50%;
+        .card-cam-btn.active {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
         }
 
-        #webcamFeed {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1); /* Mirror camera */
+        .card-cam-btn:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
+
+    <!-- Invisible Webcam Video Element for MediaPipe Background Processing -->
+    <video id="webcamFeed" autoplay muted playsinline style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; visibility: hidden;"></video>
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
@@ -331,11 +313,15 @@
                 <div class="metric-value" id="val-focus">8.2<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
                 <div class="metric-sub">Sustained Flow State</div>
             </div>
-            <!-- MediaPipe Facial Tension Metric Card -->
+
+            <!-- MediaPipe Facial Tension Metric Card with Elegant Control Button -->
             <div class="glass-card">
-                <div class="metric-title">Facial Tension Level</div>
-                <div class="metric-value" id="val-tension" style="color: #10B981;">18%</div>
-                <div class="metric-sub" id="sub-tension" style="color: #22c55e;">Calm Baseline</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div class="metric-title" style="margin-bottom: 0;">Facial Tension Level</div>
+                    <button id="cardCameraToggle" class="card-cam-btn" title="Start or Stop Hardware Camera Tracking">Start Camera</button>
+                </div>
+                <div class="metric-value" id="val-tension" style="color: #10B981;">--</div>
+                <div class="metric-sub" id="sub-tension" style="color: var(--text-secondary, #94a3b8);">Camera Offline</div>
             </div>
         </div>
 
@@ -377,15 +363,6 @@
             </div>
         </div>
     </main>
-
-    <!-- PIP Picture-in-Picture Webcam Element -->
-    <div class="pip-webcam-container">
-        <div class="pip-header">
-            <div class="pip-dot"></div>
-            <span id="cameraStatusText" style="font-size: 0.75rem; font-weight: 600;">MediaPipe Active</span>
-        </div>
-        <video id="webcamFeed" autoplay muted playsinline></video>
-    </div>
 
     <!-- Vision Telemetry Script -->
     <script src="js/vision_telemetry.js"></script>

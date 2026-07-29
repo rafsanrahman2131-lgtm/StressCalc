@@ -1,6 +1,6 @@
 /**
  * StressCalculator — Vision Telemetry Module (MediaPipe Face Mesh)
- * Measures real-time facial tension via eyebrow furrowing and jaw clenching landmarks.
+ * Invisible background processing with hardware-level camera shutdown toggle.
  * 100% Client-Side for Privacy.
  */
 
@@ -9,36 +9,93 @@ class VisionTelemetry {
         this.videoElement = null;
         this.faceMesh = null;
         this.camera = null;
+        this.mediaStream = null;
         this.baselineEyebrowDist = null;
-        this.currentTensionScore = 15; // Initial calm baseline
+        this.currentTensionScore = 15; // Baseline calm
         this.updateInterval = null;
         this.isCameraActive = false;
     }
 
-    async init() {
+    init() {
         this.videoElement = document.getElementById('webcamFeed');
+        const cardToggleBtn = document.getElementById('cardCameraToggle');
+
+        if (cardToggleBtn) {
+            cardToggleBtn.addEventListener('click', () => this.toggleCamera());
+        }
+
+        // Start with camera OFF by default for maximum user privacy & minimal distraction
+        this.updateCameraUIState(false, "Camera Offline");
+    }
+
+    async startCamera() {
         if (!this.videoElement) {
-            console.warn("VisionTelemetry: #webcamFeed element not found.");
-            return;
+            this.videoElement = document.getElementById('webcamFeed');
         }
 
         try {
-            // 1. Request Webcam Permission
-            const stream = await navigator.mediaDevices.getUserMedia({
+            // Request Webcam Stream
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({
                 video: { width: 640, height: 480, facingMode: "user" },
                 audio: false
             });
 
-            this.videoElement.srcObject = stream;
-            this.isCameraActive = true;
-            this.updateCameraStatusUI(true, "Camera Active");
+            if (this.videoElement) {
+                this.videoElement.srcObject = this.mediaStream;
+                await this.videoElement.play();
+            }
 
-            // 2. Initialize MediaPipe Face Mesh
-            this.setupFaceMesh();
+            this.isCameraActive = true;
+            this.updateCameraUIState(true, "Calm Baseline");
+
+            // Setup MediaPipe processing loop
+            if (!this.faceMesh) {
+                this.setupFaceMesh();
+            } else if (this.camera) {
+                this.camera.start();
+            }
+
+            this.startDOMUpdateLoop();
 
         } catch (error) {
-            console.warn("VisionTelemetry: Camera permission denied or not available.", error);
-            this.updateCameraStatusUI(false, "Camera Denied / Offline");
+            console.warn("VisionTelemetry: Camera permission denied or device unavailable.", error);
+            this.stopCamera();
+            this.updateCameraUIState(false, "Access Denied");
+        }
+    }
+
+    stopCamera() {
+        // 1. Physically stop all hardware video tracks to turn off the laptop camera LED light
+        if (this.mediaStream) {
+            this.mediaStream.getTracks().forEach(track => {
+                track.stop();
+            });
+            this.mediaStream = null;
+        }
+
+        if (this.videoElement) {
+            this.videoElement.srcObject = null;
+        }
+
+        // 2. Halt MediaPipe processing loop
+        if (this.camera) {
+            this.camera.stop();
+        }
+
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+
+        this.isCameraActive = false;
+        this.updateCameraUIState(false, "Camera Offline");
+    }
+
+    toggleCamera() {
+        if (this.isCameraActive) {
+            this.stopCamera();
+        } else {
+            this.startCamera();
         }
     }
 
@@ -61,11 +118,10 @@ class VisionTelemetry {
 
         this.faceMesh.onResults((results) => this.onResults(results));
 
-        // Start processing video frames using MediaPipe CameraUtils
-        if (typeof Camera !== 'undefined') {
+        if (typeof Camera !== 'undefined' && this.videoElement) {
             this.camera = new Camera(this.videoElement, {
                 onFrame: async () => {
-                    if (this.videoElement && this.isCameraActive) {
+                    if (this.videoElement && this.isCameraActive && this.videoElement.readyState === 4) {
                         await this.faceMesh.send({ image: this.videoElement });
                     }
                 },
@@ -74,19 +130,16 @@ class VisionTelemetry {
             });
             this.camera.start();
         }
-
-        // Start 2-second DOM update loop
-        this.startDOMUpdateLoop();
     }
 
     onResults(results) {
-        if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+        if (!this.isCameraActive || !results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
             return;
         }
 
         const landmarks = results.multiFaceLandmarks[0];
 
-        // Eyebrow furrowing landmarks: 107 (right inner brow) & 336 (left inner brow)
+        // Inner eyebrow landmarks: 107 (right inner brow) & 336 (left inner brow)
         const p107 = landmarks[107];
         const p336 = landmarks[336];
 
@@ -96,26 +149,22 @@ class VisionTelemetry {
             const dz = (p107.z || 0) - (p336.z || 0);
             const currentEyebrowDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-            // Establish moving baseline
             if (this.baselineEyebrowDist === null) {
                 this.baselineEyebrowDist = currentEyebrowDist;
             } else {
                 this.baselineEyebrowDist = (this.baselineEyebrowDist * 0.95) + (currentEyebrowDist * 0.05);
             }
 
-            // Calculate tension ratio (closer eyebrows = higher furrowing tension)
             const ratio = currentEyebrowDist / (this.baselineEyebrowDist || currentEyebrowDist);
-            
-            // Map ratio (0.85 = 100% tension, 1.05 = 0% tension)
             let tensionRaw = ((1.05 - ratio) / 0.20) * 100;
             tensionRaw = Math.max(0, Math.min(100, tensionRaw));
 
-            // Smooth value using exponential moving average
             this.currentTensionScore = Math.round((this.currentTensionScore * 0.7) + (tensionRaw * 0.3));
         }
     }
 
     startDOMUpdateLoop() {
+        if (this.updateInterval) clearInterval(this.updateInterval);
         this.updateInterval = setInterval(() => {
             this.updateTensionMetricUI();
         }, 2000);
@@ -125,7 +174,7 @@ class VisionTelemetry {
         const valEl = document.getElementById('val-tension');
         const subEl = document.getElementById('sub-tension');
 
-        if (!valEl) return;
+        if (!valEl || !this.isCameraActive) return;
 
         const score = this.currentTensionScore;
         valEl.textContent = `${score}%`;
@@ -133,26 +182,37 @@ class VisionTelemetry {
         if (subEl) {
             if (score < 30) {
                 subEl.textContent = "Calm Baseline";
-                subEl.style.color = "#22c55e"; // Green
+                subEl.style.color = "#22c55e";
             } else if (score < 60) {
                 subEl.textContent = "Elevated Tension";
-                subEl.style.color = "#f59e0b"; // Amber
+                subEl.style.color = "#f59e0b";
             } else {
                 subEl.textContent = "High Stress / Furrowed";
-                subEl.style.color = "#ef4444"; // Red
+                subEl.style.color = "#ef4444";
             }
         }
     }
 
-    updateCameraStatusUI(active, text) {
-        const statusEl = document.getElementById('cameraStatusText');
-        if (statusEl) {
-            statusEl.textContent = text;
+    updateCameraUIState(active, statusText) {
+        const valEl = document.getElementById('val-tension');
+        const subEl = document.getElementById('sub-tension');
+        const btn = document.getElementById('cardCameraToggle');
+
+        if (btn) {
+            btn.textContent = active ? "Stop Camera" : "Start Camera";
+            btn.classList.toggle('active', active);
+        }
+
+        if (!active) {
+            if (valEl) valEl.textContent = "--";
+            if (subEl) {
+                subEl.textContent = statusText || "Camera Offline";
+                subEl.style.color = "var(--text-secondary, #94a3b8)";
+            }
         }
     }
 }
 
-// Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.visionTelemetry = new VisionTelemetry();
     window.visionTelemetry.init();
