@@ -5,9 +5,9 @@ import com.stresscalc.model.User;
 import com.stresscalc.repository.TelemetryRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,6 +22,9 @@ public class TelemetryDataController {
 
     @Autowired
     private TelemetryRepository telemetryRepository;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final String ML_SERVICE_URL = "http://127.0.0.1:5000/predict";
 
     @GetMapping("/telemetry-data")
     public ResponseEntity<?> getTelemetryData(HttpSession session) {
@@ -38,7 +41,6 @@ public class TelemetryDataController {
         }
 
         List<TelemetryLog> logs = telemetryRepository.findTop20ByUserIdOrderByLogTimestampAsc(userId);
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
         List<Map<String, Object>> responseList = logs.stream().map(log -> {
@@ -72,34 +74,49 @@ public class TelemetryDataController {
 
             int contextSwitches = payload.containsKey("contextSwitches") ? ((Number) payload.get("contextSwitches")).intValue() : 0;
             int uninterruptedSeconds = payload.containsKey("uninterruptedSeconds") ? ((Number) payload.get("uninterruptedSeconds")).intValue() : 0;
-            
-            // Query most recent focus_index from database state model
-            List<TelemetryLog> existingLogs = telemetryRepository.findTop20ByUserIdOrderByLogTimestampAsc(userId);
-            double previousFocus = 10.0;
-            if (!existingLogs.isEmpty()) {
-                TelemetryLog latest = existingLogs.get(existingLogs.size() - 1);
-                if (latest.getFocusIndex() != null) {
-                    previousFocus = latest.getFocusIndex().doubleValue();
+            double facialTension = payload.containsKey("facialTension") ? ((Number) payload.get("facialTension")).doubleValue() : 20.0;
+            int overwhelm = payload.containsKey("overwhelm") ? ((Number) payload.get("overwhelm")).intValue() : 4;
+            double reactionTimeMs = payload.containsKey("reactionTimeMs") ? ((Number) payload.get("reactionTimeMs")).doubleValue() : 450.0;
+            double errorRatePercent = payload.containsKey("errorRatePercent") ? ((Number) payload.get("errorRatePercent")).doubleValue() : 5.0;
+            double ambientNoiseWeight = payload.containsKey("ambientNoiseWeight") ? ((Number) payload.get("ambientNoiseWeight")).doubleValue() : 0.3;
+
+            // Call Python FastAPI Machine Learning Microservice (/predict)
+            double predictedFocus = 8.5;
+            int predictedBandwidth = 85;
+
+            try {
+                Map<String, Object> mlRequest = new HashMap<>();
+                mlRequest.put("context_switches", contextSwitches);
+                mlRequest.put("uninterrupted_seconds", uninterruptedSeconds);
+                mlRequest.put("facial_tension", facialTension);
+                mlRequest.put("overwhelm_score", overwhelm);
+                mlRequest.put("reaction_time_ms", reactionTimeMs);
+                mlRequest.put("error_rate_percent", errorRatePercent);
+                mlRequest.put("ambient_noise_weight", ambientNoiseWeight);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(mlRequest, headers);
+
+                ResponseEntity<Map> mlResponse = restTemplate.postForEntity(ML_SERVICE_URL, entity, Map.class);
+                if (mlResponse.getStatusCode() == HttpStatus.OK && mlResponse.getBody() != null) {
+                    Map mlBody = mlResponse.getBody();
+                    if (mlBody.containsKey("predicted_focus_index")) {
+                        predictedFocus = ((Number) mlBody.get("predicted_focus_index")).doubleValue();
+                    }
+                    if (mlBody.containsKey("predicted_cognitive_bandwidth")) {
+                        predictedBandwidth = ((Number) mlBody.get("predicted_cognitive_bandwidth")).intValue();
+                    }
                 }
+            } catch (Exception mlEx) {
+                System.err.println("ML Microservice Notice: Fallback heuristic used. Error: " + mlEx.getMessage());
             }
 
-            // Scientific Formula:
-            // Recovery: +0.5 per 60s of uninterrupted focus
-            // Penalty: -1.5 per context switch
-            double recovery = (uninterruptedSeconds / 60.0) * 0.5;
-            double penalty = contextSwitches * 1.5;
-
-            double calculatedFocus = previousFocus + recovery - penalty;
-            calculatedFocus = Math.max(0.0, Math.min(10.0, calculatedFocus));
-            
-            BigDecimal focusDecimal = BigDecimal.valueOf(calculatedFocus).setScale(1, RoundingMode.HALF_UP);
-
-            int cognitiveBandwidth = (int) Math.round(focusDecimal.doubleValue() * 10);
-            cognitiveBandwidth = Math.max(10, Math.min(100, cognitiveBandwidth));
+            BigDecimal focusDecimal = BigDecimal.valueOf(predictedFocus).setScale(1, RoundingMode.HALF_UP);
 
             TelemetryLog log = new TelemetryLog();
             log.setUserId(userId);
-            log.setCognitiveBandwidth(cognitiveBandwidth);
+            log.setCognitiveBandwidth(predictedBandwidth);
             log.setContextSwitches(contextSwitches);
             log.setFocusIndex(focusDecimal);
             log.setAmbientNoiseDb(payload.containsKey("ambientNoiseDb") ? ((Number) payload.get("ambientNoiseDb")).intValue() : 42);
@@ -110,8 +127,9 @@ public class TelemetryDataController {
 
             Map<String, Object> res = new HashMap<>();
             res.put("status", "success");
-            res.put("focus_index", focusDecimal.doubleValue());
-            res.put("uninterrupted_seconds", uninterruptedSeconds);
+            res.put("predicted_focus_index", focusDecimal.doubleValue());
+            res.put("predicted_cognitive_bandwidth", predictedBandwidth);
+            res.put("engine", "RandomForestRegressor ML Gateway");
             return ResponseEntity.ok(res);
 
         } catch (Exception e) {

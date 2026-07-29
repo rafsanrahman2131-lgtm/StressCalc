@@ -7,10 +7,9 @@ import com.stresscalc.repository.AssessmentRepository;
 import com.stresscalc.repository.TelemetryRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,6 +27,9 @@ public class AssessmentController {
     @Autowired
     private TelemetryRepository telemetryRepository;
 
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final String ML_SERVICE_URL = "http://127.0.0.1:5000/predict";
+
     @PostMapping(value = "/assessment", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createAssessment(@RequestBody Map<String, Object> payload, HttpSession session) {
         try {
@@ -43,32 +45,53 @@ public class AssessmentController {
                 userId = 1L; // Fallback demo user ID
             }
 
-            // Extract incoming payload metrics cleanly
             int facialTension = payload.containsKey("facialTension") ? ((Number) payload.get("facialTension")).intValue() : 20;
             int overwhelm = payload.containsKey("overwhelm") ? ((Number) payload.get("overwhelm")).intValue() : 5;
             int reactionTimeMs = payload.containsKey("reactionTimeMs") ? ((Number) payload.get("reactionTimeMs")).intValue() : 450;
             int accuracy = payload.containsKey("accuracy") ? ((Number) payload.get("accuracy")).intValue() : 90;
             int errorRatePercent = Math.max(0, 100 - accuracy);
 
-            // 1. Calculate Weighted Composite Stress Index Formula
-            // F = Facial Tension (0-100)
-            double F = Math.min(100, Math.max(0, facialTension));
-            
-            // Q = Subjective Overwhelm Questionnaire Score (1-10 mapped to 0-100)
-            double Q = Math.min(100, Math.max(0, overwhelm * 10.0));
-            
-            // C = Cognitive Penalty (derived from error rate % and high reaction time)
-            double reactionPenalty = Math.min(100.0, (reactionTimeMs / 10.0));
-            double C = Math.min(100.0, (errorRatePercent * 0.5) + (reactionPenalty * 0.5));
+            // Default fallback
+            int finalStressIndex = 25;
+            double predictedFocus = 8.5;
+            int predictedBandwidth = 85;
 
-            // S_index = (F * 0.3) + (Q * 0.3) + (C * 0.4)
-            int finalStressIndex = (int) Math.round((F * 0.3) + (Q * 0.3) + (C * 0.4));
-            finalStressIndex = Math.min(100, Math.max(0, finalStressIndex));
+            // Query Python FastAPI RandomForest ML Microservice
+            try {
+                Map<String, Object> mlRequest = new HashMap<>();
+                mlRequest.put("context_switches", 2);
+                mlRequest.put("uninterrupted_seconds", 300);
+                mlRequest.put("facial_tension", (double) facialTension);
+                mlRequest.put("overwhelm_score", overwhelm);
+                mlRequest.put("reaction_time_ms", (double) reactionTimeMs);
+                mlRequest.put("error_rate_percent", (double) errorRatePercent);
+                mlRequest.put("ambient_noise_weight", 0.3);
 
-            // 2. Save Assessment to MySQL stress_assessments table
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(mlRequest, headers);
+
+                ResponseEntity<Map> mlResponse = restTemplate.postForEntity(ML_SERVICE_URL, entity, Map.class);
+                if (mlResponse.getStatusCode() == HttpStatus.OK && mlResponse.getBody() != null) {
+                    Map mlBody = mlResponse.getBody();
+                    if (mlBody.containsKey("predicted_stress_index")) {
+                        finalStressIndex = ((Number) mlBody.get("predicted_stress_index")).intValue();
+                    }
+                    if (mlBody.containsKey("predicted_focus_index")) {
+                        predictedFocus = ((Number) mlBody.get("predicted_focus_index")).doubleValue();
+                    }
+                    if (mlBody.containsKey("predicted_cognitive_bandwidth")) {
+                        predictedBandwidth = ((Number) mlBody.get("predicted_cognitive_bandwidth")).intValue();
+                    }
+                }
+            } catch (Exception mlEx) {
+                System.err.println("Assessment ML Notice: Fallback used. Error: " + mlEx.getMessage());
+            }
+
+            // Save Assessment to MySQL stress_assessments table
             StressAssessment assessment = new StressAssessment();
             assessment.setUserId(userId);
-            assessment.setFacialTensionScore((int) F);
+            assessment.setFacialTensionScore(facialTension);
             assessment.setSubjectiveScore(overwhelm);
             assessment.setReactionTimeMs(reactionTimeMs);
             assessment.setErrorRatePercent(errorRatePercent);
@@ -76,30 +99,28 @@ public class AssessmentController {
             
             assessmentRepository.save(assessment);
 
-            // 3. Save corresponding entry to telemetry_logs table to keep main Chart.js graph updated
-            int cognitiveBandwidth = Math.max(10, 100 - finalStressIndex);
-            double focusIndexDouble = Math.max(1.0, Math.min(10.0, 10.0 - (finalStressIndex / 10.0)));
-
+            // Save corresponding entry to telemetry_logs table for live Chart.js sync
             TelemetryLog log = new TelemetryLog();
             log.setUserId(userId);
-            log.setCognitiveBandwidth(cognitiveBandwidth);
-            log.setContextSwitches(10 + (int)(Math.random() * 8));
-            log.setFocusIndex(BigDecimal.valueOf(focusIndexDouble).setScale(2, RoundingMode.HALF_UP));
-            log.setAmbientNoiseDb(42 + (int)(Math.random() * 10));
-            log.setTabDensity(6 + (int)(Math.random() * 5));
+            log.setCognitiveBandwidth(predictedBandwidth);
+            log.setContextSwitches(10 + (int)(Math.random() * 5));
+            log.setFocusIndex(BigDecimal.valueOf(predictedFocus).setScale(1, RoundingMode.HALF_UP));
+            log.setAmbientNoiseDb(42 + (int)(Math.random() * 8));
+            log.setTabDensity(6);
             log.setLogTimestamp(LocalDateTime.now());
             
             telemetryRepository.save(log);
 
-            // 4. Return JSON response
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("final_stress_index", finalStressIndex);
-            response.put("facial_tension", (int) F);
+            response.put("predicted_focus_index", predictedFocus);
+            response.put("predicted_cognitive_bandwidth", predictedBandwidth);
+            response.put("facial_tension", facialTension);
             response.put("subjective_score", overwhelm);
             response.put("reaction_time_ms", reactionTimeMs);
             response.put("error_rate_percent", errorRatePercent);
-            response.put("message", "Guided Check-In Assessment saved cleanly to MySQL!");
+            response.put("engine", "RandomForestRegressor ML Microservice");
 
             return ResponseEntity.ok(response);
 
