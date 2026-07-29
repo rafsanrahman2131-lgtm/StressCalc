@@ -1,11 +1,9 @@
 /**
- * StressCalculator — Dynamic Adaptive Check-In Workflow Controller
- * 
- * Dynamically selects & prompts tailored cognitive challenges based on live telemetry:
- * 1. Stroop Executive Function Test ("stroop")
- * 2. 4-7-8 Box Breathing Vagus Reset ("breathing")
- * 3. Rapid Mental Math Speed Challenge ("math_speed")
- * 4. Visual Pattern Memory Flash Game ("pattern_memory")
+ * StressCalculator — Adaptive Dynamic Check-In Workflow Controller
+ * Features:
+ * 1. Step 1 Bio-Scan with Live Visible Camera Viewport & Auto Camera Shutdown upon completion
+ * 2. Dynamic Telemetry-Driven Questionnaire (Step 2 adapts based on facial tension & environment)
+ * 3. AI-Recommended Tailored Challenge (Step 3)
  */
 
 class CheckInWorkflow {
@@ -20,7 +18,6 @@ class CheckInWorkflow {
 
         this.activeGameType = "stroop";
         this.gameTitle = "Cognitive Challenge";
-        this.recommendationReason = "";
 
         // Stroop Game State
         this.stroopColors = [
@@ -62,23 +59,6 @@ class CheckInWorkflow {
         if (startBtn) startBtn.addEventListener('click', () => this.openWizard());
         if (closeBtn) closeBtn.addEventListener('click', () => this.closeWizard());
 
-        const overwhelmInput = document.getElementById('overwhelmInput');
-        const energyInput = document.getElementById('energyInput');
-
-        if (overwhelmInput) {
-            overwhelmInput.addEventListener('input', (e) => {
-                this.overwhelmScore = parseInt(e.target.value);
-                document.getElementById('overwhelmVal').textContent = e.target.value;
-            });
-        }
-
-        if (energyInput) {
-            energyInput.addEventListener('input', (e) => {
-                this.energyScore = parseInt(e.target.value);
-                document.getElementById('energyVal').textContent = e.target.value;
-            });
-        }
-
         const step2NextBtn = document.getElementById('step2NextBtn');
         if (step2NextBtn) {
             step2NextBtn.addEventListener('click', () => this.evaluateAndProceedToStep3());
@@ -97,6 +77,11 @@ class CheckInWorkflow {
         const modal = document.getElementById('checkinWizard');
         if (modal) modal.style.display = 'none';
         if (this.bioScanTimer) clearInterval(this.bioScanTimer);
+
+        // Always ensure camera is stopped when modal closes
+        if (window.visionTelemetry) {
+            window.visionTelemetry.stopCamera();
+        }
     }
 
     goToStep(stepNum) {
@@ -121,10 +106,12 @@ class CheckInWorkflow {
 
         if (stepNum === 1) {
             this.runStep1BioScan();
+        } else if (stepNum === 2) {
+            this.renderDynamicStep2Questions();
         }
     }
 
-    // STEP 1: 5-Second Bio-Scan
+    // STEP 1: 5-Second Bio-Scan with Camera Preview & Guaranteed Auto Shutdown
     async runStep1BioScan() {
         const timerEl = document.getElementById('scanTimerCount');
         const scanStatusEl = document.getElementById('scanStatusMessage');
@@ -148,15 +135,124 @@ class CheckInWorkflow {
                 clearInterval(this.bioScanTimer);
                 this.scanTensionScore = window.visionTelemetry ? window.visionTelemetry.currentTensionScore : 25;
 
-                const cardToggle = document.getElementById('cardCameraToggle');
-                if (cardToggle && !cardToggle.classList.contains('active')) {
-                    if (window.visionTelemetry) window.visionTelemetry.stopCamera();
+                // GUARANTEED WEBCAM SHUTDOWN UPON STEP 1 COMPLETION
+                if (window.visionTelemetry) {
+                    window.visionTelemetry.stopCamera();
                 }
 
-                if (scanStatusEl) scanStatusEl.textContent = "Bio-Scan Complete! Transitioning...";
+                if (scanStatusEl) scanStatusEl.textContent = "Bio-Scan Complete! Camera Turned Off. Transitioning...";
                 setTimeout(() => this.goToStep(2), 800);
             }
         }, 1000);
+    }
+
+    // STEP 2: Dynamically Adapts Questionnaire Prompts Based on Step 1 Bio-Scan Data
+    renderDynamicStep2Questions() {
+        const container = document.getElementById('dynamicQuestionContainer');
+        if (!container) return;
+
+        const tension = this.scanTensionScore;
+        const telemetry = window.telemetryEngine ? window.telemetryEngine.state : {};
+        const noise = telemetry.ambientNoiseDb || 42;
+        const switches = telemetry.contextSwitches || 0;
+
+        let q1HTML = "";
+        let q2HTML = "";
+
+        if (tension >= 30) {
+            // Elevated Facial Tension Profile
+            q1HTML = `
+                <div class="slider-group">
+                    <label><span>Where is physical stress concentrated right now?</span></label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Jaw & Temples</button>
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Neck & Shoulders</button>
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Eyes & Forehead</button>
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">General Fatigue</button>
+                    </div>
+                </div>
+            `;
+            q2HTML = `
+                <div class="slider-group">
+                    <label>
+                        <span>Subjective Overwhelm Rating:</span>
+                        <span style="color: #22c55e;"><span id="overwhelmVal">${this.overwhelmScore}</span> / 10</span>
+                    </label>
+                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="${this.overwhelmScore}">
+                </div>
+            `;
+        } else if (switches >= 3 || noise >= 60) {
+            // High Context Switch / Noisy Environment Profile
+            q1HTML = `
+                <div class="slider-group">
+                    <label><span>What is primarily interrupting your work flow?</span></label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Tab Switching</button>
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Ambient Noise</button>
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Notifications</button>
+                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Task Overload</button>
+                    </div>
+                </div>
+            `;
+            q2HTML = `
+                <div class="slider-group">
+                    <label>
+                        <span>Current Distraction / Noise Impact:</span>
+                        <span style="color: #22c55e;"><span id="overwhelmVal">${this.overwhelmScore}</span> / 10</span>
+                    </label>
+                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="${this.overwhelmScore}">
+                </div>
+            `;
+        } else {
+            // Normal Baseline Profile
+            q1HTML = `
+                <div class="slider-group">
+                    <label>
+                        <span>How overwhelmed do you feel right now?</span>
+                        <span style="color: #22c55e;"><span id="overwhelmVal">${this.overwhelmScore}</span> / 10</span>
+                    </label>
+                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="${this.overwhelmScore}">
+                </div>
+            `;
+            q2HTML = `
+                <div class="slider-group">
+                    <label>
+                        <span>Current Energy Level:</span>
+                        <span style="color: #22c55e;"><span id="energyVal">${this.energyScore}</span> / 10</span>
+                    </label>
+                    <input type="range" id="energyInput" class="wizard-range-input" min="1" max="10" value="${this.energyScore}">
+                </div>
+            `;
+        }
+
+        container.innerHTML = q1HTML + q2HTML;
+
+        // Re-bind slider events
+        const oInput = document.getElementById('overwhelmInput');
+        if (oInput) {
+            oInput.addEventListener('input', (e) => {
+                this.overwhelmScore = parseInt(e.target.value);
+                const valDisp = document.getElementById('overwhelmVal');
+                if (valDisp) valDisp.textContent = e.target.value;
+            });
+        }
+
+        const eInput = document.getElementById('energyInput');
+        if (eInput) {
+            eInput.addEventListener('input', (e) => {
+                this.energyScore = parseInt(e.target.value);
+                const valDisp = document.getElementById('energyVal');
+                if (valDisp) valDisp.textContent = e.target.value;
+            });
+        }
+
+        // Option button click highlighting
+        container.querySelectorAll('.q1-opt-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                container.querySelectorAll('.q1-opt-btn').forEach(b => b.style.borderColor = 'rgba(255,255,255,0.2)');
+                e.target.style.borderColor = '#22c55e';
+            });
+        });
     }
 
     /**
@@ -247,18 +343,15 @@ class CheckInWorkflow {
 
         this.breathingCycle++;
 
-        // Phase 1: Inhale 4s
         if (circle) circle.style.transform = 'scale(1.4)';
         if (text) text.textContent = 'Inhale';
         if (subText) subText.textContent = `Cycle ${this.breathingCycle} of 3: Deep Inhale...`;
 
         setTimeout(() => {
-            // Phase 2: Hold 4s
             if (text) text.textContent = 'Hold';
             if (subText) subText.textContent = `Cycle ${this.breathingCycle} of 3: Hold Breath...`;
 
             setTimeout(() => {
-                // Phase 3: Exhale 4s
                 if (circle) circle.style.transform = 'scale(0.85)';
                 if (text) text.textContent = 'Exhale';
                 if (subText) subText.textContent = `Cycle ${this.breathingCycle} of 3: Slowly Exhale...`;

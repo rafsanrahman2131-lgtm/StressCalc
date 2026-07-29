@@ -50,7 +50,7 @@
             gap: 0.5rem;
         }
 
-        /* Pulsing Primary Start Check-In Button */
+        /* Pulsing Primary Calculate Stress Button */
         .btn-checkin-pulse {
             width: 100%;
             background: linear-gradient(135deg, #22c55e, #16a34a);
@@ -436,7 +436,7 @@
             opacity: 1;
         }
 
-        /* Step 1 Bio-Scan Ring */
+        /* Step 1 Bio-Scan Ring & Video Viewport */
         .scan-timer-ring {
             width: 100px;
             height: 100px;
@@ -552,15 +552,15 @@
     <!-- Invisible Webcam Video Element for MediaPipe Background Processing -->
     <video id="webcamFeed" autoplay muted playsinline style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; visibility: hidden;"></video>
 
-    <!-- Sidebar Navigation with Pulsing Check-In Button -->
+    <!-- Sidebar Navigation with Pulsing Calculate Stress Button -->
     <aside class="sidebar">
         <div class="logo">
             <div class="logo-icon" style="width: 28px; height: 28px; background: #22c55e; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem;">SC</div>
             <span>Stress<span class="gradient-text">Calc</span></span>
         </div>
 
-        <!-- Prominent Guided Check-In Button -->
-        <button id="startCheckInBtn" class="btn-checkin-pulse">⚡ Start Daily Check-In</button>
+        <!-- Prominent Calculate Stress Button -->
+        <button id="startCheckInBtn" class="btn-checkin-pulse">⚡ Calculate Stress</button>
 
         <ul class="nav-menu">
             <li><a href="#" class="active">Telemetry</a></li>
@@ -682,7 +682,7 @@
         </div>
     </main>
 
-    <!-- MULTI-STEP GUIDED CHECK-IN WIZARD MODAL OVERLAY -->
+    <!-- MULTI-STEP GUIDED CALCULATE STRESS WIZARD MODAL OVERLAY -->
     <div id="checkinWizard" class="wizard-modal-overlay">
         <div class="wizard-container">
             <div class="wizard-header-bar">
@@ -693,41 +693,52 @@
                 <button id="closeWizardBtn" class="close-wizard-btn" title="Close Wizard">✕</button>
             </div>
 
+            <!-- Step 1: Bio-Scan with Visible Live Camera Viewport & Futuristic HUD Overlay -->
             <div id="step1" class="wizard-step">
-                <h2 style="margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800;">Step 1: Bio-Scan</h2>
-                <p style="margin: 0; font-size: 0.85rem; opacity: 0.7;">Align your face in good lighting for a 5-second facial tension scan.</p>
-                <div class="scan-timer-ring">
-                    <span id="scanTimerCount">5</span>
+                <h2 style="margin: 0 0 4px 0; font-size: 1.4rem; font-weight: 800;">Step 1: Bio-Scan</h2>
+                <p style="margin: 0 0 14px 0; font-size: 0.85rem; opacity: 0.7;">Align your face inside the camera viewport for a 5-second bio-scan.</p>
+                
+                <!-- Camera Viewport with Futuristic HUD Overlays -->
+                <div style="position: relative; width: 100%; max-width: 380px; height: 215px; margin: 0 auto 1.2rem auto; border-radius: 16px; overflow: hidden; background: #000; border: 2px solid rgba(34, 197, 94, 0.4); box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                    <!-- Live Camera Feed Video Element -->
+                    <video id="step1VideoFeed" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+                    
+                    <!-- Crosshair Targeting Reticle Overlay -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 130px; height: 130px; border: 2px dashed rgba(34, 197, 94, 0.7); border-radius: 50%; pointer-events: none; animation: spinRing 8s linear infinite;"></div>
+                    
+                    <!-- Live Floating HUD Bio Badges -->
+                    <div style="position: absolute; top: 10px; left: 10px; background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 8px; padding: 4px 8px; font-size: 0.7rem; font-family: monospace; color: #22c55e; font-weight: 700;" id="hudTensionBadge">
+                        TENSION: 20%
+                    </div>
+                    <div style="position: absolute; top: 10px; right: 10px; background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 8px; padding: 4px 8px; font-size: 0.7rem; font-family: monospace; color: #3b82f6; font-weight: 700;">
+                        POSE: ALIGNED
+                    </div>
+                    <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 8px; padding: 4px 8px; font-size: 0.7rem; font-family: monospace; color: #f59e0b; font-weight: 700;">
+                        MICRO-EXPRESSIONS: ACTIVE
+                    </div>
+
+                    <!-- 5-Second Scan Countdown Badge -->
+                    <div style="position: absolute; bottom: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);" id="scanTimerCount">
+                        5
+                    </div>
                 </div>
+
                 <div style="text-align: center; font-size: 0.85rem; color: #22c55e; font-weight: 600;" id="scanStatusMessage">
-                    Initializing Camera & MediaPipe Face Mesh...
+                    Analyzing Facial Tension... Keep Face Centered
                 </div>
             </div>
 
+            <!-- Step 2: DYNAMIC QUESTIONNAIRE CONTAINER (Populated dynamically based on Bio-Scan data) -->
             <div id="step2" class="wizard-step">
-                <h2 style="margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800;">Step 2: Subjective Check</h2>
-                <p style="margin: 0 0 20px 0; font-size: 0.85rem; opacity: 0.7;">Rate your current mental state baseline.</p>
+                <h2 style="margin: 0 0 4px 0; font-size: 1.4rem; font-weight: 800;">Step 2: Subjective Check</h2>
+                <p style="margin: 0 0 16px 0; font-size: 0.85rem; opacity: 0.7;">Questions dynamically tailored to your bio-scan results.</p>
                 
-                <div class="slider-group">
-                    <label>
-                        <span>How overwhelmed do you feel?</span>
-                        <span style="color: #22c55e;"><span id="overwhelmVal">5</span> / 10</span>
-                    </label>
-                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="5">
-                </div>
-
-                <div class="slider-group">
-                    <label>
-                        <span>Current energy level:</span>
-                        <span style="color: #22c55e;"><span id="energyVal">7</span> / 10</span>
-                    </label>
-                    <input type="range" id="energyInput" class="wizard-range-input" min="1" max="10" value="7">
-                </div>
+                <div id="dynamicQuestionContainer"></div>
 
                 <button id="step2NextBtn" class="btn-wizard-primary">Proceed to Challenge &rarr;</button>
             </div>
 
-            <!-- Step 3: DYNAMIC ADAPTIVE CHALLENGE STEP (Clean UI) -->
+            <!-- Step 3: DYNAMIC ADAPTIVE CHALLENGE STEP -->
             <div id="step3" class="wizard-step">
                 <div style="margin-bottom: 12px;">
                     <h2 id="adaptiveGameTitle" style="margin: 0; font-size: 1.4rem; font-weight: 800;">Cognitive Challenge</h2>

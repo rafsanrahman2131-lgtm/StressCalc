@@ -1,40 +1,41 @@
 /**
  * StressCalculator — Vision Telemetry Module (MediaPipe Face Mesh)
- * Invisible background processing with hardware-level camera shutdown toggle.
  * 100% Client-Side for Privacy.
+ * Features:
+ * 1. Step 1 Camera Video Feed Preview & Futuristic Bio-Scan Overlay
+ * 2. Automatic hardware track shutdown (camera turns off completely when step 1 finishes)
  */
 
 class VisionTelemetry {
     constructor() {
         this.videoElement = null;
+        this.step1VideoFeed = null;
         this.faceMesh = null;
         this.camera = null;
         this.mediaStream = null;
         this.baselineEyebrowDist = null;
-        this.currentTensionScore = 15; // Baseline calm
+        this.currentTensionScore = 20; // Baseline calm
         this.updateInterval = null;
         this.isCameraActive = false;
     }
 
     init() {
         this.videoElement = document.getElementById('webcamFeed');
+        this.step1VideoFeed = document.getElementById('step1VideoFeed');
         const cardToggleBtn = document.getElementById('cardCameraToggle');
 
         if (cardToggleBtn) {
             cardToggleBtn.addEventListener('click', () => this.toggleCamera());
         }
 
-        // Start with camera OFF by default for maximum user privacy & minimal distraction
         this.updateCameraUIState(false, "Camera Offline");
     }
 
     async startCamera() {
-        if (!this.videoElement) {
-            this.videoElement = document.getElementById('webcamFeed');
-        }
+        if (!this.videoElement) this.videoElement = document.getElementById('webcamFeed');
+        if (!this.step1VideoFeed) this.step1VideoFeed = document.getElementById('step1VideoFeed');
 
         try {
-            // Request Webcam Stream
             this.mediaStream = await navigator.mediaDevices.getUserMedia({
                 video: { width: 640, height: 480, facingMode: "user" },
                 audio: false
@@ -45,10 +46,14 @@ class VisionTelemetry {
                 await this.videoElement.play();
             }
 
+            if (this.step1VideoFeed) {
+                this.step1VideoFeed.srcObject = this.mediaStream;
+                await this.step1VideoFeed.play();
+            }
+
             this.isCameraActive = true;
             this.updateCameraUIState(true, "Calm Baseline");
 
-            // Setup MediaPipe processing loop
             if (!this.faceMesh) {
                 this.setupFaceMesh();
             } else if (this.camera) {
@@ -65,7 +70,7 @@ class VisionTelemetry {
     }
 
     stopCamera() {
-        // 1. Physically stop all hardware video tracks to turn off the laptop camera LED light
+        // 1. Physically stop all hardware video tracks to turn off laptop camera LED light
         if (this.mediaStream) {
             this.mediaStream.getTracks().forEach(track => {
                 track.stop();
@@ -77,9 +82,13 @@ class VisionTelemetry {
             this.videoElement.srcObject = null;
         }
 
-        // 2. Halt MediaPipe processing loop
+        if (this.step1VideoFeed) {
+            this.step1VideoFeed.srcObject = null;
+        }
+
+        // 2. Halt MediaPipe camera loop
         if (this.camera) {
-            this.camera.stop();
+            try { this.camera.stop(); } catch(e){}
         }
 
         if (this.updateInterval) {
@@ -160,6 +169,13 @@ class VisionTelemetry {
             tensionRaw = Math.max(0, Math.min(100, tensionRaw));
 
             this.currentTensionScore = Math.round((this.currentTensionScore * 0.7) + (tensionRaw * 0.3));
+        }
+
+        // Live HUD overlay updates in Step 1 modal video viewport
+        const hudTension = document.getElementById('hudTensionBadge');
+        if (hudTension) {
+            hudTension.textContent = `TENSION: ${this.currentTensionScore}%`;
+            hudTension.style.color = this.currentTensionScore > 40 ? '#ef4444' : '#22c55e';
         }
     }
 
