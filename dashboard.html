@@ -605,7 +605,7 @@
     <!-- Invisible Webcam Video Element for MediaPipe Background Processing -->
     <video id="webcamFeed" autoplay muted playsinline style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; visibility: hidden;"></video>
 
-    <!-- Sidebar Navigation with Pulsing Calculate Stress Button -->
+    <!-- Sidebar Navigation with Pulsing Calculate Stress Button & Task 2 SPA Links -->
     <aside class="sidebar">
         <div class="logo">
             <div class="logo-icon" style="width: 28px; height: 28px; background: #22c55e; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem;">SC</div>
@@ -616,8 +616,8 @@
         <button id="startCheckInBtn" class="btn-checkin-pulse">⚡ Calculate Stress</button>
 
         <ul class="nav-menu">
-            <li><a href="#" class="active">Telemetry</a></li>
-            <li><a href="#">Action Logs</a></li>
+            <li><a href="#" id="nav-telemetry" class="active">Telemetry</a></li>
+            <li><a href="#" id="nav-logs">Action Logs</a></li>
             <li><a href="#">Environmental</a></li>
             <li><a href="#">Settings</a></li>
             <li style="margin-top: auto;"><a href="auth.html" style="color: #ef4444; opacity: 0.9;">Sign Out</a></li>
@@ -626,113 +626,171 @@
 
     <!-- Main Telemetry Dashboard Content -->
     <main class="main-content">
-        <header class="dashboard-header">
-            <div>
-                <h1 style="margin: 0; font-size: 1.6rem; font-weight: 800;">Daily Telemetry Overview</h1>
-                <div class="sync-status">
-                    <div class="pulse-dot"></div> Live Sync Active
+
+        <!-- SPA VIEW 1: REAL-TIME TELEMETRY DASHBOARD -->
+        <div id="telemetry-dashboard" class="spa-view">
+            <header class="dashboard-header">
+                <div>
+                    <h1 style="margin: 0; font-size: 1.6rem; font-weight: 800;">Daily Telemetry Overview</h1>
+                    <div class="sync-status">
+                        <div class="pulse-dot"></div> Live Sync Active
+                    </div>
+                </div>
+                
+                <!-- 3-Way Theme Engine Controls -->
+                <div class="theme-controls" style="display: flex; gap: 8px;">
+                    <button class="theme-btn-dash" onclick="setTheme('light')" title="Light Mode">☀️ Light</button>
+                    <button class="theme-btn-dash" onclick="setTheme('dark')" title="Dark Mode">🌙 Dark</button>
+                    <button class="theme-btn-dash" onclick="setTheme('contrast')" title="Contrast Mode">👁️ Contrast</button>
+                </div>
+            </header>
+
+            <!-- Top Metrics Row with Exact Data Binding IDs -->
+            <div class="metrics-grid">
+                <div class="glass-card">
+                    <div class="metric-title">Cognitive Bandwidth</div>
+                    <div class="metric-value gradient-text" id="ui-bandwidth">88%</div>
+                    <div class="metric-sub">Optimal capacity</div>
+                </div>
+                <div class="glass-card">
+                    <div class="metric-title">Context Switches</div>
+                    <div class="metric-value" id="ui-switches">0</div>
+                    <div class="metric-sub" style="color: #ef4444;">Live Counter</div>
+                </div>
+                <div class="glass-card">
+                    <div class="metric-title">Focus Index</div>
+                    <div class="metric-value" id="ui-focus">8.8<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
+                    <div class="metric-sub">Sustained Flow State</div>
+                </div>
+
+                <!-- MediaPipe Facial Tension Metric Card -->
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <div class="metric-title" style="margin-bottom: 0;">Facial Tension Level</div>
+                        <button id="cardCameraToggle" class="card-cam-btn" title="Start or Stop Hardware Camera Tracking">Start Camera</button>
+                    </div>
+                    <div class="metric-value" id="val-tension" style="color: #10B981;">--</div>
+                    <div class="metric-sub" id="sub-tension" style="color: var(--text-secondary, #94a3b8);">Camera Offline</div>
                 </div>
             </div>
-            
-            <!-- 3-Way Theme Engine Controls -->
-            <div class="theme-controls" style="display: flex; gap: 8px;">
-                <button class="theme-btn-dash" onclick="setTheme('light')" title="Light Mode">☀️ Light</button>
-                <button class="theme-btn-dash" onclick="setTheme('dark')" title="Dark Mode">🌙 Dark</button>
-                <button class="theme-btn-dash" onclick="setTheme('contrast')" title="Contrast Mode">👁️ Contrast</button>
-            </div>
-        </header>
 
-        <!-- Top Metrics Row with Exact Data Binding IDs -->
-        <div class="metrics-grid">
-            <div class="glass-card">
-                <div class="metric-title">Cognitive Bandwidth</div>
-                <div class="metric-value gradient-text" id="ui-bandwidth">88%</div>
-                <div class="metric-sub">Optimal capacity</div>
-            </div>
-            <div class="glass-card">
-                <div class="metric-title">Context Switches</div>
-                <div class="metric-value" id="ui-switches">0</div>
-                <div class="metric-sub" style="color: #ef4444;">Live Counter</div>
-            </div>
-            <div class="glass-card">
-                <div class="metric-title">Focus Index</div>
-                <div class="metric-value" id="ui-focus">8.8<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
-                <div class="metric-sub">Sustained Flow State</div>
-            </div>
+            <!-- Main Interactive Chart.js Panel with Native Drag & Timeline Slider Controls -->
+            <div class="glass-card chart-panel">
+                <div style="opacity: 0.9; margin-bottom: 0.5rem; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span>Cognitive Load Telemetry</span>
+                        <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;" id="chartLiveIndicator">● Live Stream</span>
+                    </div>
 
-            <!-- MediaPipe Facial Tension Metric Card -->
-            <div class="glass-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <div class="metric-title" style="margin-bottom: 0;">Facial Tension Level</div>
-                    <button id="cardCameraToggle" class="card-cam-btn" title="Start or Stop Hardware Camera Tracking">Start Camera</button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <!-- Snap back to Live Stream -->
+                        <button class="reset-chart-btn" onclick="snapToLiveStream()" title="Pan back to latest real-time points">↩️ Follow Live</button>
+
+                        <!-- Multi-Resolution Timeframe Selector Group -->
+                        <div class="res-pill-group">
+                            <button class="res-btn active" onclick="setChartResolution('second')" id="res-second" title="Per Second (Live Stream)">Per Second</button>
+                            <button class="res-btn" onclick="setChartResolution('minute')" id="res-minute" title="Per Minute Aggregation">Per Minute</button>
+                            <button class="res-btn" onclick="setChartResolution('hour')" id="res-hour" title="Per Hour Trends">Per Hour</button>
+                            <button class="res-btn" onclick="setChartResolution('day')" id="res-day" title="Per Day Historical Trends">Per Day</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="metric-value" id="val-tension" style="color: #10B981;">--</div>
-                <div class="metric-sub" id="sub-tension" style="color: var(--text-secondary, #94a3b8);">Camera Offline</div>
+
+                <!-- Canvas Wrapper with Native Mouse Drag-to-Slide -->
+                <div class="chart-wrapper" id="chartWrapper" title="Click and drag left or right to slide through previous telemetry records">
+                    <canvas id="telemetryChart"></canvas>
+                </div>
+
+                <!-- Interactive Timeline History Slider Bar -->
+                <div class="timeline-slider-bar">
+                    <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 700;">⏮️ Past</span>
+                    <input type="range" id="chartTimeSlider" class="timeline-range-input" min="0" max="100" value="100" title="Slide knob left or right to scroll through past records">
+                    <span style="font-size: 0.75rem; color: #22c55e; font-weight: 700;">Live 🔴</span>
+                </div>
+            </div>
+
+            <!-- Lower Grid: Live Environmental Telemetry & Dynamic Stressors Event Logger -->
+            <div class="lower-grid">
+                <div class="glass-card">
+                    <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Environmental Telemetry</h3>
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
+                        <div>
+                            <div class="metric-title">Ambient Noise</div>
+                            <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-noise">42</span> dB</div>
+                        </div>
+                        <div>
+                            <div class="metric-title">Tab Density</div>
+                            <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-tabs">6</span> open</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Recent Stressors</h3>
+                    <!-- Real-Time Dynamic Event Log Container -->
+                    <ul class="log-list" id="ui-stressors-log">
+                        <li class="log-item">
+                            <span style="color: rgba(255,255,255,0.6); font-family: monospace; font-size: 0.8rem;">17:47:00</span>
+                            <span style="font-weight: 600;">System Initialized</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
-        <!-- Main Interactive Chart.js Panel with Native Drag & Timeline Slider Controls -->
-        <div class="glass-card chart-panel">
-            <div style="opacity: 0.9; margin-bottom: 0.5rem; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span>Cognitive Load Telemetry</span>
-                    <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;" id="chartLiveIndicator">● Live Stream</span>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <!-- Snap back to Live Stream -->
-                    <button class="reset-chart-btn" onclick="snapToLiveStream()" title="Pan back to latest real-time points">↩️ Follow Live</button>
-
-                    <!-- Multi-Resolution Timeframe Selector Group -->
-                    <div class="res-pill-group">
-                        <button class="res-btn active" onclick="setChartResolution('second')" id="res-second" title="Per Second (Live Stream)">Per Second</button>
-                        <button class="res-btn" onclick="setChartResolution('minute')" id="res-minute" title="Per Minute Aggregation">Per Minute</button>
-                        <button class="res-btn" onclick="setChartResolution('hour')" id="res-hour" title="Per Hour Trends">Per Hour</button>
-                        <button class="res-btn" onclick="setChartResolution('day')" id="res-day" title="Per Day Historical Trends">Per Day</button>
+        <!-- SPA VIEW 2: TASK 3 HISTORICAL ACTION LOGS VIEW -->
+        <div id="action-logs-view" class="spa-view" style="display: none;">
+            <header class="dashboard-header">
+                <div>
+                    <h1 style="margin: 0; font-size: 1.6rem; font-weight: 800;">Historical Action Logs & Trends</h1>
+                    <div class="sync-status">
+                        <div class="pulse-dot"></div> MySQL Database Connected
                     </div>
                 </div>
+
+                <!-- 3-Way Theme Engine Controls -->
+                <div class="theme-controls" style="display: flex; gap: 8px;">
+                    <button class="theme-btn-dash" onclick="setTheme('light')" title="Light Mode">☀️ Light</button>
+                    <button class="theme-btn-dash" onclick="setTheme('dark')" title="Dark Mode">🌙 Dark</button>
+                    <button class="theme-btn-dash" onclick="setTheme('contrast')" title="Contrast Mode">👁️ Contrast</button>
+                </div>
+            </header>
+
+            <!-- 7-Day Stress Index Trend Bar Chart Panel -->
+            <div class="glass-card" style="height: 350px; margin-bottom: 2rem; padding: 1.5rem; display: flex; flex-direction: column;">
+                <div style="opacity: 0.9; margin-bottom: 1rem; font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>7-Day Stress Index Trend</span>
+                    <span style="font-size: 0.75rem; font-weight: 600;">
+                        <span style="color: #22c55e;">● Optimal (&lt;30)</span> | 
+                        <span style="color: #f59e0b;">● Elevated (31-69)</span> | 
+                        <span style="color: #ef4444;">● High Strain (&ge;70)</span>
+                    </span>
+                </div>
+                <div style="position: relative; width: 100%; flex: 1;">
+                    <canvas id="historyTrendChart"></canvas>
+                </div>
             </div>
 
-            <!-- Canvas Wrapper with Native Mouse Drag-to-Slide -->
-            <div class="chart-wrapper" id="chartWrapper" title="Click and drag left or right to slide through previous telemetry records">
-                <canvas id="telemetryChart"></canvas>
-            </div>
-
-            <!-- Interactive Timeline History Slider Bar -->
-            <div class="timeline-slider-bar">
-                <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 700;">⏮️ Past</span>
-                <input type="range" id="chartTimeSlider" class="timeline-range-input" min="0" max="100" value="100" title="Slide knob left or right to scroll through past records">
-                <span style="font-size: 0.75rem; color: #22c55e; font-weight: 700;">Live 🔴</span>
+            <!-- Past Check-Ins Historical Data Table -->
+            <div class="glass-card" style="padding: 1.5rem; overflow-x: auto;">
+                <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">Past Check-In History</h3>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); font-size: 0.8rem; text-transform: uppercase;">
+                            <th style="padding: 10px;">Date / Time</th>
+                            <th style="padding: 10px;">Stress Index</th>
+                            <th style="padding: 10px;">Overwhelm Score</th>
+                            <th style="padding: 10px;">Facial Tension %</th>
+                            <th style="padding: 10px;">Reaction Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Dynamically populated by history.js -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Lower Grid: Live Environmental Telemetry & Dynamic Stressors Event Logger -->
-        <div class="lower-grid">
-            <div class="glass-card">
-                <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Environmental Telemetry</h3>
-                <div style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
-                    <div>
-                        <div class="metric-title">Ambient Noise</div>
-                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-noise">42</span> dB</div>
-                    </div>
-                    <div>
-                        <div class="metric-title">Tab Density</div>
-                        <div style="font-size: 1.5rem; font-weight: 800;" class="mono"><span id="ui-tabs">6</span> open</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card">
-                <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Recent Stressors</h3>
-                <!-- Real-Time Dynamic Event Log Container -->
-                <ul class="log-list" id="ui-stressors-log">
-                    <li class="log-item">
-                        <span style="color: rgba(255,255,255,0.6); font-family: monospace; font-size: 0.8rem;">17:47:00</span>
-                        <span style="font-weight: 600;">System Initialized</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
     </main>
 
     <!-- MULTI-STEP GUIDED CALCULATE STRESS WIZARD MODAL OVERLAY -->
@@ -811,6 +869,12 @@
 
     <!-- Guided Workflow Controller Script -->
     <script src="js/workflow.js"></script>
+
+    <!-- SPA Navigation Router -->
+    <script src="js/navigation.js"></script>
+
+    <!-- Historical Data & 7-Day Trend Controller -->
+    <script src="js/history.js"></script>
 
     <!-- Chart.js Sliding & Timeline Range Engine -->
     <script>

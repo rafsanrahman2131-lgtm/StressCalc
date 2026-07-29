@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -30,6 +31,40 @@ public class AssessmentController {
     private final RestTemplate restTemplate = new RestTemplate();
     private final String ML_SERVICE_URL = "http://127.0.0.1:5000/predict";
     private final String ML_RECOMMEND_URL = "http://127.0.0.1:5000/recommend-game";
+
+    /**
+     * TASK 1: Backend Data Retrieval GET /api/history
+     * MySQL query selects last 30 days of data from stress_assessments table, ordered by timestamp descending.
+     */
+    @GetMapping(value = "/history", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getAssessmentHistory(HttpSession session) {
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) {
+                User user = (User) session.getAttribute("user");
+                if (user != null) {
+                    userId = user.getUserId();
+                }
+            }
+            if (userId == null) {
+                userId = 1L; // Fallback demo user ID
+            }
+
+            LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+            List<StressAssessment> historyList = assessmentRepository.findLast30DaysByUserId(userId, thirtyDaysAgo);
+
+            if (historyList == null || historyList.isEmpty()) {
+                historyList = assessmentRepository.findTop30ByUserIdOrderByAssessmentIdDesc(userId);
+            }
+
+            return ResponseEntity.ok(historyList);
+
+        } catch (Exception e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Failed to retrieve assessment history: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        }
+    }
 
     @PostMapping(value = "/recommend-game", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> recommendAdaptiveGame(@RequestBody Map<String, Object> payload) {
