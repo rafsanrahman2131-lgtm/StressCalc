@@ -200,7 +200,7 @@
 
         /* Chart Area */
         .chart-panel {
-            height: 320px;
+            height: 350px;
             margin-bottom: 2rem;
             position: relative;
             padding: 1.5rem;
@@ -210,7 +210,39 @@
         .chart-wrapper {
             position: relative;
             width: 100%;
-            height: calc(100% - 30px);
+            height: calc(100% - 40px);
+        }
+
+        /* Time Resolution Switcher Pill Group */
+        .res-pill-group {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+            border-radius: 10px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .res-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .res-btn:hover {
+            color: #ffffff;
+        }
+
+        .res-btn.active {
+            background: #22c55e;
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4);
         }
 
         /* Lower Grid */
@@ -541,12 +573,23 @@
             </div>
         </div>
 
-        <!-- Main Live Chart.js Panel with Dynamic Streaming -->
+        <!-- Main Live Chart.js Panel with Time Resolution Switcher Controls -->
         <div class="glass-card chart-panel">
-            <div style="opacity: 0.8; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
-                <span>Cognitive Load vs Time Telemetry</span>
-                <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">● Live Stream</span>
+            <div style="opacity: 0.9; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>Cognitive Load Telemetry</span>
+                    <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">● Live Stream</span>
+                </div>
+
+                <!-- Multi-Resolution Timeframe Selector Group -->
+                <div class="res-pill-group">
+                    <button class="res-btn active" onclick="setChartResolution('second')" id="res-second" title="Per Second (Live Stream)">Per Second</button>
+                    <button class="res-btn" onclick="setChartResolution('minute')" id="res-minute" title="Per Minute Aggregation">Per Minute</button>
+                    <button class="res-btn" onclick="setChartResolution('hour')" id="res-hour" title="Per Hour Trends">Per Hour</button>
+                    <button class="res-btn" onclick="setChartResolution('day')" id="res-day" title="Per Day Historical Trends">Per Day</button>
+                </div>
             </div>
+
             <div class="chart-wrapper">
                 <!-- Live Chart.js Canvas Tag -->
                 <canvas id="telemetryChart"></canvas>
@@ -650,14 +693,13 @@
     <!-- Guided Workflow Controller Script -->
     <script src="js/workflow.js"></script>
 
-    <!-- Chart.js Live Real-Time Streaming Engine -->
+    <!-- Chart.js Multi-Resolution Timeframe Streaming Engine -->
     <script>
         window.telemetryChart = null;
+        window.activeChartResolution = 'second'; // 'second', 'minute', 'hour', 'day'
 
         function initLiveChart() {
             const ctx = document.getElementById('telemetryChart').getContext('2d');
-            
-            // Generate initial live timestamps for visual flow
             const now = new Date();
             const initialLabels = [];
             const initialData = [];
@@ -665,7 +707,7 @@
             for (let i = 12; i >= 0; i--) {
                 const timeStr = new Date(now.getTime() - i * 3000).toTimeString().split(' ')[0];
                 initialLabels.push(timeStr);
-                initialData.push(8.5 + (Math.sin(i) * 0.4));
+                initialData.push(8.5 + (Math.sin(i) * 0.3));
             }
 
             window.telemetryChart = new Chart(ctx, {
@@ -722,9 +764,64 @@
             });
         }
 
-        // Real-Time Chart Point Stream Function called by telemetry.js every 2-3s
+        // Multi-Resolution Timeframe Selector Switcher
+        function setChartResolution(mode) {
+            window.activeChartResolution = mode;
+
+            // Highlight active button
+            document.querySelectorAll('.res-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`res-${mode}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const chart = window.telemetryChart;
+            if (!chart) return;
+
+            const now = new Date();
+            const labels = [];
+            const data = [];
+
+            if (mode === 'second') {
+                // Per Second Mode: Live 1-second rolling stream
+                for (let i = 14; i >= 0; i--) {
+                    const timeStr = new Date(now.getTime() - i * 2000).toTimeString().split(' ')[0];
+                    labels.push(timeStr);
+                    data.push(8.8 + Math.sin(i * 0.5) * 0.4);
+                }
+            } else if (mode === 'minute') {
+                // Per Minute Mode: Aggregated 1-minute time windows
+                for (let i = 10; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 60000);
+                    const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    labels.push(timeStr);
+                    data.push(8.2 + Math.cos(i * 0.4) * 0.6);
+                }
+            } else if (mode === 'hour') {
+                // Per Hour Mode: Hourly trends
+                for (let i = 8; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 3600000);
+                    const timeStr = `${String(d.getHours()).padStart(2,'0')}:00`;
+                    labels.push(timeStr);
+                    data.push(7.8 + Math.sin(i * 0.8) * 0.9);
+                }
+            } else if (mode === 'day') {
+                // Per Day Mode: Daily trends
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 86400000);
+                    labels.push(days[d.getDay()]);
+                    data.push(8.0 + Math.sin(i * 1.2) * 1.0);
+                }
+            }
+
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            chart.update();
+        }
+
+        // Live Real-Time Stream Function (pushed from telemetry.js)
         window.pushLiveChartPoint = function(focusValue) {
             if (!window.telemetryChart) return;
+            if (window.activeChartResolution !== 'second') return; // Only stream in live "Per Second" mode
 
             const timeStr = new Date().toTimeString().split(' ')[0];
             const chart = window.telemetryChart;
@@ -737,7 +834,7 @@
                 chart.data.datasets[0].data.shift();
             }
 
-            chart.update('none'); // Silky smooth real-time stream update
+            chart.update('none');
         };
 
         async function fetchInitialBackendLogs() {
@@ -745,7 +842,7 @@
                 const response = await fetch('/api/telemetry-data');
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.length > 0 && window.telemetryChart) {
+                    if (data.length > 0 && window.telemetryChart && window.activeChartResolution === 'second') {
                         const labels = data.map(item => item.timestamp);
                         const focusData = data.map(item => item.focus_index);
                         window.telemetryChart.data.labels = labels;
