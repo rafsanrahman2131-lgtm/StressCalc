@@ -1,6 +1,5 @@
 /**
- * StressCalculator — Adaptive Dynamic Check-In Workflow Controller
- * Powered by Python FastAPI ML Recommendation Microservice
+ * StressCalculator — Dynamic Adaptive Check-In Workflow Controller
  * 
  * Dynamically selects & prompts tailored cognitive challenges based on live telemetry:
  * 1. Stroop Executive Function Test ("stroop")
@@ -20,7 +19,7 @@ class CheckInWorkflow {
         this.energyScore = 7;
 
         this.activeGameType = "stroop";
-        this.gameTitle = "Stroop Executive Function Test";
+        this.gameTitle = "Cognitive Challenge";
         this.recommendationReason = "";
 
         // Stroop Game State
@@ -161,7 +160,7 @@ class CheckInWorkflow {
     }
 
     /**
-     * STEP 2 -> STEP 3: Query ML Engine for Adaptive Game Decision
+     * STEP 2 -> STEP 3: Query Recommendation Engine silently
      */
     async evaluateAndProceedToStep3() {
         const telemetry = window.telemetryEngine ? window.telemetryEngine.state : { focusIndex: 8.5, cognitiveBandwidth: 85, ambientNoiseDb: 42, contextSwitches: 0 };
@@ -184,10 +183,9 @@ class CheckInWorkflow {
                 const data = await response.json();
                 this.activeGameType = data.game_type || 'stroop';
                 this.gameTitle = data.game_title || 'Cognitive Challenge';
-                this.recommendationReason = data.recommendation_reason || '';
             }
         } catch (e) {
-            console.warn("AI recommendation endpoint fallback:", e);
+            console.warn("Recommendation engine fallback:", e);
             this.activeGameType = 'stroop';
         }
 
@@ -197,12 +195,9 @@ class CheckInWorkflow {
 
     renderAdaptiveGame() {
         const titleEl = document.getElementById('adaptiveGameTitle');
-        const reasonEl = document.getElementById('adaptiveAiReason');
         const container = document.getElementById('adaptiveGameContainer');
 
         if (titleEl) titleEl.textContent = this.gameTitle;
-        if (reasonEl) reasonEl.innerHTML = `🤖 <strong>AI Decision Engine:</strong> ${this.recommendationReason}`;
-
         if (!container) return;
         container.innerHTML = '';
 
@@ -226,7 +221,7 @@ class CheckInWorkflow {
                     <span id="breathText">Inhale</span>
                 </div>
                 <div id="breathSubText" style="font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 12px;">Cycle 1 of 3: Deep Inhale (4s)</div>
-                <button id="finishBreathingBtn" class="btn-wizard-primary" style="display: none;">Complete Vagus Reset</button>
+                <button id="finishBreathingBtn" class="btn-wizard-primary" style="display: none;">Complete Reset</button>
             </div>
         `;
 
@@ -242,7 +237,7 @@ class CheckInWorkflow {
         if (this.breathingCycle >= this.maxBreathingCycles) {
             if (circle) circle.style.transform = 'scale(1.0)';
             if (text) text.textContent = 'Done!';
-            if (subText) subText.textContent = 'Vagus Nerve Reset Complete!';
+            if (subText) subText.textContent = 'Breathing Exercise Complete!';
             if (btn) {
                 btn.style.display = 'block';
                 btn.addEventListener('click', () => this.finishCheckIn(350, 95));
@@ -299,7 +294,6 @@ class CheckInWorkflow {
         this.currentMathAnswer = isAdd ? (num1 + num2) : (num1 - num2);
         const expr = isAdd ? `${num1} + ${num2}` : `${num1} - ${num2}`;
 
-        // Create 4 multiple choice options
         let options = [this.currentMathAnswer];
         while (options.length < 4) {
             let offset = (Math.floor(Math.random() * 10) - 5) || 2;
@@ -353,7 +347,6 @@ class CheckInWorkflow {
         this.patternTargetTiles = [];
         this.patternUserSelected = [];
 
-        // Pick 3 unique random tiles out of 9 (0 to 8)
         while (this.patternTargetTiles.length < 3) {
             let r = Math.floor(Math.random() * 9);
             if (!this.patternTargetTiles.includes(r)) this.patternTargetTiles.push(r);
@@ -371,7 +364,6 @@ class CheckInWorkflow {
             </div>
         `;
 
-        // Highlight target tiles in green for 1.5 seconds
         const tiles = container.querySelectorAll('.pattern-tile');
         this.patternTargetTiles.forEach(idx => {
             if (tiles[idx]) {
@@ -382,7 +374,6 @@ class CheckInWorkflow {
         });
 
         setTimeout(() => {
-            // Hide pattern and start user selection timer
             tiles.forEach(tile => {
                 tile.style.background = 'rgba(255,255,255,0.06)';
                 tile.style.borderColor = 'rgba(255,255,255,0.1)';
@@ -410,7 +401,6 @@ class CheckInWorkflow {
                         const reaction = performance.now() - this.mathStartTime;
                         this.totalReactionTime += reaction;
 
-                        // Check correctness
                         let matches = this.patternUserSelected.filter(x => this.patternTargetTiles.includes(x)).length;
                         if (matches === 3) this.correctAnswers++;
 

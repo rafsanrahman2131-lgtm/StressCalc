@@ -522,18 +522,6 @@
             margin-top: 1rem;
         }
 
-        /* AI Recommendation Banner */
-        .ai-recommend-banner {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-size: 0.82rem;
-            color: #22c55e;
-            margin-bottom: 1rem;
-            line-height: 1.4;
-        }
-
         /* Assessment Glassmorphic Toast Notification */
         .assessment-toast {
             position: fixed;
@@ -731,24 +719,18 @@
                 <div class="slider-group">
                     <label>
                         <span>Current energy level:</span>
-                        <span style="color: #22c55e;"><span id="overwhelmVal">7</span> / 10</span>
+                        <span style="color: #22c55e;"><span id="energyVal">7</span> / 10</span>
                     </label>
                     <input type="range" id="energyInput" class="wizard-range-input" min="1" max="10" value="7">
                 </div>
 
-                <button id="step2NextBtn" class="btn-wizard-primary">Analyze Telemetry & Prompt Adaptive Challenge &rarr;</button>
+                <button id="step2NextBtn" class="btn-wizard-primary">Proceed to Challenge &rarr;</button>
             </div>
 
-            <!-- Step 3: DYNAMIC AI ADAPTIVE CHALLENGE STEP -->
+            <!-- Step 3: DYNAMIC ADAPTIVE CHALLENGE STEP (Clean UI) -->
             <div id="step3" class="wizard-step">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h2 id="adaptiveGameTitle" style="margin: 0; font-size: 1.35rem; font-weight: 800;">Tailored Adaptive Challenge</h2>
-                    <span style="font-size: 0.75rem; background: rgba(34,197,94,0.15); color: #22c55e; font-weight: 800; padding: 2px 8px; border-radius: 6px;">AI Tailored</span>
-                </div>
-
-                <!-- AI Decision Banner -->
-                <div id="adaptiveAiReason" class="ai-recommend-banner">
-                    🤖 <strong>AI Decision Engine:</strong> Evaluating live focus index, noise level, and context switches...
+                <div style="margin-bottom: 12px;">
+                    <h2 id="adaptiveGameTitle" style="margin: 0; font-size: 1.4rem; font-weight: 800;">Cognitive Challenge</h2>
                 </div>
 
                 <!-- Dynamic Container populated by workflow.js -->
