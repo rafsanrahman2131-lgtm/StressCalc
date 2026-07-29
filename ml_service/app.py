@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import joblib
 import pandas as pd
 import os
+from typing import Optional
 
 app = FastAPI(title="StressCalculator ML Prediction Engine", version="2.0.0")
 
@@ -35,6 +36,7 @@ class AdaptiveGamePayload(BaseModel):
     context_switches: int = 0
     facial_tension: float = 20.0
     overwhelm_score: int = 5
+    preferred_game: Optional[str] = None
 
 @app.get("/")
 def health_check():
@@ -59,7 +61,7 @@ def predict_metrics(payload: TelemetryPayload):
 
         pred_focus = round(max(0.0, min(10.0, pred_focus)), 1)
         pred_bandwidth = int(round(max(10.0, min(100.0, pred_bandwidth))))
-        pred_stress = int(round(max(0.0, min(100.0, pred_stress))))
+        pred_stress = int(round(max(0.0, min(10.0, pred_stress))))
 
         return {
             "status": "success",
@@ -78,39 +80,32 @@ def recommend_adaptive_game(payload: AdaptiveGamePayload):
     switches = payload.context_switches
     overwhelm = payload.overwhelm_score
     tension = payload.facial_tension
+    preferred = payload.preferred_game
 
-    # Adaptive Decision Logic Matrix:
-    # 1. High Overwhelm (>=7), High Switches (>=3), or Severe Cognitive Fatigue (Bandwidth <60 & Focus <6.0)
-    #    -> "breathing" (Guided 4-7-8 Box Breathing & Focus Grounding)
-    # 2. Low Focus (<7.0) or High Ambient Noise (>=60 dB)
-    #    -> "math_speed" (Rapid Arithmetic Agility Challenge)
-    # 3. High Facial Muscle Tension (>=35.0)
-    #    -> "pattern_memory" (Visual Pattern Flash Recall)
-    # 4. Sustained High Focus & Optimal Baseline
-    #    -> "stroop" (Stroop Ink-Color Executive Challenge)
-
-    if overwhelm >= 7 or switches >= 3 or (bandwidth < 60 and focus < 6.0):
+    # Priority 1: Direct user selection in dynamic questionnaire
+    if preferred in ["stroop", "breathing", "math_speed", "pattern_memory"]:
+        game_type = preferred
+    # Priority 2: Biological & environmental override thresholds
+    elif overwhelm >= 7 or switches >= 3 or (bandwidth < 60 and focus < 6.0):
         game_type = "breathing"
-        game_title = "4-7-8 Box Breathing Grounding"
-        reason = "High stress & frequent tab switching detected. Prompted Vagus Reset Box Breathing to lower cognitive load."
-    elif focus < 7.2 or noise >= 60:
-        game_type = "math_speed"
-        game_title = "Rapid Mental Math Speed Challenge"
-        reason = "Sub-optimal focus & ambient noise detected. Prompted rapid mental arithmetic to re-engage executive focus."
     elif tension >= 30.0:
         game_type = "pattern_memory"
-        game_title = "Visual Pattern Memory Flash Game"
-        reason = "Elevated facial tension detected. Prompted visual spatial memory exercise to relieve tension."
+    elif focus < 7.2 or noise >= 60:
+        game_type = "math_speed"
     else:
         game_type = "stroop"
-        game_title = "Stroop Executive Function Test"
-        reason = "Optimal capacity baseline. Prompted Stroop reaction speed test."
+
+    game_titles = {
+        "stroop": "Stroop Executive Function Test",
+        "breathing": "4-7-8 Box Breathing Grounding",
+        "math_speed": "Rapid Mental Math Speed Challenge",
+        "pattern_memory": "Visual Pattern Memory Flash Game"
+    }
 
     return {
         "status": "success",
         "game_type": game_type,
-        "game_title": game_title,
-        "recommendation_reason": reason
+        "game_title": game_titles.get(game_type, "Cognitive Challenge")
     }
 
 if __name__ == "__main__":

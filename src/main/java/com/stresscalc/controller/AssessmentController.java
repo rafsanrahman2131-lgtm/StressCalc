@@ -40,6 +40,7 @@ public class AssessmentController {
             int contextSwitches = payload.containsKey("contextSwitches") ? ((Number) payload.get("contextSwitches")).intValue() : 0;
             double facialTension = payload.containsKey("facialTension") ? ((Number) payload.get("facialTension")).doubleValue() : 20.0;
             int overwhelmScore = payload.containsKey("overwhelmScore") ? ((Number) payload.get("overwhelmScore")).intValue() : 5;
+            String preferredGame = payload.containsKey("preferredGame") ? (String) payload.get("preferredGame") : null;
 
             // Try Python FastAPI ML Recommendation Service
             try {
@@ -50,6 +51,9 @@ public class AssessmentController {
                 mlReq.put("context_switches", contextSwitches);
                 mlReq.put("facial_tension", facialTension);
                 mlReq.put("overwhelm_score", overwhelmScore);
+                if (preferredGame != null) {
+                    mlReq.put("preferred_game", preferredGame);
+                }
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
@@ -65,28 +69,27 @@ public class AssessmentController {
 
             // Java Fallback Decision Matrix
             String gameType = "stroop";
-            String gameTitle = "Stroop Executive Function Test";
-            String reason = "Optimal capacity baseline. Prompted Stroop reaction speed test.";
-
-            if (overwhelmScore >= 7 || contextSwitches >= 3 || (cognitiveBandwidth < 60 && focusIndex < 6.0)) {
+            if (preferredGame != null && !preferredGame.isEmpty()) {
+                gameType = preferredGame;
+            } else if (overwhelmScore >= 7 || contextSwitches >= 3 || (cognitiveBandwidth < 60 && focusIndex < 6.0)) {
                 gameType = "breathing";
-                gameTitle = "4-7-8 Box Breathing Grounding";
-                reason = "High stress & context switching detected. Recommended a calming vagus nerve reset.";
-            } else if (focusIndex < 7.2 || ambientNoiseDb >= 60) {
-                gameType = "math_speed";
-                gameTitle = "Rapid Mental Math Speed Challenge";
-                reason = "Sub-optimal focus & ambient noise detected. Recommended rapid arithmetic to re-engage focus.";
             } else if (facialTension >= 30.0) {
                 gameType = "pattern_memory";
-                gameTitle = "Visual Pattern Memory Flash Game";
-                reason = "Elevated facial muscle tension detected. Recommended visual spatial memory exercise.";
+            } else if (focusIndex < 7.2 || ambientNoiseDb >= 60) {
+                gameType = "math_speed";
             }
+
+            Map<String, String> titles = Map.of(
+                "stroop", "Stroop Executive Function Test",
+                "breathing", "4-7-8 Box Breathing Grounding",
+                "math_speed", "Rapid Mental Math Speed Challenge",
+                "pattern_memory", "Visual Pattern Memory Flash Game"
+            );
 
             Map<String, Object> fallbackResp = new HashMap<>();
             fallbackResp.put("status", "success");
             fallbackResp.put("game_type", gameType);
-            fallbackResp.put("game_title", gameTitle);
-            fallbackResp.put("recommendation_reason", reason);
+            fallbackResp.put("game_title", titles.getOrDefault(gameType, "Cognitive Challenge"));
 
             return ResponseEntity.ok(fallbackResp);
 

@@ -1,9 +1,9 @@
 /**
- * StressCalculator — Adaptive Dynamic Check-In Workflow Controller
+ * StressCalculator — Dynamic Telemetry & AI-Driven Assessment Workflow Controller
  * Features:
  * 1. Step 1 Bio-Scan with Live Visible Camera Viewport & Auto Camera Shutdown upon completion
- * 2. Dynamic Telemetry-Driven Questionnaire (Step 2 adapts based on facial tension & environment)
- * 3. AI-Recommended Tailored Challenge (Step 3)
+ * 2. Dynamic Rotating Questionnaires (Step 2 questions change every time you click Calculate Stress)
+ * 3. Dynamic Game Engine (Prompts different games based on bio-scan + selected answers + run rotation)
  */
 
 class CheckInWorkflow {
@@ -15,6 +15,8 @@ class CheckInWorkflow {
 
         this.overwhelmScore = 5;
         this.energyScore = 7;
+        this.checkInCount = 0;
+        this.selectedPreferredGame = null;
 
         this.activeGameType = "stroop";
         this.gameTitle = "Cognitive Challenge";
@@ -49,6 +51,54 @@ class CheckInWorkflow {
         this.breathingCycle = 0;
         this.maxBreathingCycles = 3;
 
+        // Question Packs Pool for 100% Guaranteed Variety
+        this.questionPacks = [
+            {
+                prompt: "Where is physical strain or fatigue most noticeable right now?",
+                options: [
+                    { label: "Eyebrows & Forehead Tightness", game: "pattern_memory" },
+                    { label: "Eye Strain & Blurred Focus", game: "breathing" },
+                    { label: "Neck & Shoulder Stiffness", game: "breathing" },
+                    { label: "Overall Body Calm", game: "stroop" }
+                ],
+                sliderTitle: "Rate your physical discomfort level:",
+                type: "discomfort"
+            },
+            {
+                prompt: "What is currently hindering your mental flow state the most?",
+                options: [
+                    { label: "Frequent Tab Switching", game: "math_speed" },
+                    { label: "Loud Ambient Background Noise", game: "math_speed" },
+                    { label: "Digital Notification Overload", game: "breathing" },
+                    { label: "Mental Slowdown & Brain Fog", game: "stroop" }
+                ],
+                sliderTitle: "Rate your current distraction impact:",
+                type: "distraction"
+            },
+            {
+                prompt: "Which cognitive exercise do you feel most ready to attempt?",
+                options: [
+                    { label: "Executive Focus Speed", game: "stroop" },
+                    { label: "Rapid Mental Arithmetic", game: "math_speed" },
+                    { label: "Visual Spatial Memory", game: "pattern_memory" },
+                    { label: "Calming Vagus Breathing", game: "breathing" }
+                ],
+                sliderTitle: "Current mental energy rating:",
+                type: "energy"
+            },
+            {
+                prompt: "How would you describe your mental baseline right now?",
+                options: [
+                    { label: "Overwhelmed & Burned Out", game: "breathing" },
+                    { label: "Moderately Tense", game: "pattern_memory" },
+                    { label: "Slightly Distracted", game: "math_speed" },
+                    { label: "Calm, Alert & Ready", game: "stroop" }
+                ],
+                sliderTitle: "Subjective overwhelm score:",
+                type: "overwhelm"
+            }
+        ];
+
         this.init();
     }
 
@@ -69,6 +119,8 @@ class CheckInWorkflow {
         const modal = document.getElementById('checkinWizard');
         if (modal) {
             modal.style.display = 'flex';
+            this.checkInCount++;
+            this.selectedPreferredGame = null;
             this.goToStep(1);
         }
     }
@@ -78,7 +130,6 @@ class CheckInWorkflow {
         if (modal) modal.style.display = 'none';
         if (this.bioScanTimer) clearInterval(this.bioScanTimer);
 
-        // Always ensure camera is stopped when modal closes
         if (window.visionTelemetry) {
             window.visionTelemetry.stopCamera();
         }
@@ -146,88 +197,39 @@ class CheckInWorkflow {
         }, 1000);
     }
 
-    // STEP 2: Dynamically Adapts Questionnaire Prompts Based on Step 1 Bio-Scan Data
+    // STEP 2: Dynamically Rotates Question Packs Every Run & Adapts Options
     renderDynamicStep2Questions() {
         const container = document.getElementById('dynamicQuestionContainer');
         if (!container) return;
 
-        const tension = this.scanTensionScore;
-        const telemetry = window.telemetryEngine ? window.telemetryEngine.state : {};
-        const noise = telemetry.ambientNoiseDb || 42;
-        const switches = telemetry.contextSwitches || 0;
-
-        let q1HTML = "";
-        let q2HTML = "";
-
-        if (tension >= 30) {
-            // Elevated Facial Tension Profile
-            q1HTML = `
-                <div class="slider-group">
-                    <label><span>Where is physical stress concentrated right now?</span></label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Jaw & Temples</button>
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Neck & Shoulders</button>
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Eyes & Forehead</button>
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">General Fatigue</button>
-                    </div>
-                </div>
-            `;
-            q2HTML = `
-                <div class="slider-group">
-                    <label>
-                        <span>Subjective Overwhelm Rating:</span>
-                        <span style="color: #22c55e;"><span id="overwhelmVal">${this.overwhelmScore}</span> / 10</span>
-                    </label>
-                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="${this.overwhelmScore}">
-                </div>
-            `;
-        } else if (switches >= 3 || noise >= 60) {
-            // High Context Switch / Noisy Environment Profile
-            q1HTML = `
-                <div class="slider-group">
-                    <label><span>What is primarily interrupting your work flow?</span></label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Tab Switching</button>
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Ambient Noise</button>
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Notifications</button>
-                        <button class="stroop-opt-btn q1-opt-btn" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 10px;">Task Overload</button>
-                    </div>
-                </div>
-            `;
-            q2HTML = `
-                <div class="slider-group">
-                    <label>
-                        <span>Current Distraction / Noise Impact:</span>
-                        <span style="color: #22c55e;"><span id="overwhelmVal">${this.overwhelmScore}</span> / 10</span>
-                    </label>
-                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="${this.overwhelmScore}">
-                </div>
-            `;
-        } else {
-            // Normal Baseline Profile
-            q1HTML = `
-                <div class="slider-group">
-                    <label>
-                        <span>How overwhelmed do you feel right now?</span>
-                        <span style="color: #22c55e;"><span id="overwhelmVal">${this.overwhelmScore}</span> / 10</span>
-                    </label>
-                    <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="${this.overwhelmScore}">
-                </div>
-            `;
-            q2HTML = `
-                <div class="slider-group">
-                    <label>
-                        <span>Current Energy Level:</span>
-                        <span style="color: #22c55e;"><span id="energyVal">${this.energyScore}</span> / 10</span>
-                    </label>
-                    <input type="range" id="energyInput" class="wizard-range-input" min="1" max="10" value="${this.energyScore}">
-                </div>
-            `;
+        // Select Question Pack based on run count and facial tension score
+        let packIndex = (this.checkInCount - 1) % this.questionPacks.length;
+        if (this.scanTensionScore >= 35) {
+            packIndex = 0; // High facial tension forces physical strain pack
         }
+        const pack = this.questionPacks[packIndex];
 
-        container.innerHTML = q1HTML + q2HTML;
+        container.innerHTML = `
+            <div class="slider-group">
+                <label><span style="font-size: 1rem; color: #ffffff;">${pack.prompt}</span></label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    ${pack.options.map(opt => `
+                        <button class="stroop-opt-btn q1-opt-btn" data-game="${opt.game}" style="border-color: rgba(255,255,255,0.2); font-size: 0.85rem; padding: 12px; text-align: center;">
+                            ${opt.label}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
 
-        // Re-bind slider events
+            <div class="slider-group" style="margin-top: 1.5rem;">
+                <label>
+                    <span>${pack.sliderTitle}</span>
+                    <span style="color: #22c55e;"><span id="overwhelmVal">${this.overwhelmScore}</span> / 10</span>
+                </label>
+                <input type="range" id="overwhelmInput" class="wizard-range-input" min="1" max="10" value="${this.overwhelmScore}">
+            </div>
+        `;
+
         const oInput = document.getElementById('overwhelmInput');
         if (oInput) {
             oInput.addEventListener('input', (e) => {
@@ -237,29 +239,29 @@ class CheckInWorkflow {
             });
         }
 
-        const eInput = document.getElementById('energyInput');
-        if (eInput) {
-            eInput.addEventListener('input', (e) => {
-                this.energyScore = parseInt(e.target.value);
-                const valDisp = document.getElementById('energyVal');
-                if (valDisp) valDisp.textContent = e.target.value;
-            });
-        }
-
-        // Option button click highlighting
         container.querySelectorAll('.q1-opt-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                container.querySelectorAll('.q1-opt-btn').forEach(b => b.style.borderColor = 'rgba(255,255,255,0.2)');
-                e.target.style.borderColor = '#22c55e';
+                container.querySelectorAll('.q1-opt-btn').forEach(b => {
+                    b.style.borderColor = 'rgba(255,255,255,0.2)';
+                    b.style.background = 'rgba(255,255,255,0.05)';
+                });
+                const target = e.currentTarget;
+                target.style.borderColor = '#22c55e';
+                target.style.background = 'rgba(34, 197, 94, 0.15)';
+                this.selectedPreferredGame = target.getAttribute('data-game');
             });
         });
     }
 
     /**
-     * STEP 2 -> STEP 3: Query Recommendation Engine silently
+     * STEP 2 -> STEP 3: Query Recommendation Engine with dynamic rotation fallback
      */
     async evaluateAndProceedToStep3() {
         const telemetry = window.telemetryEngine ? window.telemetryEngine.state : { focusIndex: 8.5, cognitiveBandwidth: 85, ambientNoiseDb: 42, contextSwitches: 0 };
+
+        // Fallback game rotation array so games vary even if no option was selected
+        const gamesList = ["stroop", "breathing", "math_speed", "pattern_memory"];
+        let preferred = this.selectedPreferredGame || gamesList[(this.checkInCount - 1) % gamesList.length];
 
         try {
             const response = await fetch('/api/recommend-game', {
@@ -271,18 +273,19 @@ class CheckInWorkflow {
                     ambientNoiseDb: telemetry.ambientNoiseDb,
                     contextSwitches: telemetry.contextSwitches,
                     facialTension: this.scanTensionScore,
-                    overwhelmScore: this.overwhelmScore
+                    overwhelmScore: this.overwhelmScore,
+                    preferredGame: preferred
                 })
             });
 
             if (response.ok) {
                 const data = await response.json();
-                this.activeGameType = data.game_type || 'stroop';
+                this.activeGameType = data.game_type || preferred;
                 this.gameTitle = data.game_title || 'Cognitive Challenge';
             }
         } catch (e) {
             console.warn("Recommendation engine fallback:", e);
-            this.activeGameType = 'stroop';
+            this.activeGameType = preferred;
         }
 
         this.goToStep(3);
