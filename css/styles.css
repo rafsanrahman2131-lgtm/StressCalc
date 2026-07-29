@@ -1,6 +1,6 @@
 /* ==========================================
-   StressCalculator Refactored Stylesheet
-   Levels.com "Quantified Self" Design System
+   StressCalculator Structural CSS Fixes
+   Levels.com "Quantified Self" Theme Engine
    ========================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
@@ -78,7 +78,7 @@ html[data-theme="contrast"] {
   --badge-text: #000000;
 }
 
-/* --- Universal Reset & Smoothness --- */
+/* --- Universal Reset & Transitions --- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -106,7 +106,7 @@ a {
   text-decoration: none;
 }
 
-/* --- Utility Classes --- */
+/* --- Utility Layout --- */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -114,7 +114,7 @@ a {
 }
 
 .section-padding {
-  padding: 6rem 0;
+  padding: 5rem 0;
 }
 
 .text-center {
@@ -144,12 +144,6 @@ a {
   border-radius: 50%;
   background-color: var(--accent);
   box-shadow: 0 0 10px var(--accent);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
 }
 
 .gradient-text {
@@ -207,27 +201,27 @@ html[data-theme="contrast"] .btn-primary {
   font-size: 0.875rem;
 }
 
-/* --- Floating Header Navigation --- */
+/* ===================================================
+   1. FIX: Floating Navigation Header (Z-Index & Sticky)
+   =================================================== */
 .header {
-  position: fixed;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(1200px, 92%);
-  z-index: 1000;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  width: 100%;
+  background-color: var(--nav-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: var(--card-border-width) solid var(--border-color);
 }
 
 .nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.5rem;
-  background-color: var(--nav-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: var(--card-border-width) solid var(--border-color);
-  border-radius: 9999px;
-  box-shadow: var(--box-shadow);
+  padding: 1rem 1.5rem;
 }
 
 .logo {
@@ -278,12 +272,12 @@ html[data-theme="contrast"] .logo-icon {
   gap: 1rem;
 }
 
-/* 3-Way Theme Switcher */
+/* 3-Way Theme Switcher UI */
 .theme-switcher {
   display: flex;
   align-items: center;
   background-color: var(--toggle-bg);
-  padding: 3px;
+  padding: 4px;
   border-radius: 9999px;
   border: 1px solid var(--border-color);
 }
@@ -312,7 +306,7 @@ html[data-theme="contrast"] .logo-icon {
 
 /* --- Hero Section --- */
 .hero {
-  padding-top: 10rem;
+  padding-top: 6rem;
   padding-bottom: 4rem;
   text-align: center;
 }
@@ -323,15 +317,15 @@ html[data-theme="contrast"] .logo-icon {
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 5.5vw, 4.2rem);
+  font-size: clamp(2.5rem, 5.5vw, 4rem);
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.04em;
   margin: 1.5rem 0 1.25rem 0;
 }
 
 .hero-subtitle {
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 2.5rem;
@@ -345,15 +339,49 @@ html[data-theme="contrast"] .logo-icon {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 2.5rem;
   flex-wrap: wrap;
 }
 
-/* --- Media Formatting System --- */
+/* Section Titles */
+.section-title {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+}
+
+/* ===================================================
+   2. FIX: "Sneaky Stressors" 4-Column Grid
+   =================================================== */
+.stressors-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .stressors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .stressors-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .media-card {
-  overflow: hidden;
-  border-radius: 16px;
   background-color: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
   border: var(--card-border-width) solid var(--border-color);
   box-shadow: var(--card-shadow);
   display: flex;
@@ -368,42 +396,20 @@ html[data-theme="contrast"] .logo-icon {
 
 .media-card-img-wrapper {
   width: 100%;
-  height: 200px;
+  height: 180px;
   overflow: hidden;
-  position: relative;
 }
 
-.media-card img, 
+.media-card img,
 .media-card video {
   width: 100%;
-  height: 100%;
+  height: 180px;
   object-fit: cover;
   display: block;
 }
 
-/* --- Sneaky Stressors Section (Media-Driven) --- */
-.section-title {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-bottom: 1rem;
-}
-
-.section-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  max-width: 600px;
-  margin: 0 auto 3.5rem auto;
-}
-
-.stressors-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-}
-
 .stressor-card-content {
-  padding: 1.5rem;
+  padding: 20px;
   text-align: left;
 }
 
@@ -419,11 +425,13 @@ html[data-theme="contrast"] .logo-icon {
   line-height: 1.5;
 }
 
-/* --- Inside StressCalc 2x2 Feature Grid (Video/Image Driven) --- */
+/* ===================================================
+   3. FIX: "Inside StressCalc" 2x2 Feature Grid
+   =================================================== */
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
+  gap: 32px;
 }
 
 @media (max-width: 768px) {
@@ -433,9 +441,9 @@ html[data-theme="contrast"] .logo-icon {
 }
 
 .feature-media-card {
-  overflow: hidden;
-  border-radius: 16px;
   background-color: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
   border: var(--card-border-width) solid var(--border-color);
   box-shadow: var(--card-shadow);
   display: flex;
@@ -449,22 +457,22 @@ html[data-theme="contrast"] .logo-icon {
 
 .feature-media-wrapper {
   width: 100%;
-  height: 260px;
+  height: 250px;
   overflow: hidden;
-  position: relative;
+  border-radius: 16px 16px 0 0;
   background-color: var(--bg-secondary);
 }
 
-.feature-media-wrapper img, 
+.feature-media-wrapper img,
 .feature-media-wrapper video {
   width: 100%;
-  height: 100%;
+  height: 250px;
   object-fit: cover;
   display: block;
 }
 
 .feature-body {
-  padding: 2rem;
+  padding: 20px;
   text-align: left;
 }
 
@@ -489,7 +497,9 @@ html[data-theme="contrast"] .logo-icon {
   line-height: 1.5;
 }
 
-/* --- Data Integration Split-Screen Section --- */
+/* ===================================================
+   4. FIX: Data Integration Split-Screen (Overlapping text)
+   =================================================== */
 .split-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -500,52 +510,57 @@ html[data-theme="contrast"] .logo-icon {
 @media (max-width: 900px) {
   .split-container {
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 }
 
 .split-left h2 {
-  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.2;
   margin-bottom: 1.25rem;
 }
 
 .split-left p {
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   line-height: 1.7;
   margin-bottom: 2rem;
 }
 
+.split-right {
+  width: 100%;
+}
+
 .split-right-media {
-  overflow: hidden;
+  width: 100%;
+  height: 360px;
   border-radius: 16px;
+  overflow: hidden;
   border: var(--card-border-width) solid var(--border-color);
   box-shadow: var(--card-shadow);
-  height: 380px;
   position: relative;
 }
 
-.split-right-media img, 
+.split-right-media img,
 .split-right-media video {
   width: 100%;
-  height: 100%;
+  height: 360px;
   object-fit: cover;
   display: block;
 }
 
-/* Overlay Stats Badge on Dashboard Image */
 .dashboard-badge-overlay {
   position: absolute;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  right: 1.25rem;
   background: var(--nav-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
