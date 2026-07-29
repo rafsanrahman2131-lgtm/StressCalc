@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: stresscalc
+    env: java
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/StressCalculator-1.0.0-SNAPSHOT.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
