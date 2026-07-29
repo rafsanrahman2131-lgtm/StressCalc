@@ -653,7 +653,7 @@
             </div>
         </div>
 
-        <!-- Lower Grid: Environmental Telemetry & Recent Stressors -->
+        <!-- Lower Grid: Live Environmental Telemetry & Dynamic Stressors Event Logger -->
         <div class="lower-grid">
             <div class="glass-card">
                 <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Environmental Telemetry</h3>
@@ -671,10 +671,12 @@
 
             <div class="glass-card">
                 <h3 style="margin-top: 0; font-size: 1.15rem; font-weight: 800;">Recent Stressors</h3>
-                <ul class="log-list">
-                    <li class="log-item"><span>10:45 AM</span> <span>Slack Notification Spike</span></li>
-                    <li class="log-item"><span>11:15 AM</span> <span>IDE to Browser Switch</span></li>
-                    <li class="log-item"><span>12:30 PM</span> <span>Context Shift (Meeting)</span></li>
+                <!-- Real-Time Dynamic Event Log Container -->
+                <ul class="log-list" id="ui-stressors-log">
+                    <li class="log-item">
+                        <span style="color: rgba(255,255,255,0.6); font-family: monospace; font-size: 0.8rem;">17:47:00</span>
+                        <span style="font-weight: 600;">System Initialized</span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -755,25 +757,22 @@
         window.telemetryChart = null;
         window.activeChartResolution = 'second';
         
-        // Full Telemetry Buffer Store in Memory (holds up to 200 records for sliding!)
         window.allChartLabels = [];
         window.allChartData = [];
-        window.visibleWindowSize = 14; // Number of points visible in frame
-        window.viewOffset = 0; // 0 = viewing latest live points, >0 = viewing history
+        window.visibleWindowSize = 14;
+        window.viewOffset = 0;
         window.isLiveFollowing = true;
 
         function initLiveChart() {
             const ctx = document.getElementById('telemetryChart').getContext('2d');
             const now = new Date();
 
-            // Populate initial 40 data points so the user can slide into history immediately
             for (let i = 40; i >= 0; i--) {
                 const timeStr = new Date(now.getTime() - i * 2000).toTimeString().split(' ')[0];
                 window.allChartLabels.push(timeStr);
                 window.allChartData.push(Number((8.5 + Math.sin(i * 0.4) * 0.5).toFixed(1)));
             }
 
-            // Slice view window for initial display
             const initialViewLabels = window.allChartLabels.slice(-window.visibleWindowSize);
             const initialViewData = window.allChartData.slice(-window.visibleWindowSize);
 
@@ -834,7 +833,6 @@
             setupTimelineSlider();
         }
 
-        // Render visible window based on current viewOffset
         function renderChartViewWindow() {
             if (!window.telemetryChart) return;
             const total = window.allChartLabels.length;
@@ -858,7 +856,6 @@
             window.telemetryChart.data.datasets[0].data = viewData;
             window.telemetryChart.update('none');
 
-            // Update UI status indicator
             const elInd = document.getElementById('chartLiveIndicator');
             if (elInd) {
                 if (window.viewOffset === 0) {
@@ -872,7 +869,6 @@
                 }
             }
 
-            // Sync range slider position
             const slider = document.getElementById('chartTimeSlider');
             if (slider && maxOffset > 0) {
                 let sliderVal = Math.round(((maxOffset - window.viewOffset) / maxOffset) * 100);
@@ -880,7 +876,6 @@
             }
         }
 
-        // Native Mouse & Touch Drag-to-Slide Listener directly on Chart Canvas
         function setupCanvasDragToSlide() {
             const wrapper = document.getElementById('chartWrapper');
             if (!wrapper) return;
@@ -900,8 +895,6 @@
                 const currentX = e.touches ? e.touches[0].clientX : e.clientX;
                 const dx = currentX - startX;
 
-                // Dragging right (dx > 0) slides back into past history (increases viewOffset)
-                // Dragging left (dx < 0) slides forward towards live (decreases viewOffset)
                 const shiftPoints = Math.round(dx / 25);
                 window.viewOffset = Math.max(0, initialOffset + shiftPoints);
                 renderChartViewWindow();
@@ -920,7 +913,6 @@
             window.addEventListener('touchend', onEnd);
         }
 
-        // Setup Interactive Timeline Range Slider
         function setupTimelineSlider() {
             const slider = document.getElementById('chartTimeSlider');
             if (!slider) return;
@@ -930,7 +922,6 @@
                 const total = window.allChartLabels.length;
                 let maxOffset = Math.max(0, total - window.visibleWindowSize);
                 
-                // val = 100 -> offset = 0 (Live), val = 0 -> offset = maxOffset (Oldest)
                 window.viewOffset = Math.round(((100 - val) / 100) * maxOffset);
                 renderChartViewWindow();
             });
@@ -942,7 +933,6 @@
             renderChartViewWindow();
         }
 
-        // Multi-Resolution Timeframe Selector Switcher
         function setChartResolution(mode) {
             window.activeChartResolution = mode;
 
@@ -987,20 +977,17 @@
             renderChartViewWindow();
         }
 
-        // Live Real-Time Stream Function (called continuously by telemetry.js)
         window.pushLiveChartPoint = function(focusValue) {
             const timeStr = new Date().toTimeString().split(' ')[0];
 
             window.allChartLabels.push(timeStr);
             window.allChartData.push(focusValue);
 
-            // Keep up to 200 records in memory for sliding
             if (window.allChartLabels.length > 200) {
                 window.allChartLabels.shift();
                 window.allChartData.shift();
             }
 
-            // Only update view if currently live following
             if (window.isLiveFollowing || window.viewOffset === 0) {
                 renderChartViewWindow();
             }
