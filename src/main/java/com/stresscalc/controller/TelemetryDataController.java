@@ -5,19 +5,16 @@ import com.stresscalc.model.User;
 import com.stresscalc.repository.TelemetryRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -26,8 +23,40 @@ public class TelemetryDataController {
     @Autowired
     private TelemetryRepository telemetryRepository;
 
-    @GetMapping(value = "/telemetry-data", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/telemetry-data")
     public ResponseEntity<?> getTelemetryData(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            User user = (User) session.getAttribute("user");
+            if (user != null) {
+                userId = user.getUserId();
+            }
+        }
+
+        if (userId == null) {
+            userId = 1L; // Demo fallback user
+        }
+
+        List<TelemetryLog> logs = telemetryRepository.findTop20ByUserIdOrderByLogTimestampAsc(userId);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+        List<Map<String, Object>> responseList = logs.stream().map(log -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("timestamp", log.getLogTimestamp() != null ? log.getLogTimestamp().format(formatter) : "");
+            map.put("bandwidth_percent", log.getCognitiveBandwidth());
+            map.put("context_switches", log.getContextSwitches());
+            map.put("focus_index", log.getFocusIndex());
+            map.put("ambient_noise_db", log.getAmbientNoiseDb());
+            map.put("tab_density", log.getTabDensity());
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
+    }
+
+    @PostMapping("/telemetry-data")
+    public ResponseEntity<?> saveTelemetryData(@RequestBody Map<String, Object> payload, HttpSession session) {
         try {
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) {
@@ -37,68 +66,46 @@ public class TelemetryDataController {
                 }
             }
 
-            // Fallback for session-less preview: default to User ID 1L
             if (userId == null) {
                 userId = 1L;
             }
 
-            // Fetch recent 20 records ordered by timestamp descending, then reverse for ascending chart flow
-            List<TelemetryLog> rawLogs = telemetryRepository.findRecentLogsByUserId(userId, PageRequest.of(0, 20));
+            int contextSwitches = payload.containsKey("contextSwitches") ? ((Number) payload.get("contextSwitches")).intValue() : 0;
+            int uninterruptedSeconds = payload.containsKey("uninterruptedSeconds") ? ((Number) payload.get("uninterruptedSeconds")).intValue() : 0;
             
-            // If empty, generate & seed realistic telemetry records into MySQL database for demo
-            if (rawLogs.isEmpty()) {
-                rawLogs = seedDemoTelemetryLogs(userId);
-            } else {
-                Collections.reverse(rawLogs); // Order by timestamp ascending for chart
-            }
+            // Focus Index Recovery Algorithm: Baseline 5.0, +0.1 per 60s uninterrupted flow, -1.0 per context switch
+            double baseline = 5.0;
+            double flowReward = (uninterruptedSeconds / 60.0) * 0.1;
+            double switchPenalty = contextSwitches * 1.0;
 
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-            List<Map<String, Object>> responseList = new ArrayList<>();
+            double calculatedFocus = Math.max(0.0, Math.min(10.0, baseline + flowReward - switchPenalty));
 
-            for (TelemetryLog log : rawLogs) {
-                Map<String, Object> item = new HashMap<>();
-                LocalDateTime ts = (log.getLogTimestamp() != null) ? log.getLogTimestamp() : LocalDateTime.now();
-                
-                item.put("timestamp", ts.format(timeFormatter));
-                item.put("focus_index", log.getFocusIndex());
-                item.put("bandwidth_percent", log.getCognitiveBandwidth());
-                item.put("ambient_noise_db", log.getAmbientNoiseDb());
-                item.put("tab_density", log.getTabDensity());
-                item.put("context_switches", log.getContextSwitches());
-                
-                responseList.add(item);
-            }
+            int cognitiveBandwidth = payload.containsKey("cognitiveBandwidth") ? 
+                    ((Number) payload.get("cognitiveBandwidth")).intValue() : (int) Math.round(calculatedFocus * 10);
+            
+            cognitiveBandwidth = Math.max(10, Math.min(100, cognitiveBandwidth));
 
-            return ResponseEntity.ok(responseList);
-
-        } catch (Exception e) {
-            Map<String, String> errorMap = new HashMap<>();
-            errorMap.put("error", "Failed to retrieve telemetry logs: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMap);
-        }
-    }
-
-    private List<TelemetryLog> seedDemoTelemetryLogs(Long userId) {
-        List<TelemetryLog> seeded = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now().minusMinutes(100);
-
-        double[] baseFocus = {6.5, 7.0, 7.5, 8.2, 8.5, 8.0, 7.2, 6.8, 7.4, 8.1, 8.6, 9.0, 8.4, 7.8, 8.2, 8.7, 8.3, 7.9, 8.4, 8.8};
-        int[] baseBandwidth = {60, 65, 70, 78, 82, 75, 68, 62, 72, 80, 85, 90, 84, 76, 80, 86, 82, 78, 83, 88};
-
-        for (int i = 0; i < 20; i++) {
             TelemetryLog log = new TelemetryLog();
             log.setUserId(userId);
-            log.setCognitiveBandwidth(baseBandwidth[i]);
-            log.setContextSwitches((int) (Math.random() * 5) + 1);
-            log.setFocusIndex(BigDecimal.valueOf(baseFocus[i]).setScale(2, RoundingMode.HALF_UP));
-            log.setAmbientNoiseDb(40 + (int)(Math.random() * 15));
-            log.setTabDensity(5 + (int)(Math.random() * 8));
-            log.setLogTimestamp(now.plusMinutes(i * 5));
+            log.setCognitiveBandwidth(cognitiveBandwidth);
+            log.setContextSwitches(contextSwitches);
+            log.setFocusIndex(BigDecimal.valueOf(calculatedFocus).setScale(2, RoundingMode.HALF_UP));
+            log.setAmbientNoiseDb(payload.containsKey("ambientNoiseDb") ? ((Number) payload.get("ambientNoiseDb")).intValue() : 42);
+            log.setTabDensity(payload.containsKey("tabDensity") ? ((Number) payload.get("tabDensity")).intValue() : 6);
+            log.setLogTimestamp(LocalDateTime.now());
 
             telemetryRepository.save(log);
-            seeded.add(log);
-        }
 
-        return seeded;
+            Map<String, Object> res = new HashMap<>();
+            res.put("status", "success");
+            res.put("focus_index", calculatedFocus);
+            res.put("uninterrupted_seconds", uninterruptedSeconds);
+            return ResponseEntity.ok(res);
+
+        } catch (Exception e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        }
     }
 }
