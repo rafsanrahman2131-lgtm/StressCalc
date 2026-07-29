@@ -14,6 +14,11 @@
     <!-- Include Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- PDF Generation Libraries CDN (html2canvas + jsPDF + autoTable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
     <!-- MediaPipe Face Mesh & Camera Utils CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -363,6 +368,35 @@
 
         .card-cam-btn:hover {
             transform: scale(1.05);
+        }
+
+        /* PDF Export Button */
+        .btn-pdf-report {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: #ffffff;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-pdf-report:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .btn-pdf-report:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* GLASSMORPHIC WIZARD MODAL STYLES */
@@ -752,11 +786,17 @@
                     </div>
                 </div>
 
-                <!-- 3-Way Theme Engine Controls (Light, Dark, Contrast) -->
-                <div class="theme-controls" style="display: flex; gap: 8px;">
-                    <button class="theme-btn-dash" title="Light Mode">☀️ Light</button>
-                    <button class="theme-btn-dash" title="Dark Mode">🌙 Dark</button>
-                    <button class="theme-btn-dash" title="Contrast Mode">👁️ Contrast</button>
+                <!-- Export PDF Report Button & 3-Way Theme Controls -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button id="downloadPdfBtn" onclick="generatePDFReport()" class="btn-pdf-report">
+                        📄 Download PDF Report
+                    </button>
+                    
+                    <div class="theme-controls" style="display: flex; gap: 8px;">
+                        <button class="theme-btn-dash" title="Light Mode">☀️ Light</button>
+                        <button class="theme-btn-dash" title="Dark Mode">🌙 Dark</button>
+                        <button class="theme-btn-dash" title="Contrast Mode">👁️ Contrast</button>
+                    </div>
                 </div>
             </header>
 

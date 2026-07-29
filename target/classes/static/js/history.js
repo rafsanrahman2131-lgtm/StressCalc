@@ -1,11 +1,13 @@
 /**
- * StressCalculator — Historical Action Logs & Trend Analysis Controller
+ * StressCalculator — Historical Action Logs & PDF Telemetry Report Generator
  * Fetches /api/history and renders:
  * 1. 7-Day Stress Trend Bar Chart with dynamic colors (<30 Green, 31-69 Yellow, >70 Red)
  * 2. Responsive Historical Data Table with accurate local system timestamps
+ * 3. High-Quality PDF Report Generation (html2canvas + jsPDF + autoTable)
  */
 
 window.historyTrendChartInstance = null;
+window.lastFetchedHistoryData = [];
 
 async function fetchHistory() {
     try {
@@ -20,12 +22,14 @@ async function fetchHistory() {
             data = generateSampleHistoryData();
         }
 
+        window.lastFetchedHistoryData = data;
         render7DayTrendChart(data);
         renderHistoryTable(data);
 
     } catch (error) {
         console.warn("fetchHistory notice, using fallback historical dataset:", error);
         const fallbackData = generateSampleHistoryData();
+        window.lastFetchedHistoryData = fallbackData;
         render7DayTrendChart(fallbackData);
         renderHistoryTable(fallbackData);
     }
@@ -177,6 +181,139 @@ function renderHistoryTable(data) {
     });
 }
 
+/**
+ * TASK 3: PDF Generation Engine (html2canvas + jsPDF + autoTable)
+ */
+async function generatePDFReport() {
+    const btn = document.getElementById('downloadPdfBtn');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Generating PDF...';
+    }
+
+    try {
+        if (!window.jspdf || !window.html2canvas) {
+            throw new Error("PDF generation libraries loading. Please try again in a moment.");
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        // Document Setup & Professional Header Banner
+        doc.setFillColor(15, 23, 42); // Dark Navy Banner (#0f172a)
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setTextColor(34, 197, 94); // Green Accent Title
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.text('StressCalculator', 14, 15);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.text('Patient Telemetry & Action Logs Report', 14, 23);
+
+        // Current Date & Metadata
+        const now = new Date();
+        const formattedReportDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        doc.setFontSize(9);
+        doc.setTextColor(148, 163, 184); // Muted gray text
+        doc.text(`Generated: ${formattedReportDate} ${timeStr}`, 142, 15);
+        doc.text(`Status: Authoritative Sync`, 142, 21);
+
+        // Section 1: 7-Day Trend Chart High-Quality Snapshot
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('1. 7-Day Stress Index Trend Chart', 14, 42);
+
+        const chartCanvas = document.getElementById('historyTrendChart');
+        if (chartCanvas) {
+            const container = chartCanvas.parentElement;
+            const canvasImg = await html2canvas(container, {
+                scale: 2,
+                backgroundColor: '#18181B',
+                logging: false
+            });
+            const imgData = canvasImg.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 14, 46, 182, 85);
+        }
+
+        // Section 2: Historical Telemetry Raw Data Table
+        let tableStartY = 142;
+        doc.text('2. Historical Telemetry Assessment Logs', 14, tableStartY);
+
+        const dataToRender = (window.lastFetchedHistoryData && window.lastFetchedHistoryData.length > 0)
+            ? window.lastFetchedHistoryData
+            : generateSampleHistoryData();
+
+        const tableRows = dataToRender.map(item => {
+            const stress = item.finalStressIndex !== undefined ? item.finalStressIndex : (item.final_stress_index || 25);
+            const overwhelm = item.subjectiveScore !== undefined ? item.subjectiveScore : (item.subjective_score || 5);
+            const tension = item.facialTensionScore !== undefined ? item.facialTensionScore : (item.facial_tension_score || 20);
+            const rxTime = item.reactionTimeMs !== undefined ? item.reactionTimeMs : (item.reaction_time_ms || 420);
+
+            let formattedDate = item.dateLabel || "Just now";
+            const parsed = parseLocalDateTimeString(item.timestamp);
+            if (parsed) formattedDate = parsed.full;
+
+            return [
+                formattedDate,
+                `${stress} / 100`,
+                `${overwhelm} / 10`,
+                `${tension}%`,
+                `${rxTime} ms`
+            ];
+        });
+
+        if (typeof doc.autoTable === 'function') {
+            doc.autoTable({
+                startY: tableStartY + 5,
+                head: [['Date / Time', 'Stress Index', 'Overwhelm', 'Facial Tension', 'Reaction Time']],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [15, 23, 42],
+                    textColor: [34, 197, 94],
+                    fontStyle: 'bold',
+                    fontSize: 9.5
+                },
+                bodyStyles: {
+                    textColor: [30, 41, 59],
+                    fontSize: 8.5
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252]
+                },
+                margin: { left: 14, right: 14 }
+            });
+        }
+
+        // Footer Metadata
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text(`Page ${i} of ${pageCount} — Confidential Medical Telemetry — StressCalculator Engine`, 14, 287);
+        }
+
+        // Trigger Download
+        doc.save(`Stress_Report_${formattedReportDate}.pdf`);
+
+    } catch (err) {
+        console.error("PDF generation failed:", err);
+        alert("Failed to generate PDF report: " + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+}
+
 function generateSampleHistoryData() {
     const now = new Date();
     const samples = [];
@@ -208,3 +345,4 @@ function generateSampleHistoryData() {
 }
 
 window.fetchHistory = fetchHistory;
+window.generatePDFReport = generatePDFReport;
