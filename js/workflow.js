@@ -4,7 +4,7 @@
  * Step 1: 5-Second Bio-Scan (Facial Tension via vision_telemetry.js)
  * Step 2: Subjective Overwhelm & Energy Questionnaire
  * Step 3: Stroop Test Cognitive Game (10 Prompts)
- * Aggregates & updates dashboard telemetry + MySQL backend.
+ * Aggregates & POSTs to /api/assessment for weighted MySQL calculation.
  */
 
 class CheckInWorkflow {
@@ -117,11 +117,6 @@ class CheckInWorkflow {
         // Execute step-specific handlers
         if (stepNum === 1) {
             this.runStep1BioScan();
-        } else if (stepNum === 2) {
-            // Stop camera if user moved to step 2 manually
-            if (window.visionTelemetry && window.visionTelemetry.isCameraActive) {
-                // Keep manual dashboard toggle state unchanged, only handle scan burst
-            }
         } else if (stepNum === 3) {
             this.startStroopGame();
         }
@@ -136,7 +131,6 @@ class CheckInWorkflow {
         if (timerEl) timerEl.textContent = timeLeft;
         if (scanStatusEl) scanStatusEl.textContent = "Initiating Camera & MediaPipe Model...";
 
-        // Start camera via vision_telemetry.js without breaking dashboard controls
         if (window.visionTelemetry) {
             await window.visionTelemetry.startCamera();
             if (scanStatusEl) scanStatusEl.textContent = "Analyzing Facial Tension... Keep Face Centered";
@@ -152,7 +146,7 @@ class CheckInWorkflow {
                 clearInterval(this.bioScanTimer);
                 this.scanTensionScore = window.visionTelemetry ? window.visionTelemetry.currentTensionScore : 25;
 
-                // Stop 5-second burst camera if dashboard toggle was NOT manually turned on by user
+                // Stop 5-second burst camera if manual dashboard toggle was NOT active
                 const cardToggle = document.getElementById('cardCameraToggle');
                 if (cardToggle && !cardToggle.classList.contains('active')) {
                     if (window.visionTelemetry) window.visionTelemetry.stopCamera();
@@ -185,11 +179,9 @@ class CheckInWorkflow {
         const roundEl = document.getElementById('stroopRoundCounter');
         if (roundEl) roundEl.textContent = `Prompt ${this.stroopRound} / ${this.maxStroopRounds}`;
 
-        // Random text name vs random ink color
         const textObj = this.stroopColors[Math.floor(Math.random() * this.stroopColors.length)];
         let inkObj = this.stroopColors[Math.floor(Math.random() * this.stroopColors.length)];
         
-        // Ensure high interference by creating mismatched colors 70% of the time
         if (Math.random() < 0.7) {
             while (inkObj.name === textObj.name) {
                 inkObj = this.stroopColors[Math.floor(Math.random() * this.stroopColors.length)];
@@ -204,12 +196,10 @@ class CheckInWorkflow {
             targetWordEl.style.color = inkObj.color;
         }
 
-        // Render option buttons
         const optionsContainer = document.getElementById('stroopOptionsContainer');
         if (optionsContainer) {
             optionsContainer.innerHTML = '';
             
-            // Shuffle choices
             const shuffled = [...this.stroopColors].sort(() => 0.5 - Math.random());
             shuffled.forEach(c => {
                 const btn = document.createElement('button');
@@ -235,37 +225,16 @@ class CheckInWorkflow {
         this.nextStroopRound();
     }
 
-    // COMPLETION: Aggregate payload & update Dashboard + Backend
+    // COMPLETION: POST payload to /api/assessment and trigger success notification
     async finishCheckIn() {
         const avgReactionTimeMs = Math.round(this.totalReactionTime / this.maxStroopRounds);
         const accuracyPct = Math.round((this.correctAnswers / this.maxStroopRounds) * 100);
 
-        // Calculate Focus Index out of 10
-        // Lower reaction time & higher accuracy = higher focus score
-        let computedFocus = (accuracyPct / 10) * 0.6 + (Math.max(0, 1000 - avgReactionTimeMs) / 100) * 0.4;
-        computedFocus = Math.max(1.0, Math.min(10.0, Math.round(computedFocus * 10) / 10));
-
-        // Calculate Cognitive Bandwidth %
-        let computedBandwidth = Math.round(100 - (this.overwhelmScore * 6) - (this.scanTensionScore * 0.3));
-        computedBandwidth = Math.max(10, Math.min(100, computedBandwidth));
-
-        // Update DOM metrics immediately
-        const valBandwidth = document.getElementById('val-bandwidth');
-        const valFocus = document.getElementById('val-focus');
-        const valSwitches = document.getElementById('val-switches');
-
-        if (valBandwidth) valBandwidth.textContent = `${computedBandwidth}%`;
-        if (valFocus) valFocus.innerHTML = `${computedFocus}<span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
-        if (valSwitches) valSwitches.textContent = Math.max(5, Math.min(25, 14 + Math.round((10 - computedFocus) * 1.2)));
-
-        // Send payload to backend
         try {
-            await fetch('/api/telemetry-data', {
+            const response = await fetch('/api/assessment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    cognitiveBandwidth: computedBandwidth,
-                    focusIndex: computedFocus,
                     facialTension: this.scanTensionScore,
                     overwhelm: this.overwhelmScore,
                     energy: this.energyScore,
@@ -273,8 +242,16 @@ class CheckInWorkflow {
                     accuracy: accuracyPct
                 })
             });
+
+            if (response.ok) {
+                const result = await response.json();
+                const finalIndex = result.final_stress_index || 42;
+                
+                // Show Glassmorphic Toast Notification on Dashboard
+                this.showToastNotification(finalIndex, this.scanTensionScore, this.overwhelmScore, avgReactionTimeMs);
+            }
         } catch (err) {
-            console.warn("Backend sync notice:", err);
+            console.warn("Assessment POST sync error:", err);
         }
 
         // Close wizard & reload Chart.js dataset
@@ -282,6 +259,50 @@ class CheckInWorkflow {
         if (typeof loadChartData === 'function') {
             loadChartData();
         }
+    }
+
+    showToastNotification(stressIndex, tension, overwhelm, reactionMs) {
+        let toast = document.getElementById('assessmentToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'assessmentToast';
+            toast.className = 'assessment-toast';
+            document.body.appendChild(toast);
+        }
+
+        let statusColor = "#22c55e"; // Green
+        let statusLabel = "Low Stress Baseline";
+
+        if (stressIndex > 65) {
+            statusColor = "#ef4444"; // Red
+            statusLabel = "High Overload Warning";
+        } else if (stressIndex > 35) {
+            statusColor = "#f59e0b"; // Amber
+            statusLabel = "Moderate Stress";
+        }
+
+        toast.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">⚡ Unified Stress Index Calculated</span>
+                <span style="background: ${statusColor}; color: #fff; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 6px;">${statusLabel}</span>
+            </div>
+            <div style="font-size: 2rem; font-weight: 900; color: ${statusColor}; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;">
+                ${stressIndex} <span style="font-size: 1rem; color: rgba(255,255,255,0.6);">/ 100</span>
+            </div>
+            <div style="font-size: 0.75rem; opacity: 0.8; display: flex; gap: 12px;">
+                <span>Facial Tension: <strong>${tension}%</strong></span>
+                <span>Overwhelm: <strong>${overwhelm}/10</strong></span>
+                <span>Reaction: <strong>${reactionMs}ms</strong></span>
+            </div>
+        `;
+
+        toast.style.display = 'block';
+        setTimeout(() => toast.classList.add('show'), 50);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.style.display = 'none', 400);
+        }, 6000);
     }
 }
 

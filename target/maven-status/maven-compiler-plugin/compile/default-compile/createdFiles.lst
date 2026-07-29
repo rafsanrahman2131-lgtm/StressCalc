@@ -1,8 +1,11 @@
+com\stresscalc\model\StressAssessment.class
 com\stresscalc\controller\AuthController.class
 com\stresscalc\model\User.class
 com\stresscalc\controller\TelemetryDataController.class
+com\stresscalc\controller\AssessmentController.class
 com\stresscalc\controller\ViewController.class
 com\stresscalc\repository\TelemetryRepository.class
+com\stresscalc\repository\AssessmentRepository.class
 com\stresscalc\StressCalculatorApplication.class
 com\stresscalc\model\TelemetryLog.class
 com\stresscalc\repository\UserRepository.class

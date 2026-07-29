@@ -444,6 +444,30 @@
             cursor: pointer;
             margin-top: 1rem;
         }
+
+        /* Assessment Glassmorphic Toast Notification */
+        .assessment-toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 360px;
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 18px;
+            padding: 16px 20px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+            z-index: 99999;
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .assessment-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
