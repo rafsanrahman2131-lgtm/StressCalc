@@ -51,7 +51,7 @@
     <div class="auth-container">
         <!-- Visual Left (Dynamic Carousel) -->
         <div class="auth-visual" id="dynamic-carousel">
-            <!-- Images will be injected here by JS -->
+            <!-- Images will be injected here by JS JIT Loader -->
             <div class="auth-quote-overlay">
                 <p class="auth-quote" id="quote-text">"Your focus determines your reality. Protect your cognitive bandwidth like your most precious metabolic asset."</p>
                 <span class="auth-quote-author" id="quote-author">— Quantified Self Principle</span>
@@ -113,13 +113,12 @@
     </div>
 
     <script src="js/app.js"></script>
-    <!-- Carousel JavaScript -->
+    <!-- Carousel JavaScript (JIT Loading) -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const carouselContainer = document.getElementById('dynamic-carousel');
             const overlay = document.querySelector('.auth-quote-overlay');
             
-            // 30 Premium Workspace, Focus, and Architecture Unsplash IDs
             const photoIDs = [
                 "1497366216548-37526070297c", "1522071820081-009f0129c71c", "1516321318423-f06f85e504b3",
                 "1497215968147-3982ccb63cc9", "1504384308090-c894fdcc538d", "1581287053822-06216710e6cb",
@@ -133,31 +132,53 @@
                 "1497015455546-1a704e6c1e34", "1497015509746-17b204da2889", "1497015694769-d41bd9fdf7d1"
             ];
 
-            const slides = [];
+            const slides = []; // Array to hold the created image elements
 
-            // Dynamically create and inject the 30 images
-            photoIDs.forEach((id, index) => {
+            // Helper function to create and inject an image safely
+            function injectSlide(index) {
+                if (slides[index]) return; // Skip if already injected
+
                 const img = document.createElement('img');
-                img.src = `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=80`;
-                img.className = `auth-slide ${index === 0 ? 'active' : ''}`;
+                img.src = `https://images.unsplash.com/photo-${photoIDs[index]}?auto=format&fit=crop&w=1200&q=80`;
+                img.className = 'auth-slide';
                 img.alt = `Focus Environment ${index + 1}`;
                 
-                // Lazy load everything except the first two to save user bandwidth
-                if (index > 1) img.loading = "lazy";
-                
-                // Insert into the DOM strictly behind the quote overlay
+                // Insert directly behind the quote overlay
                 carouselContainer.insertBefore(img, overlay);
-                slides.push(img);
-            });
+                slides[index] = img;
+            }
+
+            // Initialization: Inject just the first two images on load
+            injectSlide(0);
+            injectSlide(1);
+            
+            // A small delay ensures the DOM registers the first image before fading in
+            setTimeout(() => {
+                slides[0].classList.add('active');
+            }, 100);
 
             let currentSlide = 0;
             
             // Start the crossfade loop
             setInterval(() => {
+                // Fade out current slide
                 slides[currentSlide].classList.remove('active');
-                currentSlide = (currentSlide + 1) % slides.length;
-                slides[currentSlide].classList.add('active');
-            }, 5000); // 5 seconds per image
+                
+                // Calculate next slide index
+                currentSlide = (currentSlide + 1) % photoIDs.length;
+                
+                // Ensure the current slide is injected (fallback)
+                injectSlide(currentSlide);
+                
+                // PRE-LOAD the *next* slide ahead of time so it downloads over the next 5 seconds
+                injectSlide((currentSlide + 1) % photoIDs.length);
+                
+                // Fade in the new current slide
+                setTimeout(() => {
+                    slides[currentSlide].classList.add('active');
+                }, 50);
+                
+            }, 5000); // Crossfade every 5 seconds
         });
     </script>
 </body>
