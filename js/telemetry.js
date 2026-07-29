@@ -1,16 +1,17 @@
 /**
  * StressCalculator — Behavioral Telemetry Engine
- * Realistic Cognitive Science Focus Model
- * Calibrated Context Switch Penalties & Flow Healing
+ * Active Flow Healing & Decaying Context Switch Model
+ * Ensures Cognitive Bandwidth & Focus Index visibly climb back up while staying on the same tab!
  */
 
 class TelemetryEngine {
     constructor() {
         this.state = {
-            cognitiveBandwidth: 85,
+            cognitiveBandwidth: 90,
             contextSwitches: 0,
+            recentSwitches: 0, // Decaying switch counter for active rate
             uninterruptedSeconds: 0,
-            focusIndex: 8.5,
+            focusIndex: 9.0,
             isFocused: true,
             ambientNoiseDb: 42,
             tabDensity: 6,
@@ -24,13 +25,14 @@ class TelemetryEngine {
     }
 
     init() {
-        // 1. Flow State Timer (Increments every second window is active)
+        // 1. Flow State Timer (Ticks every second when window is active)
         this.startFlowTimer();
 
-        // 2. Window Blur & Focus Event Listeners (Gentle, realistic context switch tracking)
+        // 2. Window Blur & Focus Event Listeners
         window.addEventListener('blur', () => {
             this.state.isFocused = false;
             this.state.contextSwitches++;
+            this.state.recentSwitches++;
             this.stopFlowTimer();
             this.updateDerivedMetrics();
             this.updateDashboardUI();
@@ -46,14 +48,14 @@ class TelemetryEngine {
         // 3. Mouse Movement tracking
         window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
 
-        // 4. Periodic UI & Backend Sync
+        // 4. Periodic UI Sync & Switch Decay (Every 2 seconds)
         setInterval(() => {
             this.simulateAmbientNoise();
+            this.decayRecentSwitches();
             this.updateDerivedMetrics();
             this.updateDashboardUI();
         }, 2000);
 
-        // Initial UI Sync
         this.updateDerivedMetrics();
         this.updateDashboardUI();
     }
@@ -77,6 +79,18 @@ class TelemetryEngine {
         }
     }
 
+    /**
+     * Decays recent context switches over time as user maintains focus
+     * Every 15 seconds of uninterrupted focus decays 1 recent switch penalty
+     */
+    decayRecentSwitches() {
+        if (this.state.isFocused && this.state.uninterruptedSeconds > 0 && this.state.uninterruptedSeconds % 15 === 0) {
+            if (this.state.recentSwitches > 0) {
+                this.state.recentSwitches--;
+            }
+        }
+    }
+
     handleMouseMove(e) {
         const now = Date.now();
         const dt = (now - this.state.lastMouseTime) / 1000;
@@ -88,7 +102,7 @@ class TelemetryEngine {
             const speed = dist / dt;
 
             if (speed > 3000) {
-                this.state.mouseJitterCount++;
+                this.state.mouseJitterCount = Math.min(10, this.state.mouseJitterCount + 1);
             }
 
             this.state.lastMousePos = { x: e.clientX, y: e.clientY };
@@ -104,24 +118,31 @@ class TelemetryEngine {
     }
 
     /**
-     * Calibrated Focus Algorithm:
-     * Baseline: 9.0
-     * Recovery: +0.2 for every 30 seconds of uninterrupted work (+0.4 per min)
-     * Penalty: -0.2 per context switch (Reasonable penalty for dev workflow)
-     * Bounds: 3.5 to 10.0 for realistic human capacity
+     * Active Flow Healing Algorithm:
+     * - Base Focus = 9.0
+     * - Flow Reward: +0.1 for every 10 seconds of uninterrupted focus (+0.6 per minute!)
+     * - Penalty: Based ONLY on recent active switches (recentSwitches * 0.3)
+     * - As you stay on the tab, recentSwitches decays AND flowReward climbs, healing Focus & Bandwidth back up to 100%!
      */
     updateDerivedMetrics() {
-        const baseline = 9.0;
-        const flowReward = (this.state.uninterruptedSeconds / 30.0) * 0.2;
-        const switchPenalty = this.state.contextSwitches * 0.2;
+        const baseline = 8.5;
+        
+        // Active Flow Reward (+1.0 focus per 100s of continuous work)
+        const flowReward = (this.state.uninterruptedSeconds / 10.0) * 0.1;
+        
+        // Penalty uses decaying recentSwitches so old switches don't permanently penalize user
+        const switchPenalty = this.state.recentSwitches * 0.35;
         const jitterPenalty = (this.state.mouseJitterCount * 0.02);
 
-        let calculated = baseline + flowReward - switchPenalty - jitterPenalty;
-        this.state.focusIndex = Math.max(3.5, Math.min(10.0, Math.round(calculated * 10) / 10));
+        let calculatedFocus = baseline + flowReward - switchPenalty - jitterPenalty;
+        this.state.focusIndex = Math.max(3.0, Math.min(10.0, Math.round(calculatedFocus * 10) / 10));
 
-        // Bandwidth percentage (40% - 100%)
-        let bandwidth = Math.round(this.state.focusIndex * 9.8);
-        this.state.cognitiveBandwidth = Math.max(40, Math.min(100, bandwidth));
+        // Cognitive Bandwidth percentage actively recovers as uninterruptedSeconds increases
+        let baseBandwidth = Math.round(this.state.focusIndex * 10);
+        let flowBonusPct = Math.floor(this.state.uninterruptedSeconds / 5); // +1% bandwidth every 5s on same tab!
+        
+        let calculatedBandwidth = baseBandwidth + flowBonusPct;
+        this.state.cognitiveBandwidth = Math.max(30, Math.min(100, calculatedBandwidth));
     }
 
     updateDashboardUI() {
