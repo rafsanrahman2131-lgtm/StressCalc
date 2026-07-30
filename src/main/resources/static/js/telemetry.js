@@ -9,11 +9,11 @@
 class TelemetryEngine {
     constructor() {
         this.state = {
-            cognitiveBandwidth: 62,
+            cognitiveBandwidth: 88,
             contextSwitches: 0,
             recentSwitches: 0,
             uninterruptedSeconds: 0,
-            focusIndex: 3.8,
+            focusIndex: 8.8,
             isFocused: true,
             ambientNoiseDb: 42,
             // Tab density: starts at 1, increments when user switches away and back (real browser context switch tracking)
@@ -32,16 +32,6 @@ class TelemetryEngine {
 
         // Rolling audio classification buffer (last 60 samples → ~1 min of mic readings)
         this.audioClassificationBuffer = []; // each entry: 'silence' | 'speech' | 'noise' | 'spike'
-
-        // --- Recovery Decay System ---
-        // smoothedFocus tracks the displayed value; it decays exponentially toward
-        // the instantaneous target rather than snapping to it. This simulates
-        // the 30–60 seconds it takes for human cortisol/adrenaline to subside.
-        this._smoothedFocus = 3.8;
-        // Decay factor per second: 0.92 ≈ half-life of ~8 ticks (8 seconds for
-        // small deltas, but large spikes take 30–40 seconds to fully resolve
-        // because the gap is bigger). This is an exponential moving average.
-        this._decayAlpha = 0.08; // blend 8% of target per tick → ~30s to resolve a 3-point spike
 
         this.init();
     }
@@ -279,90 +269,22 @@ class TelemetryEngine {
         }
     }
 
-    /**
-     * ══════════════════════════════════════════════════════════════════
-     * REALISTIC COGNITIVE LOAD MODEL
-     * ══════════════════════════════════════════════════════════════════
-     *
-     * Scale: 0 (asleep) → 10 (full panic)
-     *
-     * RESTING BASELINE: 3.8 (normal productive work, quiet room, 1 tab)
-     *
-     * PENALTIES (additive, push score UP toward strain):
-     *   - Noise:    only above 50 dB; nonlinear ramp.  50dB → +0,  70dB → +1.5,  85dB → +3.0
-     *   - Switches: each recent context switch adds +0.4 (recentSwitches decays every 10s)
-     *   - Jitter:   erratic mouse → +0.15 per jitter tick (max 3 = +0.45)
-     *
-     * HEAVY MULTIPLIER (Task 2):
-     *   If tabDensity > 15 AND noise > 70 dB → multiply total penalty by 1.6×
-     *   This is the ONLY way to reliably cross the 7.0 "High Strain" line.
-     *
-     * FLOW REWARD (subtractive, rewards sustained calm focus):
-     *   -0.03 per uninterrupted second, capped at -1.2 (40 seconds deep focus)
-     *   Can push resting score down to ~2.6 during deep work.
-     *
-     * RECOVERY DECAY (Task 3):
-     *   The displayed focusIndex is NOT the instantaneous target. Instead,
-     *   _smoothedFocus approaches the target via exponential moving average:
-     *     smoothed = smoothed + alpha * (target - smoothed)
-     *   With alpha = 0.08, a sudden 3-point spike takes ~30 seconds to fully
-     *   resolve, simulating cortisol/adrenaline decay in humans.
-     *   Spikes (target > smoothed) use a faster alpha (0.35) so threats
-     *   register immediately — it's only the *recovery* that's slow.
-     *
-     * COGNITIVE BANDWIDTH:
-     *   Inverse of focus (load). bandwidth = 100 - (focusIndex * 10)
-     *   At rest (3.8): 62%.  Under high strain (8.0): 20%.
-     * ══════════════════════════════════════════════════════════════════
-     */
     updateDerivedMetrics() {
-        // --- 1. Resting baseline: calm productive work ---
-        const BASELINE = 3.8;
+        const baselineFocus = 8.5;
+        
+        const flowReward = (this.state.uninterruptedSeconds / 6.0) * 0.1;
+        const switchPenalty = this.state.recentSwitches * 0.25;
+        const jitterPenalty = (this.state.mouseJitterCount * 0.08);
 
-        // --- 2. Noise penalty: nonlinear ramp above 50 dB ---
-        // Below 50 dB = negligible office ambient. Above 50, quadratic ramp.
-        let noisePenalty = 0;
-        const db = this.state.ambientNoiseDb;
-        if (db > 50) {
-            // Quadratic curve: (db-50)^2 / 400 → at 70dB = 1.0, at 85dB = 3.06
-            noisePenalty = Math.pow(db - 50, 2) / 400;
-        }
+        let calculatedFocus = baselineFocus + flowReward - switchPenalty - jitterPenalty;
+        this.state.focusIndex = Math.max(4.0, Math.min(10.0, Math.round(calculatedFocus * 10) / 10));
 
-        // --- 3. Context switch penalty ---
-        const switchPenalty = this.state.recentSwitches * 0.4;
+        const focusComp = this.state.focusIndex * 9.5;
+        const switchComp = this.state.recentSwitches * 3.5;
+        const noiseComp = (this.state.ambientNoiseDb - 35) * 0.3;
+        const flowBonus = Math.min(12, Math.floor(this.state.uninterruptedSeconds / 3));
 
-        // --- 4. Mouse jitter penalty ---
-        const jitterPenalty = this.state.mouseJitterCount * 0.15;
-
-        // --- 5. Sum all penalties ---
-        let totalPenalty = noisePenalty + switchPenalty + jitterPenalty;
-
-        // --- 6. HEAVY MULTIPLIER: only when overloaded AND noisy simultaneously ---
-        if (this.state.tabDensity > 15 && db > 70) {
-            totalPenalty *= 1.6;
-        }
-
-        // --- 7. Flow reward: sustained uninterrupted focus ---
-        // -0.03 per second of focus, capped at -1.2 (40 seconds of flow)
-        const flowReward = Math.min(1.2, this.state.uninterruptedSeconds * 0.03);
-
-        // --- 8. Instantaneous target (not displayed directly) ---
-        let instantTarget = BASELINE + totalPenalty - flowReward;
-        instantTarget = Math.max(0.5, Math.min(10.0, instantTarget));
-
-        // --- 9. RECOVERY DECAY: exponential smoothing ---
-        // Spikes register fast (alpha = 0.35), recovery is slow (alpha = 0.08)
-        const delta = instantTarget - this._smoothedFocus;
-        const alpha = delta > 0 ? 0.35 : this._decayAlpha;
-        this._smoothedFocus += alpha * delta;
-
-        // Clamp and round to 1 decimal place for display
-        this._smoothedFocus = Math.max(0.5, Math.min(10.0, this._smoothedFocus));
-        this.state.focusIndex = Math.round(this._smoothedFocus * 10) / 10;
-
-        // --- 10. Cognitive Bandwidth: inverse of load ---
-        // At focusIndex 3.8 → 62%. At 7.0 → 30%. At 9.5 → 5%.
-        let rawBandwidth = Math.round(100 - (this.state.focusIndex * 10));
+        let rawBandwidth = Math.round(focusComp - switchComp - noiseComp + flowBonus);
         this.state.cognitiveBandwidth = Math.max(0, Math.min(100, rawBandwidth));
     }
 
@@ -377,16 +299,9 @@ class TelemetryEngine {
         if (elSwitches) elSwitches.innerText = this.state.contextSwitches;
 
         if (elFocus) {
-            // New model: lower = calmer.  <4 = Green (calm), 4-7 = Amber (elevated), >7 = Red (high strain)
-            let color = "#22c55e"; // Green — calm
-            let stateLabel = "Sustained Flow State";
-            if (this.state.focusIndex >= 7.0) {
-                color = "#ef4444"; // Red — high strain
-                stateLabel = "⚠️ High Cognitive Strain";
-            } else if (this.state.focusIndex >= 4.0) {
-                color = "#f59e0b"; // Amber — elevated
-                stateLabel = "Elevated Load";
-            }
+            let color = "#22c55e"; // Green
+            if (this.state.focusIndex < 6.0) color = "#ef4444"; // Red
+            else if (this.state.focusIndex < 8.0) color = "#f59e0b"; // Amber
 
             elFocus.innerHTML = `<span style="color: ${color}; transition: color 0.4s ease;">${this.state.focusIndex.toFixed(1)}</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
         }
