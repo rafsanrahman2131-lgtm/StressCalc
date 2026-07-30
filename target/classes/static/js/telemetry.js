@@ -33,6 +33,11 @@ class TelemetryEngine {
         // Rolling audio classification buffer (last 60 samples → ~1 min of mic readings)
         this.audioClassificationBuffer = []; // each entry: 'silence' | 'speech' | 'noise' | 'spike'
 
+        // --- Cross-Tab Live Density Tracking ---
+        this.tabId = Math.random().toString(36).substring(2, 9);
+        this.activeTabsMap = new Map();
+        this.activeTabsMap.set(this.tabId, Date.now());
+
         // --- Recovery Decay System ---
         // _smoothedFocus tracks the displayed value; it decays exponentially toward
         // the instantaneous target rather than snapping to it. This simulates
@@ -44,6 +49,9 @@ class TelemetryEngine {
     }
 
     init() {
+        // 0. Initialize Cross-Tab Communication for Real Open Tab Count
+        this.initCrossTabTracker();
+
         // 1. Initialize Real Microphone Audio Decibel Tracking
         this.initRealMicrophoneAudio();
 
@@ -136,6 +144,30 @@ class TelemetryEngine {
         this.updateDashboardUI();
     }
 
+    initCrossTabTracker() {
+        if ('BroadcastChannel' in window) {
+            try {
+                this.tabChannel = new BroadcastChannel('stresscalc_open_tabs');
+                this.tabChannel.onmessage = (e) => {
+                    if (e.data && e.data.tabId) {
+                        this.activeTabsMap.set(e.data.tabId, Date.now());
+                    }
+                };
+
+                // Heartbeat ping every 1.5s
+                setInterval(() => {
+                    this.activeTabsMap.set(this.tabId, Date.now());
+                    this.tabChannel.postMessage({ tabId: this.tabId, time: Date.now() });
+                }, 1500);
+
+                // Initial ping
+                this.tabChannel.postMessage({ tabId: this.tabId, time: Date.now() });
+            } catch (err) {
+                console.warn("BroadcastChannel tab tracking fallback:", err);
+            }
+        }
+    }
+
     async resumeAudio() {
         if (this.audioContext && this.audioContext.state === 'suspended') {
             try {
@@ -198,7 +230,26 @@ class TelemetryEngine {
     }
 
     updateTabDensity() {
-        this.state.tabDensity = Math.max(1, 1 + this.state.contextSwitches);
+        // Purge inactive tabs older than 3.5 seconds
+        const now = Date.now();
+        if (this.activeTabsMap) {
+            for (const [id, ts] of this.activeTabsMap.entries()) {
+                if (now - ts > 3500) {
+                    this.activeTabsMap.delete(id);
+                }
+            }
+        }
+
+        // Live count of open StressCalculator tabs in this browser
+        const openAppTabs = Math.max(1, this.activeTabsMap ? this.activeTabsMap.size : 1);
+
+        // Recent multitasking switch load (decays as user stabilizes on a single tab)
+        const multitaskingBonus = Math.min(4, this.state.recentSwitches);
+
+        // Base active workspace density estimate (clamped realistically between 1 and 8 tabs)
+        let totalDensity = openAppTabs + multitaskingBonus;
+
+        this.state.tabDensity = Math.max(1, Math.min(8, totalDensity));
     }
 
     classifyCurrentAudio(db) {
@@ -295,8 +346,8 @@ class TelemetryEngine {
         let totalPenalty = noisePenalty + switchPenalty + jitterPenalty;
 
         // --- Heavy Multiplier: Triggered Strain ---
-        // ONLY apply heavy multiplier if tabDensity > 15 AND ambientNoiseDb > 70dB
-        if (this.state.tabDensity > 15 && db > 70) {
+        // ONLY apply heavy multiplier if high tab density (>=6) AND loud noise (>70dB) occur simultaneously
+        if (this.state.tabDensity >= 6 && db > 70) {
             totalPenalty *= 1.6;
         }
 
