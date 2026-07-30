@@ -56,45 +56,43 @@ class ThemeController {
     }
 
     updateCharts(theme) {
-        let gridColor = 'rgba(255, 255, 255, 0.06)';
-        let tickColor = 'rgba(255, 255, 255, 0.7)';
+        let gridColor, tickColor;
 
         if (theme === 'light') {
-            gridColor = 'rgba(0, 0, 0, 0.08)';
-            tickColor = '#0f172a';
+            gridColor = 'rgba(0, 0, 0, 0.07)';
+            tickColor = '#6b7280';
         } else if (theme === 'contrast') {
             gridColor = 'rgba(255, 255, 255, 0.25)';
             tickColor = '#ffffff';
+        } else {
+            gridColor = 'rgba(255, 255, 255, 0.05)';
+            tickColor = 'rgba(255, 255, 255, 0.65)';
         }
 
-        // 1. Update Telemetry Line Chart (window.telemetryChart)
-        if (window.telemetryChart && window.telemetryChart.options) {
-            if (window.telemetryChart.options.scales) {
-                if (window.telemetryChart.options.scales.x) {
-                    window.telemetryChart.options.scales.x.grid.color = gridColor;
-                    window.telemetryChart.options.scales.x.ticks.color = tickColor;
-                }
-                if (window.telemetryChart.options.scales.y) {
-                    window.telemetryChart.options.scales.y.grid.color = gridColor;
-                    window.telemetryChart.options.scales.y.ticks.color = tickColor;
-                }
-            }
-            window.telemetryChart.update();
+        // 1. Update Telemetry Line Chart — prefer dedicated updater so annotation plugin sees the change
+        if (typeof window.updateTelemetryChartTheme === 'function') {
+            window.updateTelemetryChartTheme();
+        } else if (window.telemetryChart && window.telemetryChart.options) {
+            const s = window.telemetryChart.options.scales;
+            if (s && s.x) { s.x.grid.color = gridColor; s.x.ticks.color = tickColor; }
+            if (s && s.y) { s.y.grid.color = gridColor; s.y.ticks.color = tickColor; }
+            window.telemetryChart.update('none');
         }
 
         // 2. Update Historical 7-Day Bar Chart (window.historyTrendChartInstance)
         if (window.historyTrendChartInstance && window.historyTrendChartInstance.options) {
-            if (window.historyTrendChartInstance.options.scales) {
-                if (window.historyTrendChartInstance.options.scales.x) {
-                    window.historyTrendChartInstance.options.scales.x.grid.color = gridColor;
-                    window.historyTrendChartInstance.options.scales.x.ticks.color = tickColor;
-                }
-                if (window.historyTrendChartInstance.options.scales.y) {
-                    window.historyTrendChartInstance.options.scales.y.grid.color = gridColor;
-                    window.historyTrendChartInstance.options.scales.y.ticks.color = tickColor;
-                }
-            }
-            window.historyTrendChartInstance.update();
+            const s = window.historyTrendChartInstance.options.scales;
+            if (s && s.x) { s.x.grid.color = gridColor; s.x.ticks.color = tickColor; }
+            if (s && s.y) { s.y.grid.color = gridColor; s.y.ticks.color = tickColor; }
+            window.historyTrendChartInstance.update('none');
+        }
+
+        // 3. Update Environmental charts if they exist
+        if (window.tabDensityChartInstance && window.tabDensityChartInstance.options) {
+            const s = window.tabDensityChartInstance.options.scales;
+            if (s && s.x) { s.x.grid.color = gridColor; s.x.ticks.color = tickColor; }
+            if (s && s.y) { s.y.grid.color = gridColor; s.y.ticks.color = tickColor; }
+            window.tabDensityChartInstance.update('none');
         }
     }
 }

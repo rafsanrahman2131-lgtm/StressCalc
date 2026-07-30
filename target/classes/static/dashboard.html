@@ -13,6 +13,8 @@
 
     <!-- Include Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Annotation Plugin for threshold lines -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 
     <!-- PDF Generation Libraries CDN (html2canvas + jsPDF + autoTable) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -229,11 +231,11 @@
             cursor: grabbing;
         }
 
-        /* Time Resolution Switcher Pill Group */
+        /* Time Resolution Switcher Pill Group — Task 3 Light Mode Contrast Fix */
         .res-pill-group {
             display: flex;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+            background: var(--surface, rgba(255, 255, 255, 0.05));
+            border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
             border-radius: 10px;
             padding: 2px;
             gap: 2px;
@@ -242,32 +244,35 @@
         .res-btn {
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.6);
-            padding: 4px 10px;
+            color: var(--text-primary, #0F172A) !important;
+            opacity: 0.75;
+            padding: 5px 12px;
             border-radius: 8px;
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .res-btn:hover {
-            color: #ffffff;
+            opacity: 1;
+            color: var(--text-primary, #0F172A) !important;
         }
 
         .res-btn.active {
-            background: #22c55e;
-            color: #ffffff;
+            background: #22c55e !important;
+            color: #ffffff !important;
+            opacity: 1;
             box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4);
         }
 
         .reset-chart-btn {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface, rgba(255, 255, 255, 0.05));
             border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
             color: #22c55e;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 8px;
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -277,22 +282,36 @@
             background: rgba(34, 197, 94, 0.15);
         }
 
-        /* Timeline History Slider Bar */
+        /* Timeline History Slider Bar — Task 3 Light Mode Contrast Fix */
         .timeline-slider-bar {
             margin-top: 10px;
             display: flex;
             align-items: center;
             gap: 12px;
-            background: rgba(0, 0, 0, 0.2);
+            background: var(--surface, rgba(0, 0, 0, 0.2));
             padding: 6px 14px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+        }
+
+        .slider-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-primary, #0F172A) !important;
+            white-space: nowrap;
+        }
+
+        .slider-label-live {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #22c55e !important;
+            white-space: nowrap;
         }
 
         .timeline-range-input {
             flex: 1;
             height: 6px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--border-color, rgba(255, 255, 255, 0.1));
             border-radius: 999px;
             accent-color: #22c55e;
             cursor: pointer;
@@ -509,8 +528,7 @@
                 box-shadow: 0 0 30px rgba(34, 197, 94, 0.7);
             }
             57.89% { /* 7s Hold */
-                transform: scale(1.35);
-                background: rgba(245, 158, 11, 0.35);
+                transform: scale(245, 158, 11, 0.35);
                 box-shadow: 0 0 30px rgba(245, 158, 11, 0.7);
             }
             100% { /* 8s Exhale */
@@ -741,9 +759,9 @@
 
                 <!-- Interactive Timeline History Slider Bar -->
                 <div class="timeline-slider-bar">
-                    <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 700;">⏮️ Past</span>
+                    <span class="slider-label">⏮️ Past</span>
                     <input type="range" id="chartTimeSlider" class="timeline-range-input" min="0" max="100" value="100" title="Slide knob left or right to scroll through past records">
-                    <span style="font-size: 0.75rem; color: #22c55e; font-weight: 700;">Live 🔴</span>
+                    <span class="slider-label-live">Live 🔴</span>
                 </div>
             </div>
 
@@ -984,8 +1002,19 @@
     <!-- Environmental Dashboard Controller -->
     <script src="js/environmental.js"></script>
 
-    <!-- Chart.js Sliding & Timeline Range Engine -->
+    <!-- Chart.js Sliding, Annotation & Theme Engine -->
     <script>
+        // Explicitly Register Chart.js Annotation Plugin for threshold lines (Task 1)
+        try {
+            if (typeof ChartAnnotation !== 'undefined') {
+                Chart.register(ChartAnnotation);
+            } else if (window['chartjs-plugin-annotation']) {
+                Chart.register(window['chartjs-plugin-annotation']);
+            }
+        } catch (e) {
+            console.warn("ChartAnnotation plugin registration:", e);
+        }
+
         window.telemetryChart = null;
         window.activeChartResolution = 'second';
         
@@ -995,22 +1024,31 @@
         window.viewOffset = 0;
         window.isLiveFollowing = true;
 
+        /* Task 4: Resolve dynamic chart colors for current theme */
+        function getChartThemeColors() {
+            const t = localStorage.getItem('stresscalc_theme') || 'dark';
+            return {
+                grid: t === 'light' ? 'rgba(0, 0, 0, 0.07)' : (t === 'contrast' ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.05)'),
+                tick: t === 'light' ? '#6b7280' : (t === 'contrast' ? '#ffffff' : 'rgba(255, 255, 255, 0.65)')
+            };
+        }
+
         function initLiveChart() {
             const ctx = document.getElementById('telemetryChart').getContext('2d');
             const now = new Date();
 
+            /* Task 2: Data Variance with 2 decimal places & random ±0.05 biometric jitter */
             for (let i = 40; i >= 0; i--) {
                 const timeStr = new Date(now.getTime() - i * 2000).toTimeString().split(' ')[0];
+                const jitter = (Math.random() * 0.10) - 0.05;
                 window.allChartLabels.push(timeStr);
-                window.allChartData.push(Number((8.5 + Math.sin(i * 0.4) * 0.5).toFixed(1)));
+                window.allChartData.push(parseFloat((8.5 + Math.sin(i * 0.4) * 0.5 + jitter).toFixed(2)));
             }
 
             const initialViewLabels = window.allChartLabels.slice(-window.visibleWindowSize);
             const initialViewData = window.allChartData.slice(-window.visibleWindowSize);
 
-            const activeTheme = localStorage.getItem('stresscalc_theme') || 'dark';
-            let initialGrid = activeTheme === 'light' ? 'rgba(0,0,0,0.08)' : (activeTheme === 'contrast' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.05)');
-            let initialTick = activeTheme === 'light' ? '#0f172a' : (activeTheme === 'contrast' ? '#ffffff' : 'rgba(255,255,255,0.6)');
+            const tc = getChartThemeColors();
 
             window.telemetryChart = new Chart(ctx, {
                 type: 'line',
@@ -1020,46 +1058,89 @@
                         label: 'Focus Index',
                         data: initialViewData,
                         borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.10)',
                         borderWidth: 2.5,
                         fill: true,
                         tension: 0.4,
                         pointBackgroundColor: '#22c55e',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 1.5,
-                        pointRadius: 4,
-                        pointHoverRadius: 7
+                        /* Task 2: Hide dots by default, show on hover */
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHitRadius: 10
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: { duration: 150 },
+                    animation: { duration: 200 },
+                    interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.92)',
                             titleFont: { family: 'Inter', size: 12 },
                             bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
                             padding: 12,
                             displayColors: false,
                             callbacks: {
-                                label: function(context) {
-                                    return `Focus Score: ${context.parsed.y} / 10`;
+                                label: ctx => `Focus Score: ${ctx.parsed.y.toFixed(2)} / 10`
+                            }
+                        },
+                        /* Task 1: Contextual Threshold Lines (Annotation Plugin) */
+                        annotation: {
+                            annotations: {
+                                elevatedLine: {
+                                    type: 'line',
+                                    yMin: 4,
+                                    yMax: 4,
+                                    borderColor: '#f59e0b',
+                                    borderWidth: 1.5,
+                                    borderDash: [6, 4],
+                                    label: {
+                                        display: true,
+                                        content: 'Elevated',
+                                        position: 'end',
+                                        backgroundColor: 'rgba(245, 158, 11, 0.18)',
+                                        color: '#f59e0b',
+                                        font: { family: 'Inter', size: 10, weight: '700' },
+                                        padding: { x: 6, y: 3 },
+                                        borderRadius: 4
+                                    }
+                                },
+                                highStrainLine: {
+                                    type: 'line',
+                                    yMin: 7,
+                                    yMax: 7,
+                                    borderColor: '#ef4444',
+                                    borderWidth: 1.5,
+                                    borderDash: [6, 4],
+                                    label: {
+                                        display: true,
+                                        content: 'High Strain',
+                                        position: 'end',
+                                        backgroundColor: 'rgba(239, 68, 68, 0.18)',
+                                        color: '#ef4444',
+                                        font: { family: 'Inter', size: 10, weight: '700' },
+                                        padding: { x: 6, y: 3 },
+                                        borderRadius: 4
+                                    }
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: initialGrid, drawBorder: false },
-                            ticks: { color: initialTick, font: { family: 'Inter', size: 11 } }
+                            grid: { color: tc.grid, drawBorder: false },
+                            /* Task 2: maxTicksLimit: 5 to prevent timestamp overlap */
+                            ticks: { color: tc.tick, font: { family: 'Inter', size: 11 }, maxTicksLimit: 5 }
                         },
                         y: {
                             min: 0,
                             max: 10,
-                            grid: { color: initialGrid, drawBorder: false },
-                            ticks: { color: initialTick, font: { family: 'Inter', size: 11 }, stepSize: 2 }
+                            grid: { color: tc.grid, drawBorder: false },
+                            ticks: { color: tc.tick, font: { family: 'Inter', size: 11 }, stepSize: 2 }
                         }
                     }
                 }
@@ -1068,6 +1149,17 @@
             setupCanvasDragToSlide();
             setupTimelineSlider();
         }
+
+        /* Task 4: Theme switcher update hook */
+        window.updateTelemetryChartTheme = function() {
+            if (!window.telemetryChart) return;
+            const tc = getChartThemeColors();
+            window.telemetryChart.options.scales.x.grid.color = tc.grid;
+            window.telemetryChart.options.scales.x.ticks.color = tc.tick;
+            window.telemetryChart.options.scales.y.grid.color = tc.grid;
+            window.telemetryChart.options.scales.y.ticks.color = tc.tick;
+            window.telemetryChart.update('none');
+        };
 
         function renderChartViewWindow() {
             if (!window.telemetryChart) return;
@@ -1183,29 +1275,33 @@
             if (mode === 'second') {
                 for (let i = 40; i >= 0; i--) {
                     const timeStr = new Date(now.getTime() - i * 2000).toTimeString().split(' ')[0];
+                    const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(timeStr);
-                    window.allChartData.push(Number((8.8 + Math.sin(i * 0.5) * 0.4).toFixed(1)));
+                    window.allChartData.push(parseFloat((8.8 + Math.sin(i * 0.5) * 0.4 + jitter).toFixed(2)));
                 }
             } else if (mode === 'minute') {
                 for (let i = 30; i >= 0; i--) {
                     const d = new Date(now.getTime() - i * 60000);
                     const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(timeStr);
-                    window.allChartData.push(Number((8.2 + Math.cos(i * 0.3) * 0.6).toFixed(1)));
+                    window.allChartData.push(parseFloat((8.2 + Math.cos(i * 0.3) * 0.6 + jitter).toFixed(2)));
                 }
             } else if (mode === 'hour') {
                 for (let i = 24; i >= 0; i--) {
                     const d = new Date(now.getTime() - i * 3600000);
                     const timeStr = `${String(d.getHours()).padStart(2,'0')}:00`;
+                    const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(timeStr);
-                    window.allChartData.push(Number((7.8 + Math.sin(i * 0.5) * 0.9).toFixed(1)));
+                    window.allChartData.push(parseFloat((7.8 + Math.sin(i * 0.5) * 0.9 + jitter).toFixed(2)));
                 }
             } else if (mode === 'day') {
                 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                 for (let i = 14; i >= 0; i--) {
                     const d = new Date(now.getTime() - i * 86400000);
+                    const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(`${days[d.getDay()]} ${d.getDate()}`);
-                    window.allChartData.push(Number((8.0 + Math.sin(i * 0.8) * 1.0).toFixed(1)));
+                    window.allChartData.push(parseFloat((8.0 + Math.sin(i * 0.8) * 1.0 + jitter).toFixed(2)));
                 }
             }
 
@@ -1213,8 +1309,11 @@
             renderChartViewWindow();
         }
 
-        window.pushLiveChartPoint = function(focusValue) {
+        window.pushLiveChartPoint = function(rawFocusValue) {
             const timeStr = new Date().toTimeString().split(' ')[0];
+            /* Task 2: Inject ±0.05 biometric jitter so identical scores never flatline */
+            const jitter = (Math.random() * 0.10) - 0.05;
+            const focusValue = parseFloat(Math.max(0, Math.min(10, rawFocusValue + jitter)).toFixed(2));
 
             window.allChartLabels.push(timeStr);
             window.allChartData.push(focusValue);
@@ -1236,7 +1335,11 @@
                     const data = await response.json();
                     if (data.length > 0) {
                         window.allChartLabels = data.map(item => item.timestamp);
-                        window.allChartData = data.map(item => item.focus_index);
+                        window.allChartData = data.map(item => {
+                            const raw = typeof item.focus_index === 'number' ? item.focus_index : parseFloat(item.focus_index || 8.8);
+                            const jitter = (Math.random() * 0.10) - 0.05;
+                            return parseFloat(Math.max(0, Math.min(10, raw + jitter)).toFixed(2));
+                        });
                         window.viewOffset = 0;
                         renderChartViewWindow();
                     }
