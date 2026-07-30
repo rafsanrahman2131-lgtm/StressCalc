@@ -587,6 +587,21 @@ class CheckInWorkflow {
             console.warn("Assessment POST sync error:", err);
         }
 
+        // ── Feed assessment results back into live TelemetryEngine ──
+        // This is the critical link: the cognitive challenge the user just
+        // completed (Stroop, Math, Pattern, Breathing) now becomes the
+        // PRIMARY signal driving Focus Index and Cognitive Bandwidth.
+        if (window.telemetryEngine) {
+            window.telemetryEngine.ingestAssessmentResult({
+                reactionMs:    avgReactionMs,
+                accuracyPct:   accuracyPct,
+                facialTension: this.scanTensionScore,
+                overwhelm:     this.overwhelmScore,
+                energy:        this.energyScore,
+                timestamp:     Date.now()
+            });
+        }
+
         this.closeWizard();
         if (typeof loadChartData === 'function') {
             loadChartData();
