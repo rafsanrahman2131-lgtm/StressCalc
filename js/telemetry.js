@@ -285,7 +285,7 @@ class TelemetryEngine {
         const flowBonus = Math.min(12, Math.floor(this.state.uninterruptedSeconds / 3));
 
         let rawBandwidth = Math.round(focusComp - switchComp - noiseComp + flowBonus);
-        this.state.cognitiveBandwidth = Math.max(40, Math.min(98, rawBandwidth));
+        this.state.cognitiveBandwidth = Math.max(0, Math.min(100, rawBandwidth));
     }
 
     updateDashboardUI() {
