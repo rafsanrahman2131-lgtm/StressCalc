@@ -33,11 +33,6 @@ class TelemetryEngine {
         // Rolling audio classification buffer (last 60 samples → ~1 min of mic readings)
         this.audioClassificationBuffer = []; // each entry: 'silence' | 'speech' | 'noise' | 'spike'
 
-        // --- Last assessment result from "Calculate Stress" wizard ---
-        this.lastAssessment = null;       // { reactionMs, accuracyPct, facialTension, overwhelm, energy, timestamp }
-        this.assessmentHistory = [];      // rolling buffer of last 10 assessments
-        this._assessmentDecayMs = 5 * 60 * 1000; // assessment influence decays over 5 minutes
-
         // --- Recovery Decay System ---
         // smoothedFocus tracks the displayed value; it decays exponentially toward
         // the instantaneous target rather than snapping to it. This simulates
@@ -285,122 +280,88 @@ class TelemetryEngine {
     }
 
     /**
-     * Called by workflow.js after each "Calculate Stress" wizard completion.
-     * This is the PRIMARY data source for Focus Index and Cognitive Bandwidth.
-     */
-    ingestAssessmentResult(result) {
-        this.lastAssessment = result;
-        this.assessmentHistory.push(result);
-        if (this.assessmentHistory.length > 10) {
-            this.assessmentHistory.shift();
-        }
-
-        // Log it as a stressor event so the user sees it in the Recent Stressors panel
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const emoji = result.accuracyPct >= 80 ? '✅' : (result.accuracyPct >= 50 ? '⚠️' : '🔴');
-        this.logStressorEvent(timeStr, 
-            `${emoji} Assessment: ${result.accuracyPct}% accuracy, ${result.reactionMs}ms reaction`
-        );
-
-        // Immediately recalculate so dashboard updates right after wizard closes
-        this.updateDerivedMetrics();
-        this.updateDashboardUI();
-    }
-
-    /**
      * ══════════════════════════════════════════════════════════════════
-     * REALISTIC COGNITIVE LOAD MODEL (Assessment-Driven)
+     * REALISTIC COGNITIVE LOAD MODEL
      * ══════════════════════════════════════════════════════════════════
      *
      * Scale: 0 (asleep) → 10 (full panic)
      *
-     * ── PRIMARY SIGNAL: Last "Calculate Stress" assessment ──
-     *   Reaction Time:  300ms → +0,  500ms → +1.0,  800ms → +2.5,  1200ms+ → +4.0
-     *   Accuracy:       100% → +0,   75% → +1.0,    50% → +2.5,   25% → +4.0
-     *   Facial Tension: 0% → +0,     50% → +0.5,    100% → +1.0
-     *   Overwhelm:      0 → +0,      5 → +0.5,      10 → +1.0
+     * RESTING BASELINE: 3.8 (normal productive work, quiet room, 1 tab)
      *
-     * ── SECONDARY MODIFIERS: Environmental sensors (30% weight) ──
-     *   Noise above 50 dB, context switches, mouse jitter.
+     * PENALTIES (additive, push score UP toward strain):
+     *   - Noise:    only above 50 dB; nonlinear ramp.  50dB → +0,  70dB → +1.5,  85dB → +3.0
+     *   - Switches: each recent context switch adds +0.4 (recentSwitches decays every 10s)
+     *   - Jitter:   erratic mouse → +0.15 per jitter tick (max 3 = +0.45)
      *
-     * ── ASSESSMENT FRESHNESS DECAY ──
-     *   Assessment influence fades linearly over 5 minutes.
+     * HEAVY MULTIPLIER (Task 2):
+     *   If tabDensity > 15 AND noise > 70 dB → multiply total penalty by 1.6×
+     *   This is the ONLY way to reliably cross the 7.0 "High Strain" line.
+     *
+     * FLOW REWARD (subtractive, rewards sustained calm focus):
+     *   -0.03 per uninterrupted second, capped at -1.2 (40 seconds deep focus)
+     *   Can push resting score down to ~2.6 during deep work.
+     *
+     * RECOVERY DECAY (Task 3):
+     *   The displayed focusIndex is NOT the instantaneous target. Instead,
+     *   _smoothedFocus approaches the target via exponential moving average:
+     *     smoothed = smoothed + alpha * (target - smoothed)
+     *   With alpha = 0.08, a sudden 3-point spike takes ~30 seconds to fully
+     *   resolve, simulating cortisol/adrenaline decay in humans.
+     *   Spikes (target > smoothed) use a faster alpha (0.35) so threats
+     *   register immediately — it's only the *recovery* that's slow.
+     *
+     * COGNITIVE BANDWIDTH:
+     *   Inverse of focus (load). bandwidth = 100 - (focusIndex * 10)
+     *   At rest (3.8): 62%.  Under high strain (8.0): 20%.
      * ══════════════════════════════════════════════════════════════════
      */
     updateDerivedMetrics() {
+        // --- 1. Resting baseline: calm productive work ---
         const BASELINE = 3.8;
 
-        // ── 1. PRIMARY: Assessment-based cognitive load ──
-        let assessmentLoad = 0;
-        let assessmentWeight = 0; // 0 to 1, based on freshness
-
-        if (this.lastAssessment) {
-            const age = Date.now() - this.lastAssessment.timestamp;
-            // Linear decay: full weight at t=0, zero at t=5min
-            assessmentWeight = Math.max(0, 1 - (age / this._assessmentDecayMs));
-
-            if (assessmentWeight > 0) {
-                const a = this.lastAssessment;
-
-                // Reaction time penalty: 300ms=0, 800ms=2.5, 1200ms=4.0 (quadratic)
-                const rtNorm = Math.max(0, (a.reactionMs - 300)) / 900;
-                const rtPenalty = Math.min(4.0, rtNorm * rtNorm * 4.0);
-
-                // Accuracy penalty: 100%=0, 50%=2.5, 0%=4.0 (inverse quadratic)
-                const accNorm = Math.max(0, (100 - a.accuracyPct)) / 100;
-                const accPenalty = Math.min(4.0, accNorm * accNorm * 4.0);
-
-                // Facial tension: 0-100% → 0 to 1.0
-                const tensionPenalty = (a.facialTension || 0) / 100;
-
-                // Overwhelm: 0-10 → 0 to 1.0
-                const overwhelmPenalty = (a.overwhelm || 0) / 10;
-
-                assessmentLoad = rtPenalty + accPenalty + tensionPenalty + overwhelmPenalty;
-            }
-        }
-
-        // ── 2. SECONDARY: Environmental modifiers (capped contribution) ──
-        let envPenalty = 0;
+        // --- 2. Noise penalty: nonlinear ramp above 50 dB ---
+        // Below 50 dB = negligible office ambient. Above 50, quadratic ramp.
+        let noisePenalty = 0;
         const db = this.state.ambientNoiseDb;
         if (db > 50) {
-            envPenalty += Math.pow(db - 50, 2) / 400;
+            // Quadratic curve: (db-50)^2 / 400 → at 70dB = 1.0, at 85dB = 3.06
+            noisePenalty = Math.pow(db - 50, 2) / 400;
         }
-        envPenalty += this.state.recentSwitches * 0.4;
-        envPenalty += this.state.mouseJitterCount * 0.15;
 
+        // --- 3. Context switch penalty ---
+        const switchPenalty = this.state.recentSwitches * 0.4;
+
+        // --- 4. Mouse jitter penalty ---
+        const jitterPenalty = this.state.mouseJitterCount * 0.15;
+
+        // --- 5. Sum all penalties ---
+        let totalPenalty = noisePenalty + switchPenalty + jitterPenalty;
+
+        // --- 6. HEAVY MULTIPLIER: only when overloaded AND noisy simultaneously ---
         if (this.state.tabDensity > 15 && db > 70) {
-            envPenalty *= 1.6;
+            totalPenalty *= 1.6;
         }
 
-        // Cap environmental contribution at 3.0 so it can't dominate alone
-        envPenalty = Math.min(3.0, envPenalty);
-
-        // ── 3. Blend: assessment is primary, environment is secondary ──
-        let totalPenalty;
-        if (assessmentWeight > 0) {
-            totalPenalty = (assessmentLoad * 0.7 * assessmentWeight) +
-                           (envPenalty * 0.3);
-        } else {
-            totalPenalty = envPenalty;
-        }
-
-        // ── 4. Flow reward: sustained focus reduces load ──
+        // --- 7. Flow reward: sustained uninterrupted focus ---
+        // -0.03 per second of focus, capped at -1.2 (40 seconds of flow)
         const flowReward = Math.min(1.2, this.state.uninterruptedSeconds * 0.03);
 
-        // ── 5. Instantaneous target ──
+        // --- 8. Instantaneous target (not displayed directly) ---
         let instantTarget = BASELINE + totalPenalty - flowReward;
         instantTarget = Math.max(0.5, Math.min(10.0, instantTarget));
 
-        // ── 6. Recovery decay: exponential smoothing ──
+        // --- 9. RECOVERY DECAY: exponential smoothing ---
+        // Spikes register fast (alpha = 0.35), recovery is slow (alpha = 0.08)
         const delta = instantTarget - this._smoothedFocus;
         const alpha = delta > 0 ? 0.35 : this._decayAlpha;
         this._smoothedFocus += alpha * delta;
 
+        // Clamp and round to 1 decimal place for display
         this._smoothedFocus = Math.max(0.5, Math.min(10.0, this._smoothedFocus));
         this.state.focusIndex = Math.round(this._smoothedFocus * 10) / 10;
 
-        // ── 7. Cognitive Bandwidth: inverse of load ──
+        // --- 10. Cognitive Bandwidth: inverse of load ---
+        // At focusIndex 3.8 → 62%. At 7.0 → 30%. At 9.5 → 5%.
         let rawBandwidth = Math.round(100 - (this.state.focusIndex * 10));
         this.state.cognitiveBandwidth = Math.max(0, Math.min(100, rawBandwidth));
     }
