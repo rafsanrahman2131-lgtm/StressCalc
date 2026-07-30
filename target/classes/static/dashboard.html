@@ -715,7 +715,7 @@
                 </div>
                 <div class="glass-card">
                     <div class="metric-title">Focus Index</div>
-                    <div class="metric-value" id="ui-focus">8.8<span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
+                    <div class="metric-value" id="ui-focus"><span style="color: #22c55e;">3.8</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span></div>
                     <div class="metric-sub">Sustained Flow State</div>
                 </div>
 
@@ -1042,7 +1042,7 @@
                 const timeStr = new Date(now.getTime() - i * 2000).toTimeString().split(' ')[0];
                 const jitter = (Math.random() * 0.10) - 0.05;
                 window.allChartLabels.push(timeStr);
-                window.allChartData.push(parseFloat((8.5 + Math.sin(i * 0.4) * 0.5 + jitter).toFixed(2)));
+                window.allChartData.push(parseFloat((3.8 + Math.sin(i * 0.4) * 0.5 + jitter).toFixed(2)));
             }
 
             const initialViewLabels = window.allChartLabels.slice(-window.visibleWindowSize);
@@ -1277,7 +1277,7 @@
                     const timeStr = new Date(now.getTime() - i * 2000).toTimeString().split(' ')[0];
                     const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(timeStr);
-                    window.allChartData.push(parseFloat((8.8 + Math.sin(i * 0.5) * 0.4 + jitter).toFixed(2)));
+                    window.allChartData.push(parseFloat((3.8 + Math.sin(i * 0.5) * 0.4 + jitter).toFixed(2)));
                 }
             } else if (mode === 'minute') {
                 for (let i = 30; i >= 0; i--) {
@@ -1285,7 +1285,7 @@
                     const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                     const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(timeStr);
-                    window.allChartData.push(parseFloat((8.2 + Math.cos(i * 0.3) * 0.6 + jitter).toFixed(2)));
+                    window.allChartData.push(parseFloat((3.8 + Math.cos(i * 0.3) * 0.6 + jitter).toFixed(2)));
                 }
             } else if (mode === 'hour') {
                 for (let i = 24; i >= 0; i--) {
@@ -1293,7 +1293,7 @@
                     const timeStr = `${String(d.getHours()).padStart(2,'0')}:00`;
                     const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(timeStr);
-                    window.allChartData.push(parseFloat((7.8 + Math.sin(i * 0.5) * 0.9 + jitter).toFixed(2)));
+                    window.allChartData.push(parseFloat((3.8 + Math.sin(i * 0.5) * 0.9 + jitter).toFixed(2)));
                 }
             } else if (mode === 'day') {
                 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1301,7 +1301,7 @@
                     const d = new Date(now.getTime() - i * 86400000);
                     const jitter = (Math.random() * 0.10) - 0.05;
                     window.allChartLabels.push(`${days[d.getDay()]} ${d.getDate()}`);
-                    window.allChartData.push(parseFloat((8.0 + Math.sin(i * 0.8) * 1.0 + jitter).toFixed(2)));
+                    window.allChartData.push(parseFloat((3.4 + Math.sin(i * 0.8) * 1.0 + jitter).toFixed(2)));
                 }
             }
 
@@ -1336,7 +1336,7 @@
                     if (data.length > 0) {
                         window.allChartLabels = data.map(item => item.timestamp);
                         window.allChartData = data.map(item => {
-                            const raw = typeof item.focus_index === 'number' ? item.focus_index : parseFloat(item.focus_index || 8.8);
+                            const raw = typeof item.focus_index === 'number' ? item.focus_index : parseFloat(item.focus_index || 3.8);
                             const jitter = (Math.random() * 0.10) - 0.05;
                             return parseFloat(Math.max(0, Math.min(10, raw + jitter)).toFixed(2));
                         });

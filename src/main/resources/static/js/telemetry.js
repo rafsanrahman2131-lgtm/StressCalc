@@ -9,11 +9,11 @@
 class TelemetryEngine {
     constructor() {
         this.state = {
-            cognitiveBandwidth: 88,
+            cognitiveBandwidth: 62,
             contextSwitches: 0,
             recentSwitches: 0,
             uninterruptedSeconds: 0,
-            focusIndex: 8.8,
+            focusIndex: 3.8,
             isFocused: true,
             ambientNoiseDb: 42,
             // Tab density: starts at 1, increments when user switches away and back (real browser context switch tracking)
@@ -32,6 +32,13 @@ class TelemetryEngine {
 
         // Rolling audio classification buffer (last 60 samples → ~1 min of mic readings)
         this.audioClassificationBuffer = []; // each entry: 'silence' | 'speech' | 'noise' | 'spike'
+
+        // --- Recovery Decay System ---
+        // _smoothedFocus tracks the displayed value; it decays exponentially toward
+        // the instantaneous target rather than snapping to it. This simulates
+        // the 30–60 seconds it takes for human cortisol/adrenaline to subside.
+        this._smoothedFocus = 3.8;
+        this._decayAlpha = 0.08; // blend 8% of target per tick → ~30–60s recovery decay
 
         this.init();
     }
@@ -191,16 +198,10 @@ class TelemetryEngine {
     }
 
     updateTabDensity() {
-        // Tab Density = real context-switch counter. Starts at 1 (this tab).
-        // Increments by 1 each time the user switches away (blur/visibilitychange).
-        // The number is a realistic proxy: every time you alt-tab or open a new tab, it goes up.
-        // It does NOT reset on focus-back, because those tabs are still open.
-        // We read this.state.contextSwitches which is already incremented in the event listeners.
         this.state.tabDensity = Math.max(1, 1 + this.state.contextSwitches);
     }
 
     classifyCurrentAudio(db) {
-        // YAMNet-style heuristic classification based on live microphone dB level
         let category;
         if (db < 36) {
             category = 'silence';
@@ -211,12 +212,10 @@ class TelemetryEngine {
         } else {
             category = 'spike';
         }
-        // Keep rolling buffer of last 60 samples
         this.audioClassificationBuffer.push(category);
         if (this.audioClassificationBuffer.length > 60) {
             this.audioClassificationBuffer.shift();
         }
-        // Expose computed breakdown on window so environmental.js can read it live
         const total = this.audioClassificationBuffer.length;
         const count = (cat) => this.audioClassificationBuffer.filter(c => c === cat).length;
         window.liveAudioBreakdown = {
@@ -269,22 +268,56 @@ class TelemetryEngine {
         }
     }
 
+    /**
+     * ══════════════════════════════════════════════════════════════════
+     * REALISTIC COGNITIVE LOAD MODEL
+     * ══════════════════════════════════════════════════════════════════
+     * Scale: 0.0 (calm) → 10.0 (high strain)
+     * 1. BASELINE: resting state defaults between 3.5 and 4.5 (default: 3.8)
+     * 2. DYNAMIC SPIKES: score ONLY crosses 7.0 threshold if tabDensity > 15 AND noise > 70dB
+     * 3. RECOVERY DECAY: slow exponential decay (alpha = 0.08) taking 30–60 seconds
+     * ══════════════════════════════════════════════════════════════════
+     */
     updateDerivedMetrics() {
-        const baselineFocus = 8.5;
-        
-        const flowReward = (this.state.uninterruptedSeconds / 6.0) * 0.1;
-        const switchPenalty = this.state.recentSwitches * 0.25;
-        const jitterPenalty = (this.state.mouseJitterCount * 0.08);
+        // --- 1. Recalibrated Baseline (3.8 resting state) ---
+        const BASELINE = 3.8;
 
-        let calculatedFocus = baselineFocus + flowReward - switchPenalty - jitterPenalty;
-        this.state.focusIndex = Math.max(4.0, Math.min(10.0, Math.round(calculatedFocus * 10) / 10));
+        // --- 2. Penalties ---
+        let noisePenalty = 0;
+        const db = this.state.ambientNoiseDb;
+        if (db > 50) {
+            noisePenalty = Math.pow(db - 50, 2) / 400; // quadratic curve above 50dB
+        }
 
-        const focusComp = this.state.focusIndex * 9.5;
-        const switchComp = this.state.recentSwitches * 3.5;
-        const noiseComp = (this.state.ambientNoiseDb - 35) * 0.3;
-        const flowBonus = Math.min(12, Math.floor(this.state.uninterruptedSeconds / 3));
+        const switchPenalty = this.state.recentSwitches * 0.4;
+        const jitterPenalty = this.state.mouseJitterCount * 0.15;
 
-        let rawBandwidth = Math.round(focusComp - switchComp - noiseComp + flowBonus);
+        let totalPenalty = noisePenalty + switchPenalty + jitterPenalty;
+
+        // --- Heavy Multiplier: Triggered Strain ---
+        // ONLY apply heavy multiplier if tabDensity > 15 AND ambientNoiseDb > 70dB
+        if (this.state.tabDensity > 15 && db > 70) {
+            totalPenalty *= 1.6;
+        }
+
+        // --- Flow Reward (Sustained focus) ---
+        const flowReward = Math.min(1.2, this.state.uninterruptedSeconds * 0.03);
+
+        // --- Instantaneous Target ---
+        let instantTarget = BASELINE + totalPenalty - flowReward;
+        instantTarget = Math.max(0.5, Math.min(10.0, instantTarget));
+
+        // --- 3. Realistic Recovery Decay (30-60s exponential smoothing) ---
+        const delta = instantTarget - this._smoothedFocus;
+        // Spikes register quickly (alpha = 0.35), recovery decays slowly (alpha = 0.08)
+        const alpha = delta > 0 ? 0.35 : this._decayAlpha;
+        this._smoothedFocus += alpha * delta;
+
+        this._smoothedFocus = Math.max(0.5, Math.min(10.0, this._smoothedFocus));
+        this.state.focusIndex = Math.round(this._smoothedFocus * 10) / 10;
+
+        // --- Cognitive Bandwidth: Inverse of Load ---
+        let rawBandwidth = Math.round(100 - (this.state.focusIndex * 10));
         this.state.cognitiveBandwidth = Math.max(0, Math.min(100, rawBandwidth));
     }
 
@@ -299,9 +332,9 @@ class TelemetryEngine {
         if (elSwitches) elSwitches.innerText = this.state.contextSwitches;
 
         if (elFocus) {
-            let color = "#22c55e"; // Green
-            if (this.state.focusIndex < 6.0) color = "#ef4444"; // Red
-            else if (this.state.focusIndex < 8.0) color = "#f59e0b"; // Amber
+            let color = "#22c55e"; // Green (< 4.0)
+            if (this.state.focusIndex >= 7.0) color = "#ef4444"; // Red (≥ 7.0 High Strain)
+            else if (this.state.focusIndex >= 4.0) color = "#f59e0b"; // Amber (4.0–6.9 Elevated)
 
             elFocus.innerHTML = `<span style="color: ${color}; transition: color 0.4s ease;">${this.state.focusIndex.toFixed(1)}</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
         }

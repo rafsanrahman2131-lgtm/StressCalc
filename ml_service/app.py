@@ -59,8 +59,9 @@ def predict_metrics(payload: TelemetryPayload):
         calculated_stress = (payload.facial_tension * 0.3) + (overwhelm_100 * 0.5) + (rx_penalty * 0.2)
         pred_stress = int(round(max(0.0, min(100.0, calculated_stress))))
 
-        pred_focus = round(max(1.0, min(10.0, 10.0 - (pred_stress / 15.0))), 1)
-        pred_bandwidth = int(round(max(10.0, min(100.0, 100.0 - pred_stress))))
+        # Recalibrated Focus Index Baseline: resting state at ~3.8
+        pred_focus = round(max(0.5, min(10.0, 3.8 + (calculated_stress / 25.0))), 1)
+        pred_bandwidth = int(round(max(0.0, min(100.0, 100.0 - (pred_focus * 10.0)))))
 
         return {
             "status": "success",

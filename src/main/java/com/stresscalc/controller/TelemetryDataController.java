@@ -81,8 +81,8 @@ public class TelemetryDataController {
             double ambientNoiseWeight = payload.containsKey("ambientNoiseWeight") ? ((Number) payload.get("ambientNoiseWeight")).doubleValue() : 0.3;
 
             // Call Python FastAPI Machine Learning Microservice (/predict)
-            double predictedFocus = 8.5;
-            int predictedBandwidth = 85;
+            double predictedFocus = 3.8;
+            int predictedBandwidth = 62;
 
             try {
                 Map<String, Object> mlRequest = new HashMap<>();
