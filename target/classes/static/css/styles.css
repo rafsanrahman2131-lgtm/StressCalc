@@ -977,14 +977,18 @@ html[data-theme="contrast"] .badge-featured {
 
 /* Feature Card Hover Overlay Architecture */
 .feature-card,
-.overview-card {
+.overview-card,
+.media-card,
+.feature-media-card {
     position: relative;
     overflow: hidden; /* Ensures the overlay doesn't spill out of the rounded corners */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .feature-card:hover,
-.overview-card:hover {
+.overview-card:hover,
+.media-card:hover,
+.feature-media-card:hover {
     transform: translateY(-5px); /* Gentle antigravity lift */
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
     border-color: var(--accent);
@@ -1011,7 +1015,9 @@ html[data-theme="contrast"] .badge-featured {
 }
 
 .feature-card:hover .feature-overlay,
-.overview-card:hover .feature-overlay {
+.overview-card:hover .feature-overlay,
+.media-card:hover .feature-overlay,
+.feature-media-card:hover .feature-overlay {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
