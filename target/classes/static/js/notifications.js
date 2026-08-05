@@ -56,10 +56,10 @@ async function loadNotifications() {
                     
                     ${isPendingReq ? `
                     <div class="notif-actions" onclick="event.stopPropagation()">
-                        <button class="notif-action-btn action-btn accept accept-btn" title="Accept Request">
+                        <button class="notif-action-btn action-btn accept accept-btn" onclick="handleFriendRequestAction('accept', this, event)" title="Accept Request">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         </button>
-                        <button class="notif-action-btn action-btn decline decline-btn" title="Decline Request">
+                        <button class="notif-action-btn action-btn decline decline-btn" onclick="handleFriendRequestAction('decline', this, event)" title="Decline Request">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>` : ''}
@@ -338,10 +338,103 @@ function updateTopNavPfp(base64Src) {
     }
 }
 
+function handleFriendRequestAction(action, btn, event) {
+    if (event) event.stopPropagation();
+
+    const notifItem = btn.closest('.notif-item, .request-card');
+    if (!notifItem) return;
+
+    const isAccept = (action === 'accept');
+    
+    // Extract username from strong tag or text
+    const usernameElement = notifItem.querySelector('strong');
+    let username = usernameElement ? usernameElement.innerText.trim() : '';
+    if (!username) {
+        const notifText = notifItem.querySelector('.notif-text');
+        if (notifText) {
+            const text = notifText.innerText.trim();
+            username = text.split(' ')[0] || 'User';
+        } else {
+            username = 'User';
+        }
+    }
+
+    // 1. TRANSFORM TEXT & HIDE BUTTONS IMMEDIATELY
+    const notifText = notifItem.querySelector('.notif-text');
+    if (notifText) {
+        notifText.innerHTML = `Friend request from <strong>${escapeHtml(username)}</strong> has been ${isAccept ? 'accepted' : 'declined'}.`;
+    }
+
+    const actions = notifItem.querySelector('.notif-actions');
+    if (actions) actions.style.display = 'none';
+
+    // 2. MARK AS READ (remove unread dot & red border)
+    notifItem.classList.remove('unread');
+    const dot = notifItem.querySelector('.notif-icon-dot');
+    if (dot) dot.classList.add('read');
+
+    // 3. SHOW TOAST
+    if (typeof showToast === 'function') {
+        showToast(`Friend request from ${username} has been ${isAccept ? 'accepted' : 'declined'}.`, isAccept ? 'success' : 'decline');
+    }
+
+    // 4. DECREMENT BADGE
+    let badge = document.getElementById('notifBadge') || document.querySelector('.notif-badge');
+    if (badge) {
+        let countStr = badge.textContent.replace('+', '');
+        let count = parseInt(countStr) || 0;
+        if (count > 0) {
+            count--;
+            badge.textContent = count > 5 ? '5+' : (count === 0 ? '' : count);
+            if (count === 0) badge.classList.add('hidden');
+        }
+    }
+
+    // 5. INJECT FRIEND CARD IF ACCEPTED
+    if (isAccept) {
+        const friendsGrid = document.querySelector('.friends-grid') || document.getElementById('friendsGrid'); 
+        if (friendsGrid) {
+            const initial = username.charAt(0).toUpperCase();
+            const newCard = document.createElement('div');
+            newCard.className = 'friend-card card-glass';
+            newCard.style.cssText = 'padding: 16px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.03); transition: all 0.2s ease;';
+            newCard.innerHTML = `
+                <div style="width: 60px; height: 60px; margin: 0 auto 12px; font-size: 24px; border-radius: 50%; background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; color: #22c55e; font-weight: bold;">
+                    <span>${initial}</span>
+                </div>
+                <h4 style="margin: 0; color: #fff; font-size: 1rem;">${escapeHtml(username)}</h4>
+                <p style="margin: 4px 0 0; font-size: 0.8rem; color: #22c55e;">@${escapeHtml(username)}</p>
+            `;
+            newCard.onclick = () => {
+                if (typeof openFriendModal === 'function') openFriendModal({ username: username, fullName: username });
+                else if (typeof openFriendProfile === 'function') openFriendProfile(username, username, initial, 'student_general');
+            };
+
+            const emptyMsg = friendsGrid.querySelector('div[style*="text-align: center"]');
+            if (emptyMsg) emptyMsg.remove();
+
+            friendsGrid.appendChild(newCard);
+        }
+    }
+
+    // 6. BACKGROUND POST REQUEST
+    const notifId = notifItem.getAttribute('data-id');
+    if (notifId) {
+        fetch(`/api/notifications/read/${notifId}`, { method: 'POST' }).catch(() => {});
+    }
+
+    fetch(`/api/friends/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ friendUsername: username })
+    }).catch(err => console.warn("Backend sync notice:", err));
+}
+
 // Global exports
 window.toggleNotifications = toggleNotifications;
 window.toggleNotifDropdown = toggleNotifDropdown;
 window.markAllNotifRead = markAllNotifRead;
 window.handleNotificationAction = handleNotificationAction;
+window.handleFriendRequestAction = handleFriendRequestAction;
 window.showToast = showToast;
 window.updateTopNavPfp = updateTopNavPfp;
