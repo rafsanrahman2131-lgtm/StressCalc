@@ -208,14 +208,11 @@ class TelemetryEngine {
             }
             let average = sum / dataArray.length;
 
-            let naturalDelta = (Math.random() * 4) - 2;
-
             if (average > 2) {
-                let measuredDb = Math.round(32 + (average / 255.0) * 55 + naturalDelta);
+                let measuredDb = Math.round(32 + (average / 255.0) * 55);
                 this.state.ambientNoiseDb = Math.max(30, Math.min(88, measuredDb));
             } else {
-                let ambientBase = Math.round(36 + naturalDelta);
-                this.state.ambientNoiseDb = Math.max(30, Math.min(50, ambientBase));
+                this.state.ambientNoiseDb = 38;
             }
 
             if (this.state.ambientNoiseDb > 68 && this.state.isFocused) {
@@ -223,14 +220,11 @@ class TelemetryEngine {
                 this.logStressorEvent(timeStr, `Acoustic Noise Spike (${this.state.ambientNoiseDb} dB)`);
             }
         } else {
-            const base = 38;
-            const delta = Math.floor(Math.random() * 8) - 4;
-            this.state.ambientNoiseDb = Math.max(32, Math.min(56, base + delta));
+            this.state.ambientNoiseDb = 38;
         }
     }
 
     updateTabDensity() {
-        // Purge inactive tabs older than 3.5 seconds
         const now = Date.now();
         if (this.activeTabsMap) {
             for (const [id, ts] of this.activeTabsMap.entries()) {
@@ -240,29 +234,15 @@ class TelemetryEngine {
             }
         }
 
-        // Live count of open StressCalculator tabs in this browser
         const openAppTabs = Math.max(1, this.activeTabsMap ? this.activeTabsMap.size : 1);
-
-        // Recent multitasking switch load (decays as user stabilizes on a single tab)
         const multitaskingBonus = Math.min(4, this.state.recentSwitches);
-
-        // Base active workspace density estimate (clamped realistically between 1 and 8 tabs)
         let totalDensity = openAppTabs + multitaskingBonus;
 
         this.state.tabDensity = Math.max(1, Math.min(8, totalDensity));
     }
 
     classifyCurrentAudio(db) {
-        let category;
-        if (db < 36) {
-            category = 'silence';
-        } else if (db < 60) {
-            category = 'speech';
-        } else if (db < 70) {
-            category = 'noise';
-        } else {
-            category = 'spike';
-        }
+        let category = db < 36 ? 'silence' : (db < 60 ? 'speech' : (db < 70 ? 'noise' : 'spike'));
         this.audioClassificationBuffer.push(category);
         if (this.audioClassificationBuffer.length > 60) {
             this.audioClassificationBuffer.shift();
@@ -270,10 +250,10 @@ class TelemetryEngine {
         const total = this.audioClassificationBuffer.length;
         const count = (cat) => this.audioClassificationBuffer.filter(c => c === cat).length;
         window.liveAudioBreakdown = {
-            'Silence':           Math.round((count('silence') / total) * 100),
-            'Speech':            Math.round((count('speech')  / total) * 100),
-            'Background Noise':  Math.round((count('noise')   / total) * 100),
-            'Loud Spikes':       Math.round((count('spike')   / total) * 100)
+            'Silence': Math.round((count('silence') / total) * 100),
+            'Speech': Math.round((count('speech') / total) * 100),
+            'Background Noise': Math.round((count('noise') / total) * 100),
+            'Loud Spikes': Math.round((count('spike') / total) * 100)
         };
     }
 
@@ -314,68 +294,60 @@ class TelemetryEngine {
 
             this.state.lastMousePos = { x: e.clientX, y: e.clientY };
             this.state.lastMouseTime = now;
-            this.updateDerivedMetrics();
-            this.updateDashboardUI();
         }
     }
 
     /**
-     * ══════════════════════════════════════════════════════════════════
-     * REALISTIC COGNITIVE LOAD MODEL
-     * ══════════════════════════════════════════════════════════════════
-     * Scale: 0.0 (calm) → 10.0 (high strain)
-     * 1. BASELINE: resting state defaults between 3.5 and 4.5 (default: 3.8)
-     * 2. DYNAMIC SPIKES: score ONLY crosses 7.0 threshold if tabDensity > 15 AND noise > 70dB
-     * 3. RECOVERY DECAY: slow exponential decay (alpha = 0.08) taking 30–60 seconds
-     * ══════════════════════════════════════════════════════════════════
+     * PROPER MATHEMATICAL COGNITIVE LOAD & BANDWIDTH MODEL
+     * Range: 0% to 100% Cognitive Bandwidth (10.0 to 0.0 Focus Index)
+     * 1. Context Switch Penalty: Each switch costs 8% (recent) + 3% (accumulated total, max 40%).
+     * 2. Facial Tension Penalty: Tension % * 0.45 (max 45%).
+     * 3. Acoustic Noise Penalty: (dB - 45) * 0.8 (max 30%).
+     * 4. Tab Density Penalty: (tabCount - 1) * 4 (max 25%).
+     * 5. Motion Jitter Penalty: jitterCount * 5 (max 15%).
+     * 6. Flow State Recovery: uninterrupted seconds * 0.2 (reduces load penalty up to 20%).
      */
     updateDerivedMetrics() {
-        // --- 1. Recalibrated Baseline (3.8 resting state) ---
-        const BASELINE = 3.8;
+        const switchPenalty = Math.min(40, (this.state.recentSwitches * 8) + (this.state.contextSwitches * 3));
+        const tensionPenalty = (this.state.facialTension / 100) * 45;
+        const noisePenalty = Math.max(0, (this.state.ambientNoiseDb - 45) * 0.8);
+        const tabPenalty = Math.max(0, (this.state.tabDensity - 1) * 4);
+        const jitterPenalty = this.state.mouseJitterCount * 5;
 
-        // --- 2. Penalties ---
-        let noisePenalty = 0;
-        const db = this.state.ambientNoiseDb;
-        if (db > 50) {
-            noisePenalty = Math.pow(db - 50, 2) / 400; // quadratic curve above 50dB
+        let totalLoad = switchPenalty + tensionPenalty + noisePenalty + tabPenalty + jitterPenalty;
+
+        // Flow State Recovery (Uninterrupted focus reduces load)
+        const flowRecovery = Math.min(20, (this.state.uninterruptedSeconds / 10) * 2);
+        totalLoad = Math.max(0, Math.min(95, totalLoad - flowRecovery));
+
+        // Target Bandwidth & Focus Index
+        let targetBandwidth = Math.round(100 - totalLoad);
+
+        // Smooth Exponential Moving Average (30s physiological decay)
+        if (this._smoothedBandwidth === undefined) {
+            this._smoothedBandwidth = targetBandwidth;
         }
 
-        const switchPenalty = this.state.recentSwitches * 0.4;
-        const jitterPenalty = this.state.mouseJitterCount * 0.15;
+        const delta = targetBandwidth - this._smoothedBandwidth;
+        const alpha = delta < 0 ? 0.30 : 0.08;
+        this._smoothedBandwidth += alpha * delta;
+        this._smoothedBandwidth = Math.max(0, Math.min(100, this._smoothedBandwidth));
 
-        let totalPenalty = noisePenalty + switchPenalty + jitterPenalty;
-
-        // --- Heavy Multiplier: Triggered Strain ---
-        // ONLY apply heavy multiplier if high tab density (>=6) AND loud noise (>70dB) occur simultaneously
-        if (this.state.tabDensity >= 6 && db > 70) {
-            totalPenalty *= 1.6;
-        }
-
-        // --- Flow Reward (Sustained focus) ---
-        const flowReward = Math.min(1.2, this.state.uninterruptedSeconds * 0.03);
-
-        // --- Instantaneous Target ---
-        let instantTarget = BASELINE + totalPenalty - flowReward;
-        instantTarget = Math.max(0.5, Math.min(10.0, instantTarget));
-
-        // --- 3. Realistic Recovery Decay (30-60s exponential smoothing) ---
-        const delta = instantTarget - this._smoothedFocus;
-        // Spikes register quickly (alpha = 0.35), recovery decays slowly (alpha = 0.08)
-        const alpha = delta > 0 ? 0.35 : this._decayAlpha;
-        this._smoothedFocus += alpha * delta;
-
-        this._smoothedFocus = Math.max(0.5, Math.min(10.0, this._smoothedFocus));
-        this.state.focusIndex = Math.round(this._smoothedFocus * 10) / 10;
-
-        // --- Cognitive Bandwidth: Inverse of Load ---
-        let rawBandwidth = Math.round(100 - (this.state.focusIndex * 10));
-        this.state.cognitiveBandwidth = Math.max(0, Math.min(100, rawBandwidth));
+        this.state.cognitiveBandwidth = Math.round(this._smoothedBandwidth);
+        this.state.focusIndex = Math.round((this.state.cognitiveBandwidth / 10) * 10) / 10;
     }
 
+    /**
+     * Focus Index Thresholds & Sub-text Logic
+     * - Score <= 3.0 (e.g. 2.9/10): "High Cognitive Strain" (Amber/Red)
+     * - Score 3.1 to 7.0: "Moderate Cognitive Load" (Yellow/Amber)
+     * - Score > 7.0: "Sustained Flow State" (Green)
+     */
     updateDashboardUI() {
         const elBandwidth = document.getElementById('ui-bandwidth');
         const elSwitches = document.getElementById('ui-switches');
         const elFocus = document.getElementById('ui-focus');
+        const elFocusSub = document.getElementById('ui-focus-sub') || (elFocus ? elFocus.nextElementSibling : null);
         const elNoise = document.getElementById('ui-noise');
         const elTabs = document.getElementById('ui-tabs');
 
@@ -383,11 +355,23 @@ class TelemetryEngine {
         if (elSwitches) elSwitches.innerText = this.state.contextSwitches;
 
         if (elFocus) {
-            let color = "#22c55e"; // Green (< 4.0)
-            if (this.state.focusIndex >= 7.0) color = "#ef4444"; // Red (≥ 7.0 High Strain)
-            else if (this.state.focusIndex >= 4.0) color = "#f59e0b"; // Amber (4.0–6.9 Elevated)
+            let color = "#22c55e";
+            let statusText = "Sustained Flow State";
+
+            if (this.state.focusIndex <= 3.0) {
+                color = "#ef4444";
+                statusText = "High Cognitive Strain";
+            } else if (this.state.focusIndex <= 7.0) {
+                color = "#f59e0b";
+                statusText = "Moderate Cognitive Load";
+            }
 
             elFocus.innerHTML = `<span style="color: ${color}; transition: color 0.4s ease;">${this.state.focusIndex.toFixed(1)}</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
+
+            if (elFocusSub) {
+                elFocusSub.innerText = statusText;
+                elFocusSub.style.color = color;
+            }
         }
 
         if (elNoise) elNoise.innerText = this.state.ambientNoiseDb;
@@ -405,6 +389,37 @@ class TelemetryEngine {
                     <span style="font-weight: 600;">${item.text}</span>
                 </li>
             `).join('');
+        }
+    }
+
+    // AI Scoring Engine (Backend Integration)
+    async sendTelemetryToBackend() {
+        try {
+            const payload = {
+                contextSwitches: this.state.contextSwitches,
+                sessionDuration: this.state.sessionDuration,
+                facialTension: this.state.facialTension,
+                ambientNoiseDb: this.state.ambientNoiseDb,
+                tabDensity: this.state.tabDensity
+            };
+
+            const res = await fetch('/api/telemetry/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (typeof data.cognitiveBandwidth === 'number' && this.state.contextSwitches > 0) {
+                    this._smoothedBandwidth = (this._smoothedBandwidth * 0.7) + (data.cognitiveBandwidth * 0.3);
+                    this.state.cognitiveBandwidth = Math.round(this._smoothedBandwidth);
+                    this.state.focusIndex = Math.round((this.state.cognitiveBandwidth / 10) * 10) / 10;
+                    this.updateDashboardUI();
+                }
+            }
+        } catch (e) {
+            // Quiet fallback
         }
     }
 }

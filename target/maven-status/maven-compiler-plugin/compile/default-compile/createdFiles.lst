@@ -12,9 +12,15 @@ com\stresscalc\model\TelemetryLog.class
 com\stresscalc\repository\UserRepository.class
 com\stresscalc\servlet\TelemetryDataServlet.class
 com\stresscalc\repository\NotificationRepository.class
+com\stresscalc\controller\TriageLogController.class
 com\stresscalc\model\StressAssessment.class
 com\stresscalc\controller\EnvironmentalController.class
+com\stresscalc\repository\TriageLogRepository.class
+com\stresscalc\model\MindSyncChat.class
 com\stresscalc\model\User.class
 com\stresscalc\controller\TelemetryDataController.class
+com\stresscalc\model\TriageLog.class
 com\stresscalc\repository\TelemetryRepository.class
 com\stresscalc\repository\AssessmentRepository.class
+com\stresscalc\repository\MindSyncChatRepository.class
+com\stresscalc\controller\MindSyncController.class
