@@ -66,30 +66,48 @@ public class AuthController {
     // 2. Process Registration (POST /register)
     @PostMapping("/register")
     public String handleRegister(
+            @RequestParam(name = "fullName", required = false) String fullName,
             @RequestParam(name = "regName", required = false) String regName,
-            @RequestParam(name = "userName", required = false) String userName,
+            @RequestParam(name = "email", required = false) String email,
             @RequestParam(name = "regEmail", required = false) String regEmail,
-            @RequestParam(name = "userEmail", required = false) String userEmail,
             @RequestParam(name = "regDOB", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate regDOB,
             @RequestParam(name = "dob", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
+            @RequestParam(name = "organization", required = false) String organization,
             @RequestParam(name = "regOccupation", required = false) String regOccupation,
-            @RequestParam(name = "occupation", required = false) String occupation,
+            @RequestParam(name = "activityLevel", required = false, defaultValue = "active") String activityLevel,
+            @RequestParam(name = "sleepDuration", required = false, defaultValue = "6-8") String sleepDuration,
+            @RequestParam(name = "caffeine", required = false, defaultValue = "low") String caffeine,
+            @RequestParam(name = "wearable", required = false, defaultValue = "none") String wearable,
+            @RequestParam(name = "focusAudio", required = false, defaultValue = "complex") String focusAudio,
+            @RequestParam(name = "timezone", required = false, defaultValue = "ASIA") String timezone,
+            @RequestParam(name = "password", required = false) String password,
             @RequestParam(name = "regPassword", required = false) String regPassword,
-            @RequestParam(name = "userPassword", required = false) String userPassword,
             HttpSession session) {
 
-        String name = (regName != null && !regName.isBlank()) ? regName : ((userName != null) ? userName : "New User");
-        String email = (regEmail != null && !regEmail.isBlank()) ? regEmail : userEmail;
+        String name = (fullName != null && !fullName.isBlank()) ? fullName : ((regName != null && !regName.isBlank()) ? regName : "New User");
+        String userEmail = (email != null && !email.isBlank()) ? email : regEmail;
         LocalDate birthDate = (regDOB != null) ? regDOB : ((dob != null) ? dob : LocalDate.of(2000, 1, 1));
-        String role = (regOccupation != null && !regOccupation.isBlank()) ? regOccupation : ((occupation != null) ? occupation : "General");
-        String password = (regPassword != null && !regPassword.isBlank()) ? regPassword : userPassword;
+        String org = (organization != null && !organization.isBlank()) ? organization : ((regOccupation != null && !regOccupation.isBlank()) ? regOccupation : "General");
+        String pass = (password != null && !password.isBlank()) ? password : regPassword;
 
-        if (email == null || password == null) {
+        if (userEmail == null || pass == null) {
             return "redirect:/auth.html?error=missing_fields";
         }
 
-        // Save User into MySQL Database
-        User newUser = new User(name, email.trim(), birthDate, role, password);
+        // Save User into Database
+        User newUser = new User(
+                name,
+                userEmail.trim(),
+                birthDate,
+                org,
+                pass,
+                activityLevel,
+                sleepDuration,
+                caffeine,
+                wearable,
+                focusAudio,
+                timezone
+        );
         userRepository.save(newUser);
 
         session.setAttribute("user", newUser);

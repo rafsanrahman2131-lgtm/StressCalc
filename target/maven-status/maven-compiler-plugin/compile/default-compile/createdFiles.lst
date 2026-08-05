@@ -1,5 +1,6 @@
 com\stresscalc\controller\AuthController.class
 com\stresscalc\controller\AssessmentController.class
+com\stresscalc\controller\UserController.class
 com\stresscalc\controller\ViewController.class
 com\stresscalc\StressCalculatorApplication.class
 com\stresscalc\model\TelemetryLog.class

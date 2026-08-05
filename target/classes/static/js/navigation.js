@@ -1,12 +1,13 @@
 /**
  * StressCalculator — SPA Navigation Controller with State Persistence & Routing
- * Supports: Telemetry, Action Logs, and Environmental Dashboard views.
+ * Supports: Telemetry, Action Logs, Environmental Dashboard, and Profile Settings views.
  */
 
 function initSpaNavigation() {
     const navTelemetry = document.getElementById('nav-telemetry');
     const navLogs = document.getElementById('nav-logs');
     const navEnvironmental = document.getElementById('nav-environmental');
+    const navProfile = document.getElementById('nav-profile');
 
     if (navTelemetry) {
         navTelemetry.addEventListener('click', (e) => {
@@ -29,10 +30,17 @@ function initSpaNavigation() {
         });
     }
 
+    if (navProfile) {
+        navProfile.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSpaView('profile');
+        });
+    }
+
     // Listen to browser back/forward or hash changes
     window.addEventListener('hashchange', () => {
         const currentHash = window.location.hash.replace('#', '');
-        if (['logs', 'telemetry', 'environmental'].includes(currentHash)) {
+        if (['logs', 'telemetry', 'environmental', 'profile'].includes(currentHash)) {
             switchSpaView(currentHash, false);
         }
     });
@@ -41,9 +49,9 @@ function initSpaNavigation() {
     const hashView = window.location.hash.replace('#', '');
     const savedView = localStorage.getItem('stresscalc_active_view');
     let initialView = 'telemetry';
-    if (hashView && ['logs', 'telemetry', 'environmental'].includes(hashView)) {
+    if (hashView && ['logs', 'telemetry', 'environmental', 'profile'].includes(hashView)) {
         initialView = hashView;
-    } else if (savedView && ['logs', 'telemetry', 'environmental'].includes(savedView)) {
+    } else if (savedView && ['logs', 'telemetry', 'environmental', 'profile'].includes(savedView)) {
         initialView = savedView;
     }
     
@@ -54,10 +62,12 @@ function switchSpaView(viewId, isInitialLoad = false) {
     const telemetryView = document.getElementById('telemetry-dashboard');
     const logsView = document.getElementById('action-logs-view');
     const environmentalView = document.getElementById('environmental-view');
+    const profileView = document.getElementById('profile-view');
 
     const navTelemetry = document.getElementById('nav-telemetry');
     const navLogs = document.getElementById('nav-logs');
     const navEnvironmental = document.getElementById('nav-environmental');
+    const navProfile = document.getElementById('nav-profile');
 
     // Persist state in localStorage and URL hash
     localStorage.setItem('stresscalc_active_view', viewId);
@@ -69,11 +79,13 @@ function switchSpaView(viewId, isInitialLoad = false) {
     if (telemetryView) telemetryView.style.display = 'none';
     if (logsView) logsView.style.display = 'none';
     if (environmentalView) environmentalView.style.display = 'none';
+    if (profileView) profileView.style.display = 'none';
 
     // Remove active state on all nav items
     if (navTelemetry) navTelemetry.classList.remove('active');
     if (navLogs) navLogs.classList.remove('active');
     if (navEnvironmental) navEnvironmental.classList.remove('active');
+    if (navProfile) navProfile.classList.remove('active');
 
     if (viewId === 'logs') {
         if (logsView) logsView.style.display = 'block';
@@ -88,6 +100,13 @@ function switchSpaView(viewId, isInitialLoad = false) {
 
         if (typeof window.fetchEnvironmentalData === 'function') {
             window.fetchEnvironmentalData();
+        }
+    } else if (viewId === 'profile') {
+        if (profileView) profileView.style.display = 'block';
+        if (navProfile) navProfile.classList.add('active');
+
+        if (typeof window.loadUserProfile === 'function') {
+            window.loadUserProfile();
         }
     } else {
         if (telemetryView) telemetryView.style.display = 'block';

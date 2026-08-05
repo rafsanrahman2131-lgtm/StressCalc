@@ -6,6 +6,7 @@ D:\StressCalc\src\main\java\com\stresscalc\controller\EnvironmentalController.ja
 D:\StressCalc\src\main\java\com\stresscalc\repository\UserRepository.java
 D:\StressCalc\src\main\java\com\stresscalc\controller\ViewController.java
 D:\StressCalc\src\main\java\com\stresscalc\servlet\TelemetryDataServlet.java
+D:\StressCalc\src\main\java\com\stresscalc\controller\UserController.java
 D:\StressCalc\src\main\java\com\stresscalc\model\TelemetryLog.java
 D:\StressCalc\src\main\java\com\stresscalc\repository\TelemetryRepository.java
 D:\StressCalc\src\main\java\com\stresscalc\controller\AuthController.java
