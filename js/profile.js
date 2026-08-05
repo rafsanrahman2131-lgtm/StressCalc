@@ -409,33 +409,41 @@ async function acceptFriendRequest(friendshipId, btn) {
 }
 
 function openFriendModal(friend) {
-    const overlay = document.getElementById('friendModalOverlay');
-    if (!overlay) return;
+    const modal = document.getElementById('friendProfileModal');
+    if (!modal) return;
 
-    const avatarWrap = document.getElementById('friendModalAvatarWrap');
-    if (avatarWrap) {
+    const avatarLg = document.getElementById('friendAvatarLg');
+    const nameEl = document.getElementById('friendProfileName');
+    const usernameEl = document.getElementById('friendProfileUsername');
+    const roleEl = document.getElementById('friendProfileRole');
+
+    const name = friend.fullName || friend.username || 'User';
+    const username = friend.username ? ('@' + friend.username) : '@user';
+    const role = friend.occupation || 'student_general';
+    const initials = name.charAt(0).toUpperCase();
+
+    if (avatarLg) {
         if (friend.profilePic) {
-            avatarWrap.innerHTML = `<img src="${friend.profilePic}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            avatarLg.innerHTML = `<img src="${friend.profilePic}" alt="${escSocial(name)}'s avatar">`;
         } else {
-            const initials = (friend.fullName || friend.username || '?').charAt(0).toUpperCase();
-            avatarWrap.innerHTML = `<span style="font-size:1.8rem;font-weight:800;color:#22c55e;">${initials}</span>`;
+            avatarLg.innerHTML = `<span id="friendProfileInitial">${initials}</span>`;
         }
     }
 
-    const nameEl = document.getElementById('friendModalName');
-    const usernameEl = document.getElementById('friendModalUsername');
-    const schoolEl = document.getElementById('friendModalSchool');
+    if (nameEl) nameEl.textContent = name;
+    if (usernameEl) usernameEl.textContent = username;
+    if (roleEl) roleEl.textContent = role;
 
-    if (nameEl) nameEl.textContent = friend.fullName || friend.username || 'User';
-    if (usernameEl) usernameEl.textContent = '@' + (friend.username || '—');
-    if (schoolEl) schoolEl.textContent = friend.occupation ? friend.occupation : '';
+    modal.style.display = 'flex';
+}
 
-    overlay.style.display = 'flex';
+function closeFriendProfile() {
+    const modal = document.getElementById('friendProfileModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function closeFriendModal() {
-    const overlay = document.getElementById('friendModalOverlay');
-    if (overlay) overlay.style.display = 'none';
+    closeFriendProfile();
 }
 
 function escSocial(str) {
@@ -452,3 +460,4 @@ window.sendFriendRequest = sendFriendRequest;
 window.acceptFriendRequest = acceptFriendRequest;
 window.openFriendModal = openFriendModal;
 window.closeFriendModal = closeFriendModal;
+window.closeFriendProfile = closeFriendProfile;
