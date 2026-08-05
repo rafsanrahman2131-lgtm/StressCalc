@@ -1000,7 +1000,7 @@ html[data-theme="contrast"] .badge-featured {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(18, 24, 38, 0.88); /* Matches surface theme with high legibility */
+    background: rgba(18, 24, 38, 0.92); /* Matches surface theme with high legibility */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     opacity: 0;
@@ -1008,6 +1008,8 @@ html[data-theme="contrast"] .badge-featured {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     transform: translateY(20px); /* Starts slightly lower for a slide-up effect */
     z-index: 10;
@@ -1028,6 +1030,8 @@ html[data-theme="contrast"] .badge-featured {
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--accent, #22c55e); /* Theme accent color */
+    text-align: left !important;
+    width: 100%;
 }
 
 .feature-overlay ul {
@@ -1036,6 +1040,8 @@ html[data-theme="contrast"] .badge-featured {
     margin: 0;
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.9);
+    text-align: left !important;
+    width: 100%;
 }
 
 .feature-overlay ul li {
@@ -1043,6 +1049,7 @@ html[data-theme="contrast"] .badge-featured {
     padding-left: 16px;
     position: relative;
     line-height: 1.4;
+    text-align: left !important;
 }
 
 .feature-overlay ul li::before {
