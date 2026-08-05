@@ -6,41 +6,71 @@
     <title>StressCalculator — Authentication</title>
     <link rel="stylesheet" href="css/styles.css?v=2.0">
     <style>
-        /* Multi-step Slider Architecture (Inlined to bypass browser cache) */
+        /* =============================================
+           STEP SLIDER — Absolute Position (Bulletproof)
+           ============================================= */
         .form-slider-container {
-            width: 100% !important;
-            overflow: hidden !important; 
-            position: relative !important;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            min-height: 320px; /* Prevents container collapse */
         }
 
-        .form-slider-track {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            gap: 0 !important;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-
+        /* Every step sits absolutely at top-left, full width */
         .form-step {
-            flex: 0 0 100% !important;
-            width: 100% !important;
-            min-width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            padding: 0 2px !important;
-            margin: 0 !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            box-sizing: border-box;
+            /* Start all steps off to the right */
+            transform: translateX(100%);
+            transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.45s ease;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        fieldset.baseline-section,
-        .baseline-section {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
+        /* The visible, active step */
+        .form-step.active {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: all;
+            position: relative; /* Makes container grow to match this step's height */
         }
 
+        /* Step sliding OUT to the left */
+        .form-step.exit-left {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Step waiting off-screen to the left (for Back nav) */
+        .form-step.offscreen-left {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Navigation row inside each step */
+        .step-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .step-nav-right {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* =============================================
+           Auth Visual Carousel
+           ============================================= */
         .auth-visual {
             position: relative;
             height: 100vh;
@@ -138,47 +168,43 @@
 
                     <!-- SIGNUP MULTI-STEP SLIDER FORM -->
                     <form id="form-signup" action="/register" method="POST" style="display: none;">
-                        <div class="form-slider-container">
-                            <div class="form-slider-track" id="formTrack">
-                                
+                        <div class="form-slider-container" id="stepContainer">
                                 <!-- STEP 1: Identity -->
-                                <div class="form-step" id="step1">
+                                <div class="form-step active" id="step1">
                                     <fieldset class="baseline-section">
-                                        <legend>Step 1: Identity</legend>
-                                        <div class="form-grid">
-                                            <div class="form-group span-full">
-                                                <label>Full Name</label>
-                                                <input type="text" name="fullName" id="regName" placeholder="Your Name" required>
+                                        <legend>Step 1 of 3 — Identity</legend>
+                                        <div class="form-group">
+                                            <label>Full Name</label>
+                                            <input type="text" name="fullName" id="regName" placeholder="Your Name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Email Address</label>
+                                            <input type="email" name="email" id="regEmail" placeholder="you@domain.com" required>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                            <div class="form-group">
+                                                <label>Date of Birth</label>
+                                                <input type="date" name="regDOB" id="regDOB" required style="font-family: inherit;">
                                             </div>
-                                            <div class="form-group span-full">
-                                                <label>Email Address</label>
-                                                <input type="email" name="email" id="regEmail" placeholder="you@domain.com" required>
-                                            </div>
-                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                                <div class="form-group">
-                                                    <label>Date of Birth</label>
-                                                    <input type="date" name="regDOB" id="regDOB" required style="font-family: inherit;">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Organization / Institution</label>
-                                                    <input type="text" name="organization" placeholder="e.g., CUET">
-                                                </div>
+                                            <div class="form-group">
+                                                <label>Organization</label>
+                                                <input type="text" name="organization" placeholder="e.g., CUET">
                                             </div>
                                         </div>
                                     </fieldset>
-                                    <div class="step-navigation" style="justify-content: flex-end;">
-                                        <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next →</button>
+                                    <div class="step-nav-right">
+                                        <button type="button" class="btn btn-primary" onclick="goToStep(1)">Next &rarr;</button>
                                     </div>
                                 </div>
 
                                 <!-- STEP 2: Physiological -->
                                 <div class="form-step" id="step2">
                                     <fieldset class="baseline-section">
-                                        <legend>Step 2: Physiological Baseline</legend>
-                                        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                        <legend>Step 2 of 3 — Physiological Baseline</legend>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                             <div class="form-group">
                                                 <label>Physical Activity</label>
-                                                <select name="activityLevel" style="padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color, rgba(15,23,42,0.15)); background: var(--surface, #FFFFFF); color: var(--text-primary, #0F172A); font-size: 0.88rem; outline: none; font-family: inherit; width: 100%;">
+                                                <select name="activityLevel">
                                                     <option value="sedentary">Sedentary</option>
                                                     <option value="moderate">Moderate</option>
                                                     <option value="active" selected>Active / Lean Training</option>
@@ -186,7 +212,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Avg. Sleep</label>
-                                                <select name="sleepDuration" style="padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color, rgba(15,23,42,0.15)); background: var(--surface, #FFFFFF); color: var(--text-primary, #0F172A); font-size: 0.88rem; outline: none; font-family: inherit; width: 100%;">
+                                                <select name="sleepDuration">
                                                     <option value="<6">&lt; 6 hours</option>
                                                     <option value="6-8">6-8 hours</option>
                                                     <option value=">8">8+ hours</option>
@@ -194,7 +220,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Caffeine Intake</label>
-                                                <select name="caffeine" style="padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color, rgba(15,23,42,0.15)); background: var(--surface, #FFFFFF); color: var(--text-primary, #0F172A); font-size: 0.88rem; outline: none; font-family: inherit; width: 100%;">
+                                                <select name="caffeine">
                                                     <option value="none">None</option>
                                                     <option value="low">1-2 cups</option>
                                                     <option value="high">3+ cups</option>
@@ -202,28 +228,28 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Wearable Tracker</label>
-                                                <select name="wearable" style="padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color, rgba(15,23,42,0.15)); background: var(--surface, #FFFFFF); color: var(--text-primary, #0F172A); font-size: 0.88rem; outline: none; font-family: inherit; width: 100%;">
+                                                <select name="wearable">
                                                     <option value="none">None</option>
-                                                    <option value="smartwatch">Smartwatch (Apple/Garmin)</option>
+                                                    <option value="smartwatch">Smartwatch</option>
                                                     <option value="ring">Smart Ring (Oura)</option>
                                                 </select>
                                             </div>
                                         </div>
                                     </fieldset>
-                                    <div class="step-navigation">
-                                        <button type="button" class="btn-secondary" onclick="prevStep(0)">← Back</button>
-                                        <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next →</button>
+                                    <div class="step-nav">
+                                        <button type="button" class="btn-secondary" onclick="goToStep(0)">&larr; Back</button>
+                                        <button type="button" class="btn btn-primary" onclick="goToStep(2)">Next &rarr;</button>
                                     </div>
                                 </div>
 
-                                <!-- STEP 3: Cognitive & System -->
+                                <!-- STEP 3: Environment & Security -->
                                 <div class="form-step" id="step3">
                                     <fieldset class="baseline-section">
-                                        <legend>Step 3: Environment & Security</legend>
-                                        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                        <legend>Step 3 of 3 — Environment &amp; Security</legend>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                             <div class="form-group">
                                                 <label>Focus Audio</label>
-                                                <select name="focusAudio" style="padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color, rgba(15,23,42,0.15)); background: var(--surface, #FFFFFF); color: var(--text-primary, #0F172A); font-size: 0.88rem; outline: none; font-family: inherit; width: 100%;">
+                                                <select name="focusAudio">
                                                     <option value="silence">Absolute Silence</option>
                                                     <option value="ambient">Ambient / Lo-Fi</option>
                                                     <option value="complex" selected>Complex / Progressive</option>
@@ -232,44 +258,70 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Timezone</label>
-                                                <select name="timezone" style="padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color, rgba(15,23,42,0.15)); background: var(--surface, #FFFFFF); color: var(--text-primary, #0F172A); font-size: 0.88rem; outline: none; font-family: inherit; width: 100%;">
+                                                <select name="timezone">
                                                     <option value="UTC">UTC / GMT</option>
                                                     <option value="EST">Eastern Time</option>
                                                     <option value="PST">Pacific Time</option>
                                                     <option value="ASIA" selected>Asia / Dhaka (+6)</option>
                                                 </select>
                                             </div>
-                                            <div class="form-group span-full" style="grid-column: 1 / -1;">
+                                            <div class="form-group" style="grid-column: 1 / -1;">
                                                 <label>Create Password</label>
                                                 <input type="password" name="password" id="regPassword" placeholder="••••••••" required>
                                             </div>
                                         </div>
                                     </fieldset>
-                                    <div class="step-navigation">
-                                        <button type="button" class="btn-secondary" onclick="prevStep(1)">← Back</button>
+                                    <div class="step-nav">
+                                        <button type="button" class="btn-secondary" onclick="goToStep(1)">&larr; Back</button>
                                         <button type="submit" class="btn btn-primary">Create Account</button>
                                     </div>
                                 </div>
 
-                            </div>
-                        </div>
+                        </div><!-- /.form-slider-container -->
                     </form>
 
     <script src="js/app.js"></script>
     <script>
-        function nextStep(stepIndex) {
-            const track = document.getElementById('formTrack');
-            if (track) {
-                track.style.transform = `translateX(-${stepIndex * 100}%)`;
-            }
+        /* =============================================
+           Step Slider Logic — Absolute Position
+           ============================================= */
+        let _currentStep = 0;
+        const _steps = () => document.querySelectorAll('#stepContainer .form-step');
+
+        function goToStep(newIndex) {
+            const steps = _steps();
+            const old = steps[_currentStep];
+            const next = steps[newIndex];
+            if (!old || !next || old === next) return;
+
+            const goingForward = newIndex > _currentStep;
+
+            // Position incoming step off-screen on the correct side
+            next.style.transition = 'none';
+            next.style.transform = goingForward ? 'translateX(100%)' : 'translateX(-100%)';
+            next.style.opacity = '0';
+            next.classList.remove('active', 'exit-left', 'offscreen-left');
+
+            // Force reflow so the browser registers the off-screen position
+            void next.offsetWidth;
+
+            // Animate both steps
+            next.style.transition = '';
+            next.style.transform = 'translateX(0)';
+            next.style.opacity = '1';
+            next.classList.add('active');
+
+            old.style.transition = '';
+            old.style.transform = goingForward ? 'translateX(-100%)' : 'translateX(100%)';
+            old.style.opacity = '0';
+            old.classList.remove('active');
+
+            _currentStep = newIndex;
         }
 
-        function prevStep(stepIndex) {
-            const track = document.getElementById('formTrack');
-            if (track) {
-                track.style.transform = `translateX(-${stepIndex * 100}%)`;
-            }
-        }
+        // Keep legacy function names working
+        function nextStep(i) { goToStep(i); }
+        function prevStep(i) { goToStep(i); }
 
         function switchTab(tab) {
             const loginForm = document.getElementById('form-login');
