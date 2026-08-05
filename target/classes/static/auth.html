@@ -4,8 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StressCalculator — Authentication</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=2.0">
     <style>
+        /* Multi-step Slider Architecture (Inlined to bypass browser cache) */
+        .form-slider-container {
+            width: 100% !important;
+            overflow: hidden !important; 
+            position: relative !important;
+        }
+
+        .form-slider-track {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .form-step {
+            flex: 0 0 100% !important;
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 0 2px !important;
+            margin: 0 !important;
+        }
+
+        fieldset.baseline-section,
+        .baseline-section {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
         .auth-visual {
             position: relative;
             height: 100vh;
