@@ -58,11 +58,16 @@ async function loadUserProfile() {
         const palAudio = document.getElementById('palAudio');
         const palTz = document.getElementById('palTz');
 
+        const palCity = document.getElementById('palCity');
+        const palCountry = document.getElementById('palCountry');
+
         if (palFullName) palFullName.textContent = user.fullName || '—';
         if (palUsername) palUsername.textContent = displayUsername;
         if (palEmail) palEmail.textContent = user.email || '—';
         if (palDob) palDob.textContent = formatDateLabel(user.dob);
         if (palSchool) palSchool.textContent = user.occupation || '—';
+        if (palCity) palCity.textContent = user.city || '—';
+        if (palCountry) palCountry.textContent = user.country || '—';
 
         if (palActivity) palActivity.textContent = formatActivityLabel(user.activityLevel);
         if (palSleep) palSleep.textContent = formatSleepLabel(user.sleepDuration);
@@ -77,12 +82,16 @@ async function loadUserProfile() {
         const inputEmail = document.getElementById('profEmail');
         const inputDob = document.getElementById('profDob');
         const inputOrg = document.getElementById('profOrg');
+        const inputCity = document.getElementById('profCity');
+        const inputCountry = document.getElementById('profCountry');
 
         if (inputName) inputName.value = user.fullName || '';
         if (inputUsername) inputUsername.value = displayUsername;
         if (inputEmail) inputEmail.value = user.email || '';
-        const inputDob = document.getElementById('profDob');
-        const inputOrg = document.getElementById('profOrg');
+        if (inputDob) inputDob.value = user.dob || '';
+        if (inputOrg) inputOrg.value = user.occupation || '';
+        if (inputCity) inputCity.value = user.city || '';
+        if (inputCountry) inputCountry.value = user.country || '';
 
         const selActivity = document.getElementById('profActivityLevel');
         const selSleep = document.getElementById('profSleepDuration');
@@ -181,8 +190,13 @@ async function saveUserProfile(event) {
         const selAudio = document.getElementById('profFocusAudio');
         const selTz = document.getElementById('profTimezone');
 
+        const inputCity = document.getElementById('profCity');
+        const inputCountry = document.getElementById('profCountry');
+
         if (inputDob && inputDob.value) formData.append('dob', inputDob.value);
         if (inputOrg) formData.append('occupation', inputOrg.value);
+        if (inputCity) formData.append('city', inputCity.value);
+        if (inputCountry) formData.append('country', inputCountry.value);
 
         if (selActivity) formData.append('activityLevel', selActivity.value);
         if (selSleep) formData.append('sleepDuration', selSleep.value);
