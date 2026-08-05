@@ -4,12 +4,18 @@ import com.stresscalc.model.User;
 import com.stresscalc.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -18,7 +24,7 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
-    // 1. Process Login (POST /login) — now username + password based
+    // 1. Process Login (POST /login) — username + password based
     @PostMapping("/login")
     public String handleLogin(
             @RequestParam(name = "loginUsername", required = false) String loginUsername,
@@ -73,9 +79,10 @@ public class AuthController {
         return "redirect:/dashboard.html";
     }
 
-    // 2. Process Registration (POST /register)
+    // 2. Fortified Registration (POST /register) — Graceful Exception & Duplicate Validation
     @PostMapping("/register")
-    public String handleRegister(
+    @ResponseBody
+    public ResponseEntity<?> handleRegister(
             @RequestParam(name = "firstName", required = false) String firstName,
             @RequestParam(name = "lastName", required = false) String lastName,
             @RequestParam(name = "username", required = false) String username,
@@ -90,40 +97,90 @@ public class AuthController {
             @RequestParam(name = "wearable", required = false, defaultValue = "none") String wearable,
             @RequestParam(name = "focusAudio", required = false, defaultValue = "silence") String focusAudio,
             @RequestParam(name = "password", required = false) String password,
+            @RequestBody(required = false) Map<String, Object> bodyMap,
             HttpSession session) {
 
-        if (email == null || email.isBlank() || password == null || password.isBlank()) {
-            return "redirect:/auth.html?error=missing_fields";
+        String regEmail = email;
+        String regUsername = username;
+        String regPassword = password;
+        String regFirstName = firstName;
+        String regLastName = lastName;
+        String regCity = city;
+        String regCountry = country;
+        String regOrg = organization;
+        LocalDate regBirthDate = regDOB;
+
+        // Extract JSON payload if provided
+        if (bodyMap != null) {
+            if (bodyMap.containsKey("email")) regEmail = (String) bodyMap.get("email");
+            if (bodyMap.containsKey("username")) regUsername = (String) bodyMap.get("username");
+            if (bodyMap.containsKey("password")) regPassword = (String) bodyMap.get("password");
+            if (bodyMap.containsKey("firstName")) regFirstName = (String) bodyMap.get("firstName");
+            if (bodyMap.containsKey("lastName")) regLastName = (String) bodyMap.get("lastName");
+            if (bodyMap.containsKey("city")) regCity = (String) bodyMap.get("city");
+            if (bodyMap.containsKey("country")) regCountry = (String) bodyMap.get("country");
+            if (bodyMap.containsKey("organization")) regOrg = (String) bodyMap.get("organization");
         }
 
-        // Reject duplicate username
-        if (username != null && !username.isBlank() && userRepository.existsByUsername(username.trim())) {
-            return "redirect:/auth.html?error=username_taken";
+        if (regEmail == null || regEmail.isBlank() || regPassword == null || regPassword.isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Email and password are required."));
         }
 
-        String first = (firstName != null && !firstName.isBlank()) ? firstName.trim() : "User";
-        String last = (lastName != null && !lastName.isBlank()) ? lastName.trim() : "";
-        String fullName = (last.isEmpty()) ? first : (first + " " + last);
-        LocalDate birthDate = (regDOB != null) ? regDOB : LocalDate.of(2000, 1, 1);
-        String org = (organization != null && !organization.isBlank()) ? organization.trim() : "";
+        String cleanEmail = regEmail.trim();
 
-        User newUser = new User(fullName, email.trim(), birthDate, org, password,
-                activityLevel, sleepDuration, caffeine, wearable, focusAudio, "ASIA");
-
-        newUser.setFirstName(first);
-        newUser.setLastName(last);
-        if (username != null && !username.isBlank()) {
-            newUser.setUsername(username.trim().toLowerCase());
+        // 1. Proactive Validation: Check Email
+        if (userRepository.existsByEmail(cleanEmail)) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "A user with this email already exists."));
         }
-        if (city != null && !city.isBlank()) newUser.setCity(city.trim());
-        if (country != null && !country.isBlank()) newUser.setCountry(country.trim());
 
-        userRepository.save(newUser);
+        // 2. Proactive Validation: Check Username
+        if (regUsername != null && !regUsername.isBlank() && userRepository.existsByUsername(regUsername.trim().toLowerCase())) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "This username is already taken."));
+        }
 
-        session.setAttribute("user", newUser);
-        session.setAttribute("userId", newUser.getUserId());
-        session.setAttribute("userName", newUser.getFullName());
+        try {
+            String first = (regFirstName != null && !regFirstName.isBlank()) ? regFirstName.trim() : "User";
+            String last = (regLastName != null && !regLastName.isBlank()) ? regLastName.trim() : "";
+            String fullName = last.isEmpty() ? first : (first + " " + last);
+            LocalDate birthDate = (regBirthDate != null) ? regBirthDate : LocalDate.of(2000, 1, 1);
+            String orgStr = (regOrg != null && !regOrg.isBlank()) ? regOrg.trim() : "";
 
-        return "redirect:/dashboard.html";
+            User newUser = new User(fullName, cleanEmail, birthDate, orgStr, regPassword,
+                    activityLevel, sleepDuration, caffeine, wearable, focusAudio, "ASIA");
+
+            newUser.setFirstName(first);
+            newUser.setLastName(last);
+            if (regUsername != null && !regUsername.isBlank()) {
+                newUser.setUsername(regUsername.trim().toLowerCase());
+            }
+            if (regCity != null && !regCity.isBlank()) newUser.setCity(regCity.trim());
+            if (regCountry != null && !regCountry.isBlank()) newUser.setCountry(regCountry.trim());
+
+            userRepository.save(newUser);
+
+            session.setAttribute("user", newUser);
+            session.setAttribute("userId", newUser.getUserId());
+            session.setAttribute("userName", newUser.getFullName());
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(Map.of("message", "Registration successful!", "redirect", "/dashboard.html"));
+
+        } catch (DataIntegrityViolationException e) {
+            // Fallback catch in case of a race condition
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Database conflict occurred. Please try again."));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "An unexpected error occurred during registration."));
+        }
     }
 }

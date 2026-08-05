@@ -150,6 +150,9 @@
                     <h2 id="form-title" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;">Welcome back</h2>
                     <p class="auth-subtext" id="form-subtitle" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Enter your credentials to access your telemetry dashboard.</p>
 
+                    <!-- ERROR ALERT BANNER -->
+                    <div id="authErrorAlert" class="auth-error-alert" style="display: none; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 15px; font-weight: 600;"></div>
+
                     <!-- LOGIN FORM -->
                     <form id="form-login" action="/login" method="POST" style="display: block;">
                         <div class="form-group">
@@ -564,6 +567,68 @@
             }
 
             loadInitialImage(currentIndex);
+        });
+
+        /* Signup Form Submit Interceptor — Catches HTTP 400 JSON Errors */
+        document.addEventListener('DOMContentLoaded', () => {
+            const signupForm = document.getElementById('form-signup');
+            const errAlert = document.getElementById('authErrorAlert');
+
+            // Handle URL query errors on page load
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlErr = urlParams.get('error');
+            if (urlErr && errAlert) {
+                if (urlErr === 'missing_fields') errAlert.textContent = 'Please fill out all required fields.';
+                else if (urlErr === 'username_taken') errAlert.textContent = 'This username is already taken.';
+                else if (urlErr === 'invalid_credentials') errAlert.textContent = 'Invalid username or password.';
+                else errAlert.textContent = urlErr;
+                errAlert.style.display = 'block';
+            }
+
+            if (signupForm) {
+                signupForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (errAlert) errAlert.style.display = 'none';
+
+                    const formData = new FormData(signupForm);
+                    const submitBtn = signupForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Creating Account...';
+                    }
+
+                    try {
+                        const res = await fetch('/register', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await res.json();
+
+                        if (!res.ok) {
+                            if (errAlert) {
+                                errAlert.textContent = data.error || 'Registration failed. Please check your details.';
+                                errAlert.style.display = 'block';
+                            }
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = 'Create Account';
+                            }
+
+                            // Jump to Step 1 if username or email issue
+                            if (data.error && (data.error.toLowerCase().includes('email') || data.error.toLowerCase().includes('username'))) {
+                                if (typeof goToStep === 'function') goToStep(0);
+                            }
+                            return;
+                        }
+
+                        // Success redirect
+                        window.location.href = data.redirect || '/dashboard.html';
+                    } catch (err) {
+                        signupForm.submit();
+                    }
+                });
+            }
         });
     </script>
 </body>
