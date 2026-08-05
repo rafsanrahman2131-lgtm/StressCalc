@@ -9,15 +9,15 @@
 class TelemetryEngine {
     constructor() {
         this.state = {
-            cognitiveBandwidth: 62,
+            cognitiveBandwidth: 100,
             contextSwitches: 0,
             recentSwitches: 0,
             uninterruptedSeconds: 0,
-            focusIndex: 3.8,
+            focusIndex: 10.0,
             isFocused: true,
-            ambientNoiseDb: 42,
-            // Tab density: starts at 1, increments when user switches away and back (real browser context switch tracking)
+            ambientNoiseDb: 38,
             tabDensity: 1,
+            facialTension: 0,
             mouseSpeedPxSec: 0,
             mouseDistancePx: 0,
             mouseJitterCount: 0,
@@ -29,21 +29,15 @@ class TelemetryEngine {
         this.audioContext = null;
         this.analyser = null;
         this.micStream = null;
+        this.audioClassificationBuffer = [];
 
-        // Rolling audio classification buffer (last 60 samples → ~1 min of mic readings)
-        this.audioClassificationBuffer = []; // each entry: 'silence' | 'speech' | 'noise' | 'spike'
-
-        // --- Cross-Tab Live Density Tracking ---
         this.tabId = Math.random().toString(36).substring(2, 9);
         this.activeTabsMap = new Map();
         this.activeTabsMap.set(this.tabId, Date.now());
 
-        // --- Recovery Decay System ---
-        // _smoothedFocus tracks the displayed value; it decays exponentially toward
-        // the instantaneous target rather than snapping to it. This simulates
-        // the 30–60 seconds it takes for human cortisol/adrenaline to subside.
-        this._smoothedFocus = 3.8;
-        this._decayAlpha = 0.08; // blend 8% of target per tick → ~30–60s recovery decay
+        this._smoothedFocus = 10.0;
+        this._smoothedBandwidth = 100;
+        this._decayAlpha = 0.08;
 
         this.init();
     }
@@ -309,32 +303,44 @@ class TelemetryEngine {
      */
     updateDerivedMetrics() {
         const switchPenalty = Math.min(40, (this.state.recentSwitches * 8) + (this.state.contextSwitches * 3));
-        const tensionPenalty = (this.state.facialTension / 100) * 45;
-        const noisePenalty = Math.max(0, (this.state.ambientNoiseDb - 45) * 0.8);
-        const tabPenalty = Math.max(0, (this.state.tabDensity - 1) * 4);
-        const jitterPenalty = this.state.mouseJitterCount * 5;
+        const tensionPenalty = ((this.state.facialTension || 0) / 100) * 45;
+        const noisePenalty = Math.max(0, ((this.state.ambientNoiseDb || 38) - 45) * 0.8);
+        const tabPenalty = Math.max(0, ((this.state.tabDensity || 1) - 1) * 4);
+        const jitterPenalty = (this.state.mouseJitterCount || 0) * 5;
 
         let totalLoad = switchPenalty + tensionPenalty + noisePenalty + tabPenalty + jitterPenalty;
 
         // Flow State Recovery (Uninterrupted focus reduces load)
-        const flowRecovery = Math.min(20, (this.state.uninterruptedSeconds / 10) * 2);
+        const flowRecovery = Math.min(20, ((this.state.uninterruptedSeconds || 0) / 10) * 2);
         totalLoad = Math.max(0, Math.min(95, totalLoad - flowRecovery));
 
         // Target Bandwidth & Focus Index
         let targetBandwidth = Math.round(100 - totalLoad);
 
         // Smooth Exponential Moving Average (30s physiological decay)
-        if (this._smoothedBandwidth === undefined) {
+        if (this._smoothedBandwidth === undefined || isNaN(this._smoothedBandwidth)) {
             this._smoothedBandwidth = targetBandwidth;
         }
 
         const delta = targetBandwidth - this._smoothedBandwidth;
         const alpha = delta < 0 ? 0.30 : 0.08;
         this._smoothedBandwidth += alpha * delta;
+
+        if (isNaN(this._smoothedBandwidth)) {
+            this._smoothedBandwidth = 100;
+        }
+
         this._smoothedBandwidth = Math.max(0, Math.min(100, this._smoothedBandwidth));
 
         this.state.cognitiveBandwidth = Math.round(this._smoothedBandwidth);
+        if (isNaN(this.state.cognitiveBandwidth)) {
+            this.state.cognitiveBandwidth = 100;
+        }
+
         this.state.focusIndex = Math.round((this.state.cognitiveBandwidth / 10) * 10) / 10;
+        if (isNaN(this.state.focusIndex)) {
+            this.state.focusIndex = 10.0;
+        }
     }
 
     /**
@@ -351,22 +357,25 @@ class TelemetryEngine {
         const elNoise = document.getElementById('ui-noise');
         const elTabs = document.getElementById('ui-tabs');
 
-        if (elBandwidth) elBandwidth.innerText = `${this.state.cognitiveBandwidth}%`;
-        if (elSwitches) elSwitches.innerText = this.state.contextSwitches;
+        let bw = (isNaN(this.state.cognitiveBandwidth) || this.state.cognitiveBandwidth === undefined) ? 100 : this.state.cognitiveBandwidth;
+        let fi = (isNaN(this.state.focusIndex) || this.state.focusIndex === undefined) ? 10.0 : this.state.focusIndex;
+
+        if (elBandwidth) elBandwidth.innerText = `${bw}%`;
+        if (elSwitches) elSwitches.innerText = this.state.contextSwitches || 0;
 
         if (elFocus) {
             let color = "#22c55e";
             let statusText = "Sustained Flow State";
 
-            if (this.state.focusIndex <= 3.0) {
+            if (fi <= 3.0) {
                 color = "#ef4444";
                 statusText = "High Cognitive Strain";
-            } else if (this.state.focusIndex <= 7.0) {
+            } else if (fi <= 7.0) {
                 color = "#f59e0b";
                 statusText = "Moderate Cognitive Load";
             }
 
-            elFocus.innerHTML = `<span style="color: ${color}; transition: color 0.4s ease;">${this.state.focusIndex.toFixed(1)}</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
+            elFocus.innerHTML = `<span style="color: ${color}; transition: color 0.4s ease;">${fi.toFixed(1)}</span><span style="font-size: 1.2rem; opacity: 0.5;">/10</span>`;
 
             if (elFocusSub) {
                 elFocusSub.innerText = statusText;

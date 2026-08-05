@@ -106,7 +106,10 @@ function render7DayTrendChart(data) {
                 backgroundColor: barColors,
                 borderRadius: 8,
                 borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.1)'
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                maxBarThickness: 45,
+                barPercentage: 0.4,
+                categoryPercentage: 0.5
             }]
         },
         options: {
