@@ -93,11 +93,23 @@ async function handleNotificationAction(notifId, action, event) {
         if (action === 'accept') {
             if (friendshipId) {
                 await fetch(`/api/friends/accept/${friendshipId}`, { method: 'POST' });
+            } else if (targetUsername) {
+                await fetch('/api/friends/accept', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ friendUsername: targetUsername })
+                });
             }
             showToast('Request accepted', 'success');
         } else if (action === 'decline') {
             if (friendshipId) {
                 await fetch(`/api/friends/decline/${friendshipId}`, { method: 'POST' });
+            } else if (targetUsername) {
+                await fetch('/api/friends/decline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ friendUsername: targetUsername })
+                });
             }
             showToast('Request declined', 'decline');
         }
@@ -111,6 +123,57 @@ async function handleNotificationAction(notifId, action, event) {
         showToast(action === 'accept' ? 'Request accepted' : 'Request declined', action === 'accept' ? 'success' : 'decline');
     }
 }
+
+async function handleFriendRequest(action, friendUsername, element) {
+    try {
+        const response = await fetch(`/api/friends/${action}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ friendUsername: friendUsername })
+        });
+
+        if (response.ok) {
+            const card = element ? element.closest('.friend-card, .notif-item, .request-card') : null;
+            if (card) {
+                card.remove();
+            }
+
+            if (action === 'accept') {
+                const friendsGrid = document.getElementById('friendsGrid');
+                if (friendsGrid) {
+                    const initials = (friendUsername || '?').charAt(0).toUpperCase();
+                    const newFriendHTML = `
+                        <div class="friend-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); border-radius: 14px; padding: 1.25rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; text-align: center;" onclick="openFriendModal({username: '${friendUsername}', fullName: '${friendUsername}'})">
+                            <div class="friend-card-avatar" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.1)); border: 1px solid rgba(34, 197, 94, 0.25); color: #22c55e; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800;">
+                                ${initials}
+                            </div>
+                            <div class="friend-card-username" style="font-size: 0.82rem; font-weight: 700; color: rgba(255, 255, 255, 0.9);">@${friendUsername}</div>
+                        </div>
+                    `;
+                    const emptyMsg = friendsGrid.querySelector('.no-friends-msg, div[style*="text-align: center"]');
+                    if (emptyMsg) emptyMsg.remove();
+                    
+                    friendsGrid.insertAdjacentHTML('beforeend', newFriendHTML);
+                }
+
+                showToast('Request accepted', 'success');
+            } else if (action === 'decline') {
+                showToast('Request declined', 'decline');
+            }
+
+            if (typeof loadFriends === 'function') loadFriends();
+            if (typeof loadNotifications === 'function') loadNotifications();
+        } else {
+            console.error('Failed to process friend request.');
+        }
+    } catch (error) {
+        console.error('Error handling friend request:', error);
+    }
+}
+
+window.handleFriendRequest = handleFriendRequest;
 
 function showToast(message, type = 'success') {
     let container = document.getElementById('toastContainer');

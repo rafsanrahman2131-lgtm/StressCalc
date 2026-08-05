@@ -8,11 +8,11 @@ import com.stresscalc.repository.NotificationRepository;
 import com.stresscalc.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/friends")
@@ -27,12 +27,12 @@ public class FriendController {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    // GET /api/friends — returns accepted friends for session user
+    // GET /api/friends — returns accepted friends & pending requests for session user
     @GetMapping
     public ResponseEntity<?> getFriends(HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
         // Accepted friends where I am the requester
@@ -82,17 +82,27 @@ public class FriendController {
     // POST /api/friends/request — send friend request by username
     @PostMapping("/request")
     public ResponseEntity<?> sendRequest(
-            @RequestParam("targetUsername") String targetUsername,
+            @RequestParam(name = "targetUsername", required = false) String targetUsernameParam,
+            @RequestBody(required = false) Map<String, String> body,
             HttpSession session) {
 
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
+        }
+
+        String targetUsername = targetUsernameParam;
+        if (targetUsername == null && body != null && body.containsKey("targetUsername")) {
+            targetUsername = body.get("targetUsername");
+        }
+
+        if (targetUsername == null || targetUsername.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Target username required"));
         }
 
         Optional<User> targetOpt = userRepository.findByUsername(targetUsername.trim().toLowerCase());
         if (targetOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
         }
 
         User target = targetOpt.get();
@@ -121,65 +131,92 @@ public class FriendController {
         return ResponseEntity.ok(Map.of("status", "ok", "message", "Friend request sent to @" + targetUsername));
     }
 
-    // POST /api/friends/accept/{id} — accept a pending request
-    @PostMapping("/accept/{id}")
-    public ResponseEntity<?> acceptRequest(@PathVariable Long id, HttpSession session) {
+    // POST /api/friends/accept — accept friend request via JSON body
+    @PostMapping("/accept")
+    public ResponseEntity<?> acceptFriendRequestJson(
+            @RequestBody(required = false) Map<String, String> payload,
+            HttpSession session) {
+
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        String friendUsername = (payload != null) ? payload.get("friendUsername") : null;
+
+        if (friendUsername != null && !friendUsername.isBlank()) {
+            Optional<User> friendUser = userRepository.findByUsername(friendUsername.trim().toLowerCase());
+            if (friendUser.isPresent()) {
+                Long fId = friendUser.get().getUserId();
+                if (userId != null) {
+                    Optional<Friend> friendshipOpt = friendRepository.findByUserIdAndFriendId(fId, userId);
+                    if (friendshipOpt.isPresent()) {
+                        Friend f = friendshipOpt.get();
+                        f.setStatus("accepted");
+                        friendRepository.save(f);
+                        return ResponseEntity.ok(Map.of("message", "Friend request accepted"));
+                    }
+                }
+            }
         }
-
-        Optional<Friend> friendOpt = friendRepository.findById(id);
-        if (friendOpt.isEmpty() || !friendOpt.get().getFriendId().equals(userId)) {
-            return ResponseEntity.status(403).body(Map.of("error", "Cannot accept this request"));
-        }
-
-        Friend friendship = friendOpt.get();
-        friendship.setStatus("accepted");
-        friendRepository.save(friendship);
-
-        // Notify the requester
-        User accepter = userRepository.findById(userId).orElse(null);
-        if (accepter != null) {
-            String name = accepter.getUsername() != null ? accepter.getUsername() : accepter.getFullName();
-            Notification notif = new Notification(friendship.getUserId(), "friend_accepted",
-                    name + " accepted your friend request!");
-            notificationRepository.save(notif);
-        }
-
-        return ResponseEntity.ok(Map.of("status", "accepted"));
+        return ResponseEntity.ok(Map.of("message", "Friend request accepted"));
     }
 
-    // POST /api/friends/decline/{id} — decline a pending request
-    @PostMapping("/decline/{id}")
-    public ResponseEntity<?> declineRequest(@PathVariable Long id, HttpSession session) {
+    // POST /api/friends/accept/{id} — accept a pending request by ID
+    @PostMapping("/accept/{id}")
+    public ResponseEntity<?> acceptRequestById(@PathVariable Long id, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
         Optional<Friend> friendOpt = friendRepository.findById(id);
         if (friendOpt.isPresent()) {
             Friend f = friendOpt.get();
-            if (f.getFriendId().equals(userId) || f.getUserId().equals(userId)) {
-                friendRepository.delete(f);
-            }
+            f.setStatus("accepted");
+            friendRepository.save(f);
         }
 
-        return ResponseEntity.ok(Map.of("status", "declined"));
+        return ResponseEntity.ok(Map.of("status", "accepted", "message", "Friend request accepted"));
     }
 
-    // GET /api/friends/search?username=xxx — find user by username (for Add Friend)
+    // POST /api/friends/decline — decline friend request via JSON body
+    @PostMapping("/decline")
+    public ResponseEntity<?> declineFriendRequestJson(
+            @RequestBody(required = false) Map<String, String> payload,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        String friendUsername = (payload != null) ? payload.get("friendUsername") : null;
+
+        if (friendUsername != null && !friendUsername.isBlank() && userId != null) {
+            Optional<User> friendUser = userRepository.findByUsername(friendUsername.trim().toLowerCase());
+            if (friendUser.isPresent()) {
+                Long fId = friendUser.get().getUserId();
+                friendRepository.findByUserIdAndFriendId(fId, userId).ifPresent(friendRepository::delete);
+                friendRepository.findByUserIdAndFriendId(userId, fId).ifPresent(friendRepository::delete);
+            }
+        }
+        return ResponseEntity.ok(Map.of("message", "Friend request declined"));
+    }
+
+    // POST /api/friends/decline/{id} — decline a pending request by ID
+    @PostMapping("/decline/{id}")
+    public ResponseEntity<?> declineRequestById(@PathVariable Long id, HttpSession session) {
+        Optional<Friend> friendOpt = friendRepository.findById(id);
+        if (friendOpt.isPresent()) {
+            friendRepository.delete(friendOpt.get());
+        }
+        return ResponseEntity.ok(Map.of("status", "declined", "message", "Friend request declined"));
+    }
+
+    // GET /api/friends/search?username=xxx — find user by username
     @GetMapping("/search")
     public ResponseEntity<?> searchUser(@RequestParam("username") String username, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
         Optional<User> userOpt = userRepository.findByUsername(username.trim().toLowerCase());
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
         }
 
         User found = userOpt.get();
@@ -200,7 +237,7 @@ public class FriendController {
 
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
 
         String clean = username.trim().toLowerCase().replaceAll("[^a-z0-9_.]", "");
