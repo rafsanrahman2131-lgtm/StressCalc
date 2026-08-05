@@ -188,7 +188,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>School</label>
-                                                <input type="text" name="organization" placeholder="e.g., CUET">
+                                                <input type="text" name="organization" id="regOrg" placeholder="e.g., CUET" required>
                                             </div>
                                         </div>
                                     </fieldset>
@@ -204,7 +204,7 @@
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                             <div class="form-group">
                                                 <label>Physical Activity</label>
-                                                <select name="activityLevel">
+                                                <select name="activityLevel" required>
                                                     <option value="sedentary">Low (Mostly sitting)</option>
                                                     <option value="moderate">Medium (Light walking)</option>
                                                     <option value="active" selected>High (Daily workout)</option>
@@ -212,7 +212,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Average Sleep</label>
-                                                <select name="sleepDuration">
+                                                <select name="sleepDuration" required>
                                                     <option value="<6">Less than 6 hours</option>
                                                     <option value="6-8" selected>6 to 8 hours</option>
                                                     <option value=">8">More than 8 hours</option>
@@ -220,7 +220,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Caffeine (Coffee/Tea)</label>
-                                                <select name="caffeine">
+                                                <select name="caffeine" required>
                                                     <option value="none">None</option>
                                                     <option value="low">1 - 2 cups daily</option>
                                                     <option value="high">3+ cups daily</option>
@@ -228,7 +228,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Fitness Tracker</label>
-                                                <select name="wearable">
+                                                <select name="wearable" required>
                                                     <option value="none">None</option>
                                                     <option value="smartwatch">Smartwatch (Apple Watch, etc.)</option>
                                                     <option value="ring">Smart Ring (Oura, etc.)</option>
@@ -249,7 +249,7 @@
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                             <div class="form-group">
                                                 <label>Work Background Music</label>
-                                                <select name="focusAudio">
+                                                <select name="focusAudio" required>
                                                     <option value="silence">Silence (No music)</option>
                                                     <option value="ambient">Soft Music / Lo-Fi</option>
                                                     <option value="complex" selected>Instrumental Music</option>
@@ -258,7 +258,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Timezone</label>
-                                                <select name="timezone">
+                                                <select name="timezone" required>
                                                     <option value="UTC">UTC / GMT</option>
                                                     <option value="EST">Eastern Time (US)</option>
                                                     <option value="PST">Pacific Time (US)</option>
@@ -295,6 +295,17 @@
             if (!old || !next || old === next) return;
 
             const goingForward = newIndex > _currentStep;
+
+            // Strict Validation Check on Current Step Fields before advancing
+            if (goingForward) {
+                const requiredInputs = old.querySelectorAll('input[required], select[required]');
+                for (const input of requiredInputs) {
+                    if (!input.checkValidity()) {
+                        input.reportValidity();
+                        return;
+                    }
+                }
+            }
 
             // Position incoming step off-screen on the correct side
             next.style.transition = 'none';
