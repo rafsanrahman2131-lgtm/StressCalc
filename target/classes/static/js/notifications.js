@@ -139,8 +139,14 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
+let _lastToggleTime = 0;
+
 function toggleNotifications(e) {
     if (e && e.stopPropagation) e.stopPropagation();
+    const now = Date.now();
+    if (now - _lastToggleTime < 200) return;
+    _lastToggleTime = now;
+
     const dropdown = document.getElementById('notifDropdown');
     if (!dropdown) return;
     _notifOpen = !_notifOpen;
@@ -223,14 +229,6 @@ async function submitForceUsername() {
 
 // Init event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    const bellBtn = document.getElementById('notifBtn') || document.getElementById('notifBellBtn');
-    if (bellBtn) {
-        bellBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleNotifications(e);
-        });
-    }
-
     const markAllBtn = document.getElementById('markAllReadBtn');
     if (markAllBtn) markAllBtn.addEventListener('click', markAllNotifRead);
 
