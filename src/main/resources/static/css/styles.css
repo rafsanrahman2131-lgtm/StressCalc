@@ -1112,26 +1112,31 @@ html[data-theme="contrast"] .badge-featured {
     color: var(--accent, #22c55e);
 }
 
-/* Multi-step Slider Architecture */
+/* CRITICAL FIX: Multi-step Slider Architecture */
 .form-slider-container {
     width: 100%;
-    overflow: hidden; /* Hides the inactive steps */
+    overflow: hidden; 
     position: relative;
-    padding-bottom: 10px;
 }
 
 .form-slider-track {
     display: flex;
+    flex-wrap: nowrap; /* Forces steps into a strict single line */
     width: 100%;
+    margin: 0;
+    padding: 0;
+    gap: 0; /* Prevents flexbox from injecting default spacing */
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .form-step {
-    flex: 0 0 100%; /* Prevents shrinking and forces exact 100% width */
-    min-width: 100%;
+    /* Force absolute 100% width, no shrinking, no growing */
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
-    padding: 0 4px;
-    transition: opacity 0.3s ease;
+    padding: 0; /* Removed horizontal padding to lock in math */
+    margin: 0;
 }
 
 .step-navigation {
@@ -1160,7 +1165,13 @@ html[data-theme="contrast"] .badge-featured {
     flex: 2; /* Make the primary action slightly wider */
 }
 
-fieldset.baseline-section {
+/* Neutralize native browser margins on the fieldset */
+fieldset.baseline-section,
+.baseline-section {
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
     border: 1px solid var(--border-color, rgba(255,255,255,0.1));
     border-radius: 12px;
     padding: 1rem 1.25rem;
