@@ -657,35 +657,6 @@
     </style>
 <body>
 
-    <!-- Top Navigation Cluster -->
-    <div class="top-nav-cluster">
-        <!-- Notification Wrapper -->
-        <div class="notification-wrapper" style="position: relative;">
-            <button class="nav-icon-btn" id="notifBtn" onclick="toggleNotifications()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                <span class="notif-badge hidden" id="notifBadge">0</span>
-            </button>
-            
-            <!-- Glass Dropdown (Hidden by default) -->
-            <div class="notif-dropdown card-glass" id="notifDropdown">
-                <div class="notif-header">
-                    <h4>Notifications</h4>
-                    <button class="text-btn" id="markAllReadBtn" onclick="markAllNotifRead()">Mark all read</button>
-                </div>
-                <div class="notif-body" id="notifList">
-                    <p class="empty-state" id="notifEmpty">No notifications yet</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Profile Avatar -->
-        <a href="#profile" class="nav-icon-btn profile-avatar" id="navPfpBtn" onclick="if(typeof switchSpaView==='function'){switchSpaView('profile');return false;}">
-            <div id="navPfpInner" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            </div>
-        </a>
-    </div>
-
     <!-- Invisible Webcam Video Element for MediaPipe Background Processing -->
     <video id="webcamFeed" autoplay muted playsinline style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; visibility: hidden;"></video>
 
@@ -1741,5 +1712,32 @@
         });
     </script>
     <script src="js/notifications.js"></script>
+
+    <!-- FIXED TOP RIGHT NAVBAR -->
+    <div class="top-nav-cluster">
+        <div class="notification-wrapper" style="position: relative;">
+            <button class="nav-icon-btn" id="notifBtn" onclick="toggleNotifications()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                <span class="notif-badge hidden" id="notifBadge">0</span>
+            </button>
+            
+            <!-- Dropdown List -->
+            <div class="notif-dropdown card-glass" id="notifDropdown">
+                <div class="notif-header">
+                    <h4>Notifications</h4>
+                    <button class="text-btn" id="markAllReadBtn" onclick="markAllNotifRead()" style="background:none; border:none; color:#22c55e; cursor:pointer;">Mark all read</button>
+                </div>
+                <div class="notif-body" id="notifList">
+                    <p class="empty-state" id="notifEmpty" style="color: rgba(255,255,255,0.5); text-align: center; font-size: 0.85rem; margin-top: 10px;">No notifications yet</p>
+                </div>
+            </div>
+        </div>
+
+        <a href="#profile" class="nav-icon-btn profile-avatar" id="navPfpBtn" onclick="if(typeof switchSpaView==='function'){switchSpaView('profile');return false;}">
+            <div id="navPfpInner" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+        </a>
+    </div>
 </body>
 </html>

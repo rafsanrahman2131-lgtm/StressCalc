@@ -1475,3 +1475,78 @@ legend {
 .text-btn { background: none; border: none; color: #22c55e; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
 .text-btn:hover { text-decoration: underline; }
 .empty-state { font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); text-align: center; margin: 24px 0; }
+
+/* HARD-CODED TOP RIGHT CLUSTER */
+.top-nav-cluster {
+    position: fixed !important;
+    top: 24px !important;
+    right: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    z-index: 9999 !important; /* Ensure it floats above everything */
+}
+
+.nav-icon-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.nav-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.notif-badge {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    background: #22c55e !important;
+    color: #000 !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px solid #121212 !important;
+}
+
+/* Dropdown Styling */
+.notif-dropdown {
+    position: absolute !important;
+    top: 56px !important;
+    right: 0 !important;
+    width: 300px !important;
+    display: none; /* Toggled via JS */
+    flex-direction: column !important;
+    z-index: 10000 !important;
+    padding: 16px !important;
+    
+    background: rgba(20, 20, 20, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+.notif-dropdown.active, .notif-dropdown.open {
+    display: flex !important;
+}
