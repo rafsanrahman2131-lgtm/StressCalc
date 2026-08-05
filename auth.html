@@ -369,6 +369,29 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            const signupForm = document.getElementById('form-signup');
+            if (signupForm) {
+                // Prevent Enter key from triggering premature full form submission on steps 1 and 2
+                signupForm.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (_currentStep < 2) {
+                            goToStep(_currentStep + 1);
+                        } else if (_currentStep === 2) {
+                            signupForm.requestSubmit();
+                        }
+                    }
+                });
+
+                // Intercept form submission so steps 1 & 2 move to next step instead of submitting
+                signupForm.addEventListener('submit', (e) => {
+                    if (_currentStep < 2) {
+                        e.preventDefault();
+                        goToStep(_currentStep + 1);
+                    }
+                });
+            }
+
             const carouselContainer = document.getElementById('dynamic-carousel');
             const overlay = document.querySelector('.auth-quote-overlay');
             const quoteEl = document.getElementById('dynamic-quote');
