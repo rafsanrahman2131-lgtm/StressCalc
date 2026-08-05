@@ -434,12 +434,16 @@ function openFriendModal(friend) {
     if (usernameEl) usernameEl.textContent = username;
     if (roleEl) roleEl.textContent = role;
 
+    modal.classList.add('active', 'open');
     modal.style.display = 'flex';
 }
 
 function closeFriendProfile() {
     const modal = document.getElementById('friendProfileModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.classList.remove('active', 'open');
+        modal.style.display = 'none';
+    }
 }
 
 function closeFriendModal() {

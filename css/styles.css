@@ -1655,9 +1655,13 @@ legend {
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     z-index: 100000 !important;
-    display: flex !important;
+    display: none;
     align-items: center !important;
     justify-content: center !important;
+}
+
+.modal-backdrop.active, .modal-backdrop.open {
+    display: flex !important;
 }
 
 .modal-glass-card {
