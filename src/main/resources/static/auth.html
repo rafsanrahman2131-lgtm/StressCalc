@@ -169,10 +169,10 @@
                     <!-- SIGNUP MULTI-STEP SLIDER FORM -->
                     <form id="form-signup" action="/register" method="POST" style="display: none;">
                         <div class="form-slider-container" id="stepContainer">
-                                <!-- STEP 1: Identity -->
+                                <!-- STEP 1: Personal Details -->
                                 <div class="form-step active" id="step1">
                                     <fieldset class="baseline-section">
-                                        <legend>Step 1 of 3 — Identity</legend>
+                                        <legend>Step 1 of 3 — Personal Details</legend>
                                         <div class="form-group">
                                             <label>Full Name</label>
                                             <input type="text" name="fullName" id="regName" placeholder="Your Name" required>
@@ -187,8 +187,8 @@
                                                 <input type="date" name="regDOB" id="regDOB" required style="font-family: inherit;">
                                             </div>
                                             <div class="form-group">
-                                                <label>Organization</label>
-                                                <input type="text" name="organization" placeholder="e.g., CUET">
+                                                <label>Organization / Workplace</label>
+                                                <input type="text" name="organization" placeholder="e.g., Company or School">
                                             </div>
                                         </div>
                                     </fieldset>
@@ -197,41 +197,41 @@
                                     </div>
                                 </div>
 
-                                <!-- STEP 2: Physiological -->
+                                <!-- STEP 2: Daily Habits -->
                                 <div class="form-step" id="step2">
                                     <fieldset class="baseline-section">
-                                        <legend>Step 2 of 3 — Physiological Baseline</legend>
+                                        <legend>Step 2 of 3 — Daily Habits</legend>
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                             <div class="form-group">
                                                 <label>Physical Activity</label>
                                                 <select name="activityLevel">
-                                                    <option value="sedentary">Sedentary</option>
-                                                    <option value="moderate">Moderate</option>
-                                                    <option value="active" selected>Active / Lean Training</option>
+                                                    <option value="sedentary">Low (Mostly sitting)</option>
+                                                    <option value="moderate">Medium (Light walking)</option>
+                                                    <option value="active" selected>High (Daily workout)</option>
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label>Avg. Sleep</label>
+                                                <label>Average Sleep</label>
                                                 <select name="sleepDuration">
-                                                    <option value="<6">&lt; 6 hours</option>
-                                                    <option value="6-8">6-8 hours</option>
-                                                    <option value=">8">8+ hours</option>
+                                                    <option value="<6">Less than 6 hours</option>
+                                                    <option value="6-8" selected>6 to 8 hours</option>
+                                                    <option value=">8">More than 8 hours</option>
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label>Caffeine Intake</label>
+                                                <label>Caffeine (Coffee/Tea)</label>
                                                 <select name="caffeine">
                                                     <option value="none">None</option>
-                                                    <option value="low">1-2 cups</option>
-                                                    <option value="high">3+ cups</option>
+                                                    <option value="low">1 - 2 cups daily</option>
+                                                    <option value="high">3+ cups daily</option>
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label>Wearable Tracker</label>
+                                                <label>Fitness Tracker</label>
                                                 <select name="wearable">
                                                     <option value="none">None</option>
-                                                    <option value="smartwatch">Smartwatch</option>
-                                                    <option value="ring">Smart Ring (Oura)</option>
+                                                    <option value="smartwatch">Smartwatch (Apple Watch, etc.)</option>
+                                                    <option value="ring">Smart Ring (Oura, etc.)</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -242,17 +242,17 @@
                                     </div>
                                 </div>
 
-                                <!-- STEP 3: Environment & Security -->
+                                <!-- STEP 3: Work Environment & Security -->
                                 <div class="form-step" id="step3">
                                     <fieldset class="baseline-section">
                                         <legend>Step 3 of 3 — Environment &amp; Security</legend>
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                             <div class="form-group">
-                                                <label>Focus Audio</label>
+                                                <label>Work Background Music</label>
                                                 <select name="focusAudio">
-                                                    <option value="silence">Absolute Silence</option>
-                                                    <option value="ambient">Ambient / Lo-Fi</option>
-                                                    <option value="complex" selected>Complex / Progressive</option>
+                                                    <option value="silence">Silence (No music)</option>
+                                                    <option value="ambient">Soft Music / Lo-Fi</option>
+                                                    <option value="complex" selected>Instrumental Music</option>
                                                     <option value="noise">White / Brown Noise</option>
                                                 </select>
                                             </div>
@@ -260,9 +260,9 @@
                                                 <label>Timezone</label>
                                                 <select name="timezone">
                                                     <option value="UTC">UTC / GMT</option>
-                                                    <option value="EST">Eastern Time</option>
-                                                    <option value="PST">Pacific Time</option>
-                                                    <option value="ASIA" selected>Asia / Dhaka (+6)</option>
+                                                    <option value="EST">Eastern Time (US)</option>
+                                                    <option value="PST">Pacific Time (US)</option>
+                                                    <option value="ASIA" selected>Asia / Dhaka (GMT+6)</option>
                                                 </select>
                                             </div>
                                             <div class="form-group" style="grid-column: 1 / -1;">
