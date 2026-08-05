@@ -1127,9 +1127,10 @@ html[data-theme="contrast"] .badge-featured {
 }
 
 .form-step {
+    flex: 0 0 100%; /* Prevents shrinking and forces exact 100% width */
     min-width: 100%;
     box-sizing: border-box;
-    padding: 0 4px; /* Prevents input focus shadows from clipping */
+    padding: 0 4px;
     transition: opacity 0.3s ease;
 }
 
