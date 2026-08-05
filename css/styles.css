@@ -1112,4 +1112,66 @@ html[data-theme="contrast"] .badge-featured {
     color: var(--accent, #22c55e);
 }
 
+/* Multi-step Slider Architecture */
+.form-slider-container {
+    width: 100%;
+    overflow: hidden; /* Hides the inactive steps */
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.form-slider-track {
+    display: flex;
+    width: 100%;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-step {
+    min-width: 100%;
+    box-sizing: border-box;
+    padding: 0 4px; /* Prevents input focus shadows from clipping */
+    transition: opacity 0.3s ease;
+}
+
+.step-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+    flex: 2; /* Make the primary action slightly wider */
+}
+
+fieldset.baseline-section {
+    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+legend {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent, #10b981);
+    padding: 0 8px;
+}
+
+
 
