@@ -62,17 +62,26 @@ async function markAllNotifRead() {
     } catch (e) {}
 }
 
-function toggleNotifDropdown() {
+function toggleNotifications(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
     const dropdown = document.getElementById('notifDropdown');
     if (!dropdown) return;
     _notifOpen = !_notifOpen;
+    dropdown.classList.toggle('active', _notifOpen);
     dropdown.classList.toggle('open', _notifOpen);
     if (_notifOpen) loadNotifications();
 }
 
+function toggleNotifDropdown(e) {
+    toggleNotifications(e);
+}
+
 function closeNotifDropdown() {
     const dropdown = document.getElementById('notifDropdown');
-    if (dropdown) dropdown.classList.remove('open');
+    if (dropdown) {
+        dropdown.classList.remove('active');
+        dropdown.classList.remove('open');
+    }
     _notifOpen = false;
 }
 
@@ -176,10 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(loadNotifications, 60000);
 });
 
-/**
- * Called by profile.js to update top-right avatar PFP image.
- * @param {string} base64Src - data URL for the profile picture
- */
 function updateTopNavPfp(base64Src) {
     const inner = document.getElementById('navPfpInner');
     if (!inner) return;
@@ -187,3 +192,9 @@ function updateTopNavPfp(base64Src) {
         inner.innerHTML = `<img src="${base64Src}" alt="Profile picture" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
     }
 }
+
+// Global exports
+window.toggleNotifications = toggleNotifications;
+window.toggleNotifDropdown = toggleNotifDropdown;
+window.markAllNotifRead = markAllNotifRead;
+window.updateTopNavPfp = updateTopNavPfp;
