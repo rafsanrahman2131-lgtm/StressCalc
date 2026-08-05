@@ -19,12 +19,16 @@ async function loadUserProfile() {
         
         // 1. Update Profile Header & Avatar
         const headerName = document.getElementById('profHeaderName');
+        const headerUsername = document.getElementById('profHeaderUsername');
         const headerEmail = document.getElementById('profHeaderEmail');
         const headerOrg = document.getElementById('profHeaderOrg');
         const headerTz = document.getElementById('profHeaderTz');
         const avatarContainer = document.getElementById('profHeaderAvatarContainer');
 
+        const displayUsername = user.username ? `@${user.username}` : '—';
+
         if (headerName) headerName.textContent = user.fullName || 'User Profile';
+        if (headerUsername) headerUsername.textContent = displayUsername;
         if (headerEmail) headerEmail.textContent = user.email || 'user@gmail.com';
         if (headerOrg) headerOrg.textContent = user.occupation || 'School';
         if (headerTz) headerTz.textContent = formatTimezoneLabel(user.timezone);
@@ -42,6 +46,7 @@ async function loadUserProfile() {
 
         // 2. Populate Fixed Palette View
         const palFullName = document.getElementById('palFullName');
+        const palUsername = document.getElementById('palUsername');
         const palEmail = document.getElementById('palEmail');
         const palDob = document.getElementById('palDob');
         const palSchool = document.getElementById('palSchool');
@@ -54,6 +59,7 @@ async function loadUserProfile() {
         const palTz = document.getElementById('palTz');
 
         if (palFullName) palFullName.textContent = user.fullName || '—';
+        if (palUsername) palUsername.textContent = displayUsername;
         if (palEmail) palEmail.textContent = user.email || '—';
         if (palDob) palDob.textContent = formatDateLabel(user.dob);
         if (palSchool) palSchool.textContent = user.occupation || '—';
@@ -65,9 +71,16 @@ async function loadUserProfile() {
         if (palAudio) palAudio.textContent = formatAudioLabel(user.focusAudio);
         if (palTz) palTz.textContent = formatTimezoneLabel(user.timezone);
 
-        // 3. Populate Edit Form Inputs (Name is Permanent Read-Only!)
+        // 3. Populate Edit Form Inputs (Name, Email, and Username are Permanent Read-Only!)
         const inputName = document.getElementById('profFullName');
+        const inputUsername = document.getElementById('profUsername');
         const inputEmail = document.getElementById('profEmail');
+        const inputDob = document.getElementById('profDob');
+        const inputOrg = document.getElementById('profOrg');
+
+        if (inputName) inputName.value = user.fullName || '';
+        if (inputUsername) inputUsername.value = displayUsername;
+        if (inputEmail) inputEmail.value = user.email || '';
         const inputDob = document.getElementById('profDob');
         const inputOrg = document.getElementById('profOrg');
 

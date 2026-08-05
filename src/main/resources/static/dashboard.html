@@ -990,6 +990,8 @@
                     <div>
                         <h2 id="profHeaderName" style="margin: 0 0 4px 0; font-size: 1.4rem; font-weight: 800;">Atif</h2>
                         <div style="display: flex; align-items: center; gap: 12px; font-size: 0.88rem; color: var(--text-secondary);">
+                            <span id="profHeaderUsername" style="color: #22c55e; font-weight: 700; font-size: 0.85rem;">@username</span>
+                            <span>•</span>
                             <span id="profHeaderEmail">atif@gmail.com</span>
                             <span>•</span>
                             <span id="profHeaderOrg" style="background: rgba(16,185,129,0.15); color: var(--accent); padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 0.78rem;">IUT</span>
@@ -1016,6 +1018,11 @@
                         <div class="form-group">
                             <label style="font-size: 0.8rem; opacity: 0.7;">Full Name (Permanent)</label>
                             <div class="palette-tile" id="palFullName">Atif</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; opacity: 0.7;">Username (Permanent)</label>
+                            <div class="palette-tile" id="palUsername" style="color: #22c55e; font-weight: 700;">@username</div>
                         </div>
 
                         <div class="form-group">
@@ -1116,6 +1123,11 @@
                             <div class="form-group">
                                 <label for="profFullName">Full Name (Permanent — Cannot be changed)</label>
                                 <input type="text" id="profFullName" name="fullName" readonly style="opacity: 0.6; cursor: not-allowed; background: rgba(0,0,0,0.3);" title="Full Name is permanent and cannot be modified">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profUsername">Username (Permanent — Cannot be changed)</label>
+                                <input type="text" id="profUsername" readonly style="opacity: 0.6; cursor: not-allowed; background: rgba(0,0,0,0.3); color: #22c55e; font-weight: 700;" title="Username is permanent and cannot be modified">
                             </div>
 
                             <div class="form-group">
