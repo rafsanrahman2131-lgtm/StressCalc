@@ -975,3 +975,75 @@ html[data-theme="contrast"] .badge-featured {
   line-height: 1.5;
 }
 
+/* Feature Card Hover Overlay Architecture */
+.feature-card,
+.overview-card {
+    position: relative;
+    overflow: hidden; /* Ensures the overlay doesn't spill out of the rounded corners */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover,
+.overview-card:hover {
+    transform: translateY(-5px); /* Gentle antigravity lift */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+    border-color: var(--accent);
+}
+
+.feature-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(18, 24, 38, 0.88); /* Matches surface theme with high legibility */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(20px); /* Starts slightly lower for a slide-up effect */
+    z-index: 10;
+    pointer-events: none;
+}
+
+.feature-card:hover .feature-overlay,
+.overview-card:hover .feature-overlay {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.feature-overlay h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent, #22c55e); /* Theme accent color */
+}
+
+.feature-overlay ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-overlay ul li {
+    margin-bottom: 8px;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.4;
+}
+
+.feature-overlay ul li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--accent, #22c55e);
+}
+
+
