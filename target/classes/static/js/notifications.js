@@ -24,7 +24,7 @@ async function loadNotifications() {
         if (!list) return;
         const notifications = data.notifications || [];
         if (notifications.length === 0) {
-            list.innerHTML = '<div class="notif-empty" style="color: rgba(255,255,255,0.5); text-align: center; font-size: 0.85rem; padding: 20px 0;">No notifications yet</div>';
+            list.innerHTML = '<div class="notif-empty" style="color: rgba(255,255,255,0.5); text-align: center; font-size: 0.85rem; padding: 20px 0;">No notifications to show</div>';
             return;
         }
 
