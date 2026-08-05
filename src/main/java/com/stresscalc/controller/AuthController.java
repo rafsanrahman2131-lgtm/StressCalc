@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -97,7 +96,6 @@ public class AuthController {
             @RequestParam(name = "wearable", required = false, defaultValue = "none") String wearable,
             @RequestParam(name = "focusAudio", required = false, defaultValue = "silence") String focusAudio,
             @RequestParam(name = "password", required = false) String password,
-            @RequestBody(required = false) Map<String, Object> bodyMap,
             HttpSession session) {
 
         String regEmail = email;
@@ -109,18 +107,6 @@ public class AuthController {
         String regCountry = country;
         String regOrg = organization;
         LocalDate regBirthDate = regDOB;
-
-        // Extract JSON payload if provided
-        if (bodyMap != null) {
-            if (bodyMap.containsKey("email")) regEmail = (String) bodyMap.get("email");
-            if (bodyMap.containsKey("username")) regUsername = (String) bodyMap.get("username");
-            if (bodyMap.containsKey("password")) regPassword = (String) bodyMap.get("password");
-            if (bodyMap.containsKey("firstName")) regFirstName = (String) bodyMap.get("firstName");
-            if (bodyMap.containsKey("lastName")) regLastName = (String) bodyMap.get("lastName");
-            if (bodyMap.containsKey("city")) regCity = (String) bodyMap.get("city");
-            if (bodyMap.containsKey("country")) regCountry = (String) bodyMap.get("country");
-            if (bodyMap.containsKey("organization")) regOrg = (String) bodyMap.get("organization");
-        }
 
         if (regEmail == null || regEmail.isBlank() || regPassword == null || regPassword.isBlank()) {
             return ResponseEntity
