@@ -1550,3 +1550,141 @@ legend {
 .notif-dropdown.active, .notif-dropdown.open {
     display: flex !important;
 }
+
+/* ====================================================
+   LEETCODE-STYLE TOP RIGHT NAVBAR CLUSTER
+   ==================================================== */
+.top-nav-cluster {
+    position: fixed !important;
+    top: 14px !important;
+    right: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    z-index: 9999 !important;
+    height: 36px !important;
+}
+
+.nav-bell-btn {
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    position: relative !important;
+    padding: 0 !important;
+    transition: color 0.2s ease, background-color 0.2s ease !important;
+}
+
+.nav-bell-btn:hover {
+    color: rgba(255, 255, 255, 1) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.notif-dot {
+    position: absolute !important;
+    top: 4px !important;
+    right: 4px !important;
+    width: 7px !important;
+    height: 7px !important;
+    background-color: #ef4444 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 2px #09090B !important;
+}
+
+.notif-dot.hidden {
+    display: none !important;
+}
+
+.nav-avatar-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+
+.avatar-circle {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    background: #2563eb !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.avatar-circle:hover {
+    transform: scale(1.08) !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4) !important;
+}
+
+.avatar-circle img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+}
+
+.notif-dropdown {
+    position: absolute !important;
+    top: 40px !important;
+    right: 0 !important;
+    width: 320px !important;
+    display: none;
+    flex-direction: column !important;
+    z-index: 10000 !important;
+    padding: 14px 16px !important;
+    background: #18181b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+}
+
+.notif-dropdown.active, .notif-dropdown.open {
+    display: flex !important;
+}
+
+.notif-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding-bottom: 8px !important;
+}
+
+.notif-header h4 {
+    margin: 0 !important;
+    font-size: 0.9rem !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+.text-btn {
+    background: none !important;
+    border: none !important;
+    color: #22c55e !important;
+    cursor: pointer !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+}
+
+.text-btn:hover {
+    text-decoration: underline !important;
+}
+
+.empty-state {
+    font-size: 0.82rem !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    text-align: center !important;
+    margin: 16px 0 !important;
+}
