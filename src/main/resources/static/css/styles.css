@@ -270,51 +270,89 @@ html[data-theme="contrast"] .logo-icon {
   gap: 1rem;
 }
 
-/* Premium Theme Toggle Segmented Control */
+/* Premium Theme Toggle Segmented Control (Matched to User Image Badge) */
 .theme-controls, .theme-switcher, .theme-toggle-group {
     display: inline-flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(243, 244, 246, 0.85); /* Light pill container baseline */
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 30px; 
     padding: 4px;
     gap: 4px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+[data-theme="dark"] .theme-controls,
+[data-theme="dark"] .theme-switcher,
+[data-theme="dark"] .theme-toggle-group {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="contrast"] .theme-controls,
+[data-theme="contrast"] .theme-switcher,
+[data-theme="contrast"] .theme-toggle-group {
+    background: #000000;
+    border: 2px solid #ffffff;
 }
 
 .theme-btn, .theme-btn-dash {
     background: transparent;
     border: none;
     border-radius: 20px;
-    padding: 8px 14px;
+    padding: 8px 16px;
     cursor: pointer;
-    color: var(--text-primary);
-    opacity: 0.4;
+    color: #6b7280; /* Gray inactive icon */
+    opacity: 0.75;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
 }
 
 .theme-btn:hover, .theme-btn-dash:hover {
-    opacity: 0.8;
+    opacity: 1;
+    color: #374151;
 }
 
+[data-theme="dark"] .theme-btn:hover,
+[data-theme="dark"] .theme-btn-dash:hover {
+    color: #e5e7eb;
+}
+
+/* Active floating white pill badge from image */
 .theme-btn.active, .theme-btn-dash.active {
-    background: rgba(255, 255, 255, 0.15);
-    opacity: 1;
-    color: var(--accent);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: #ffffff !important;
+    opacity: 1 !important;
+    color: #10b981 !important; /* Emerald green active icon */
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .theme-btn.active,
+[data-theme="dark"] .theme-btn-dash.active {
+    background: #ffffff !important;
+    color: #059669 !important; /* Rich emerald green */
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="contrast"] .theme-btn.active,
+[data-theme="contrast"] .theme-btn-dash.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 800;
 }
 
 .theme-btn svg, .theme-btn-dash svg {
     width: 18px;
     height: 18px;
     fill: currentColor;
+    transition: fill 0.25s ease, transform 0.25s ease;
+}
+
+.theme-btn.active svg, .theme-btn-dash.active svg {
+    transform: scale(1.08);
 }
 
 /* --- Hero & Landing Sections --- */
