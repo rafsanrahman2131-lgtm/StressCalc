@@ -1201,5 +1201,55 @@ legend {
     padding: 0 8px;
 }
 
+/* =============================================
+   ELEVATED USER PROFILE GLASSMORPHISM & DEPTHTH
+   ============================================= */
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --input-bg: rgba(0, 0, 0, 0.2);
+}
+
+/* Upgraded Glass Cards */
+.card-glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Profile Header Aura */
+.profile-header-card {
+    position: relative;
+    overflow: hidden;
+}
+.profile-header-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Carved Inputs & Selects */
+.form-group input, .form-group select {
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-primary, rgba(255, 255, 255, 0.9));
+    transition: all 0.3s ease;
+}
+.form-group input:focus, .form-group select:focus {
+    border-color: #22c55e;
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
+}
+
 
 

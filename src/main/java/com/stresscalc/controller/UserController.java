@@ -36,7 +36,7 @@ public class UserController {
         // Fallback: If no logged in user, find first user or construct demo profile
         if (user == null) {
             user = userRepository.findAll().stream().findFirst().orElseGet(() -> {
-                User demo = new User("Alex Mercer", "alex.mercer@quantified.io", LocalDate.of(1998, 5, 14), "Senior Systems Architect", "demo123", "active", "6-8", "low", "smartwatch", "complex", "ASIA");
+                User demo = new User("Rafsan Rahman", "rafsan.rahman@cuet.ac.bd", LocalDate.of(2000, 1, 1), "Chittagong University of Engineering and Technology (CUET)", "demo123", "active", "6-8", "low", "smartwatch", "complex", "ASIA");
                 return userRepository.save(demo);
             });
         }
