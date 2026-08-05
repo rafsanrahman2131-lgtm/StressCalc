@@ -30,11 +30,16 @@ async function loadNotifications() {
 
         list.innerHTML = notifications.map(n => {
             const timeAgo = formatTimeAgo(n.createdAt);
-            const isFriendReq = n.type === 'friend_request' || (n.message && n.message.toLowerCase().includes('friend request'));
+            const msg = n.message || '';
+            const lowerMsg = msg.toLowerCase();
 
-            let msgHtml = escapeHtml(n.message);
-            if (isFriendReq && n.message) {
-                const parts = n.message.split(' ');
+            const isPendingReq = (n.type === 'friend_request' || lowerMsg.includes('sent you a friend request') || lowerMsg.includes('friend request')) &&
+                                 !lowerMsg.includes('accepted') && 
+                                 !lowerMsg.includes('declined');
+
+            let msgHtml = escapeHtml(msg);
+            if (msg) {
+                const parts = msg.split(' ');
                 if (parts.length > 0) {
                     const firstWord = parts[0];
                     const rest = parts.slice(1).join(' ');
@@ -49,7 +54,7 @@ async function loadNotifications() {
                     <div class="notif-text" style="font-size: 0.84rem; color: rgba(255,255,255,0.9); line-height: 1.4;">${msgHtml}</div>
                     <div class="notif-time" style="font-size: 0.74rem; color: rgba(255,255,255,0.4); margin-top: 3px;">${timeAgo}</div>
                     
-                    ${isFriendReq ? `
+                    ${isPendingReq ? `
                     <div class="notif-actions" onclick="event.stopPropagation()">
                         <button class="notif-action-btn action-btn accept accept-btn" title="Accept Request">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>

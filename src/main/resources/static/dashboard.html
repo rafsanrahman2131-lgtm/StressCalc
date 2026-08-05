@@ -1835,15 +1835,25 @@
             // 1. OPTIMISTIC UI UPDATE (Do this immediately)
             // ==========================================
             
+            // Transform notification text inside dropdown
+            const notifText = notifItem.querySelector('.notif-text');
+            if (notifText) {
+                notifText.innerHTML = `Friend request from <strong>${username}</strong> has been ${isAccept ? 'accepted' : 'declined'}.`;
+            }
+
+            // Hide action buttons immediately
+            const actions = notifItem.querySelector('.notif-actions');
+            if (actions) actions.style.display = 'none';
+
+            // Mark as read (remove unread styling & dot)
+            notifItem.classList.remove('unread');
+            const dot = notifItem.querySelector('.notif-icon-dot');
+            if (dot) dot.classList.add('read');
+
             // Show Toast
             if (typeof showToast === 'function') {
-                showToast(`Request from ${username} ${isAccept ? 'accepted' : 'declined'}.`, isAccept ? 'success' : 'decline');
+                showToast(`Friend request from ${username} has been ${isAccept ? 'accepted' : 'declined'}.`, isAccept ? 'success' : 'decline');
             }
-            
-            // Remove Notification from Dropdown
-            notifItem.style.transition = 'opacity 0.3s ease';
-            notifItem.style.opacity = '0';
-            setTimeout(() => notifItem.remove(), 300);
 
             // Update Badge Count
             let badge = document.getElementById('notifBadge') || document.querySelector('.notif-badge');

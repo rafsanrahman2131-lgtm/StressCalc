@@ -131,6 +131,24 @@ public class FriendController {
         return ResponseEntity.ok(Map.of("status", "ok", "message", "Friend request sent to @" + targetUsername));
     }
 
+    private void updateNotificationStatus(Long userId, String friendUsername, boolean isAccept) {
+        if (userId == null || friendUsername == null || friendUsername.isBlank()) return;
+        try {
+            List<Notification> notifs = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+            for (Notification n : notifs) {
+                String msg = n.getMessage() != null ? n.getMessage().toLowerCase() : "";
+                if (msg.contains(friendUsername.toLowerCase()) && (msg.contains("friend request") || "friend_request".equals(n.getType()))) {
+                    n.setMessage("Friend request from " + friendUsername + " has been " + (isAccept ? "accepted" : "declined") + ".");
+                    n.setType("friend_" + (isAccept ? "accepted" : "declined"));
+                    n.setRead(true);
+                    notificationRepository.save(n);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Could not update notification status: " + e.getMessage());
+        }
+    }
+
     // POST /api/friends/accept — accept friend request via JSON body
     @PostMapping("/accept")
     public ResponseEntity<?> acceptFriendRequestJson(
@@ -150,8 +168,9 @@ public class FriendController {
                         Friend f = friendshipOpt.get();
                         f.setStatus("accepted");
                         friendRepository.save(f);
-                        return ResponseEntity.ok(Map.of("message", "Friend request accepted"));
                     }
+                    updateNotificationStatus(userId, friendUsername, true);
+                    return ResponseEntity.ok(Map.of("message", "Friend request accepted"));
                 }
             }
         }
@@ -171,6 +190,10 @@ public class FriendController {
             Friend f = friendOpt.get();
             f.setStatus("accepted");
             friendRepository.save(f);
+
+            userRepository.findById(f.getUserId()).ifPresent(reqUser -> {
+                updateNotificationStatus(userId, reqUser.getUsername(), true);
+            });
         }
 
         return ResponseEntity.ok(Map.of("status", "accepted", "message", "Friend request accepted"));
@@ -192,6 +215,7 @@ public class FriendController {
                 friendRepository.findByUserIdAndFriendId(fId, userId).ifPresent(friendRepository::delete);
                 friendRepository.findByUserIdAndFriendId(userId, fId).ifPresent(friendRepository::delete);
             }
+            updateNotificationStatus(userId, friendUsername, false);
         }
         return ResponseEntity.ok(Map.of("message", "Friend request declined"));
     }
@@ -199,9 +223,17 @@ public class FriendController {
     // POST /api/friends/decline/{id} — decline a pending request by ID
     @PostMapping("/decline/{id}")
     public ResponseEntity<?> declineRequestById(@PathVariable Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
         Optional<Friend> friendOpt = friendRepository.findById(id);
         if (friendOpt.isPresent()) {
-            friendRepository.delete(friendOpt.get());
+            Friend f = friendOpt.get();
+            friendRepository.delete(f);
+
+            if (userId != null) {
+                userRepository.findById(f.getUserId()).ifPresent(reqUser -> {
+                    updateNotificationStatus(userId, reqUser.getUsername(), false);
+                });
+            }
         }
         return ResponseEntity.ok(Map.of("status", "declined", "message", "Friend request declined"));
     }
