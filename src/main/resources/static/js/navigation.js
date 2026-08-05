@@ -46,13 +46,22 @@ function initSpaNavigation() {
     });
 
     // Restore active view on initial page load / refresh
-    const hashView = window.location.hash.replace('#', '');
-    const savedView = localStorage.getItem('stresscalc_active_view');
+    // Always force telemetry page after login or registration!
+    const isFromAuth = document.referrer.includes('auth.html') || window.location.search.includes('fromAuth');
     let initialView = 'telemetry';
-    if (hashView && ['logs', 'telemetry', 'environmental', 'profile'].includes(hashView)) {
-        initialView = hashView;
-    } else if (savedView && ['logs', 'telemetry', 'environmental', 'profile'].includes(savedView)) {
-        initialView = savedView;
+    if (isFromAuth) {
+        localStorage.setItem('stresscalc_active_view', 'telemetry');
+        if (history.replaceState) {
+            history.replaceState(null, '', '#telemetry');
+        }
+    } else {
+        const hashView = window.location.hash.replace('#', '');
+        const savedView = localStorage.getItem('stresscalc_active_view');
+        if (hashView && ['logs', 'telemetry', 'environmental', 'profile'].includes(hashView)) {
+            initialView = hashView;
+        } else if (savedView && ['logs', 'telemetry', 'environmental', 'profile'].includes(savedView)) {
+            initialView = savedView;
+        }
     }
     
     switchSpaView(initialView, true);

@@ -46,6 +46,9 @@ public class User {
     @Column(name = "timezone", nullable = true, length = 50)
     private String timezone;
 
+    @Column(name = "profile_pic", columnDefinition = "LONGTEXT", nullable = true)
+    private String profilePic;
+
     @Column(name = "account_created", insertable = false, updatable = false)
     private LocalDateTime accountCreated;
 
@@ -171,6 +174,14 @@ public class User {
 
     public void setTimezone(String timezone) {
         this.timezone = timezone;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
     }
 
     public LocalDateTime getAccountCreated() {

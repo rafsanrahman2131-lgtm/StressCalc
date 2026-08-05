@@ -47,7 +47,6 @@ public class UserController {
     // POST /api/user/profile (Update Profile)
     @PostMapping("/profile")
     public ResponseEntity<?> updateUserProfile(
-            @RequestParam(name = "fullName", required = false) String fullName,
             @RequestParam(name = "dob", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
             @RequestParam(name = "occupation", required = false) String occupation,
             @RequestParam(name = "activityLevel", required = false) String activityLevel,
@@ -56,6 +55,7 @@ public class UserController {
             @RequestParam(name = "wearable", required = false) String wearable,
             @RequestParam(name = "focusAudio", required = false) String focusAudio,
             @RequestParam(name = "timezone", required = false) String timezone,
+            @RequestParam(name = "profilePic", required = false) String profilePic,
             HttpSession session) {
 
         Long userId = (Long) session.getAttribute("userId");
@@ -70,13 +70,12 @@ public class UserController {
 
         if (user == null) {
             user = userRepository.findAll().stream().findFirst().orElseGet(() -> {
-                User demo = new User("Alex Mercer", "alex.mercer@quantified.io", LocalDate.of(1998, 5, 14), "Senior Systems Architect", "demo123");
+                User demo = new User("Rafsan Rahman", "rafsan.rahman@cuet.ac.bd", LocalDate.of(2000, 1, 1), "Chittagong University of Engineering and Technology (CUET)", "demo123");
                 return userRepository.save(demo);
             });
         }
 
-        // Update fields if provided
-        if (fullName != null && !fullName.isBlank()) user.setFullName(fullName.trim());
+        // Note: Name and Email cannot be changed
         if (dob != null) user.setDob(dob);
         if (occupation != null && !occupation.isBlank()) user.setOccupation(occupation.trim());
         if (activityLevel != null && !activityLevel.isBlank()) user.setActivityLevel(activityLevel.trim());
@@ -85,6 +84,7 @@ public class UserController {
         if (wearable != null && !wearable.isBlank()) user.setWearable(wearable.trim());
         if (focusAudio != null && !focusAudio.isBlank()) user.setFocusAudio(focusAudio.trim());
         if (timezone != null && !timezone.isBlank()) user.setTimezone(timezone.trim());
+        if (profilePic != null && !profilePic.isBlank()) user.setProfilePic(profilePic.trim());
 
         User updatedUser = userRepository.save(user);
 
