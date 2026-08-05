@@ -1162,8 +1162,8 @@ html[data-theme="contrast"] .badge-featured {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.btn-primary {
-    flex: 2; /* Make the primary action slightly wider */
+.step-navigation .btn-primary {
+    flex: 2; /* Make the primary action slightly wider inside wizard step navigation */
 }
 
 /* Neutralize native browser margins on the fieldset */
