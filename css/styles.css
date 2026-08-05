@@ -270,36 +270,51 @@ html[data-theme="contrast"] .logo-icon {
   gap: 1rem;
 }
 
-/* 3-Way Theme Switcher UI */
-.theme-switcher, .theme-toggle-group {
-  display: flex;
-  align-items: center;
-  background-color: var(--toggle-bg);
-  padding: 4px;
-  border-radius: 9999px;
-  border: 1px solid var(--border-color);
+/* Premium Theme Toggle Segmented Control */
+.theme-controls, .theme-switcher, .theme-toggle-group {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px; 
+    padding: 4px;
+    gap: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-.theme-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  padding: 6px 10px;
-  border-radius: 9999px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.theme-btn, .theme-btn-dash {
+    background: transparent;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    cursor: pointer;
+    color: var(--text-primary);
+    opacity: 0.4;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
-.theme-btn:hover {
-  color: var(--text-primary);
+.theme-btn:hover, .theme-btn-dash:hover {
+    opacity: 0.8;
 }
 
-.theme-btn.active {
-  background-color: var(--surface);
-  color: var(--accent);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.theme-btn.active, .theme-btn-dash.active {
+    background: rgba(255, 255, 255, 0.15);
+    opacity: 1;
+    color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.theme-btn svg, .theme-btn-dash svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
 }
 
 /* --- Hero & Landing Sections --- */

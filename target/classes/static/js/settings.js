@@ -33,6 +33,7 @@ class ThemeController {
     }
 
     applyTheme(theme) {
+        if (theme === 'dim') theme = 'contrast';
         if (!['light', 'dark', 'contrast'].includes(theme)) {
             theme = 'dark';
         }
@@ -43,8 +44,10 @@ class ThemeController {
 
         // Update active styling on theme switcher buttons
         document.querySelectorAll('.theme-btn-dash, .theme-btn').forEach(btn => {
-            const btnText = (btn.getAttribute('title') || btn.textContent).toLowerCase();
-            if (btnText.includes(theme)) {
+            const btnTheme = btn.getAttribute('data-set-theme') || (btn.id ? btn.id.replace('btn-', '') : '');
+            const btnTitle = (btn.getAttribute('title') || btn.getAttribute('aria-label') || btn.textContent || '').toLowerCase();
+
+            if (btnTheme === theme || btnTitle.includes(theme) || (theme === 'contrast' && (btnTheme === 'dim' || btnTitle.includes('contrast') || btnTitle.includes('focus')))) {
                 btn.classList.add('active');
             } else {
                 btn.classList.remove('active');
@@ -108,11 +111,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setTheme(themeName) {
+    if (themeName === 'dim') themeName = 'contrast';
     if (window.themeController) {
         window.themeController.applyTheme(themeName);
     } else {
         document.documentElement.setAttribute('data-theme', themeName);
         localStorage.setItem('stresscalc_theme', themeName);
+        document.querySelectorAll('.theme-btn-dash, .theme-btn').forEach(btn => {
+            const btnTheme = btn.getAttribute('data-set-theme') || (btn.id ? btn.id.replace('btn-', '') : '');
+            if (btnTheme === themeName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 }
 window.setTheme = setTheme;
