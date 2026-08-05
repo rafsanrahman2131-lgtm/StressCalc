@@ -1298,3 +1298,85 @@ legend {
 
 
 
+
+/* ============================================
+   TOP-RIGHT NAVIGATION CLUSTER
+   ============================================ */
+.top-right-nav {
+    position: fixed; top: 16px; right: 20px; z-index: 9000;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(9,9,11,0.7); border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-radius: 40px; padding: 6px 8px;
+}
+.nav-pfp-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(34,197,94,0.25), rgba(16,185,129,0.15));
+    border: 1.5px solid rgba(34,197,94,0.4); color: #22c55e;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden; transition: all 0.2s ease; padding: 0; flex-shrink: 0;
+}
+.nav-pfp-btn:hover { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.15); transform: scale(1.05); }
+.nav-pfp-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.notif-bell-btn {
+    position: relative; width: 36px; height: 36px; border-radius: 50%;
+    background: transparent; border: 1.5px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.75); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s ease; padding: 0; flex-shrink: 0;
+}
+.notif-bell-btn:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.notif-badge {
+    position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px;
+    background: #22c55e; color: #000; border-radius: 999px; font-size: 0.65rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; box-shadow: 0 0 0 2px rgba(9,9,11,0.9); line-height: 1;
+}
+.notif-badge.hidden { display: none; }
+.notif-dropdown {
+    position: absolute; top: calc(100% + 12px); right: 0; width: 340px;
+    background: rgba(18,18,20,0.97); border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    overflow: hidden; z-index: 9100; display: none; opacity: 0; transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.notif-dropdown.open { display: block; opacity: 1; transform: translateY(0); }
+.notif-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.notif-dropdown-header h4 { margin: 0; font-size: 0.9rem; font-weight: 800; color: rgba(255,255,255,0.9); }
+.notif-mark-all-btn { background: none; border: none; color: #22c55e; font-size: 0.78rem; font-weight: 700; cursor: pointer; opacity: 0.8; }
+.notif-mark-all-btn:hover { opacity: 1; }
+.notif-list { max-height: 320px; overflow-y: auto; }
+.notif-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; }
+.notif-item:hover { background: rgba(255,255,255,0.04); }
+.notif-item.unread { background: rgba(34,197,94,0.04); border-left: 2px solid rgba(34,197,94,0.5); }
+.notif-icon-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; margin-top: 6px; }
+.notif-icon-dot.read { background: rgba(255,255,255,0.2); }
+.notif-text { font-size: 0.84rem; color: rgba(255,255,255,0.8); line-height: 1.4; }
+.notif-time { font-size: 0.74rem; color: rgba(255,255,255,0.35); margin-top: 3px; }
+.notif-empty { padding: 28px 16px; text-align: center; font-size: 0.84rem; color: rgba(255,255,255,0.35); }
+
+/* ============================================ FRIENDS ============================================ */
+.friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.friend-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px); border-radius: 14px; padding: 1.25rem 1rem;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; text-align: center;
+}
+.friend-card:hover { transform: translateY(-4px); border-color: rgba(34,197,94,0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(34,197,94,0.15); }
+.friend-card-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.1)); border: 1px solid rgba(34,197,94,0.25); color: #22c55e; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.friend-card-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.friend-card-username { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.9); }
+.friend-card-name { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-top: -4px; }
+.pending-badge { font-size: 0.7rem; font-weight: 700; background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); border-radius: 999px; padding: 2px 8px; }
+.username-warning { display: none; font-size: 0.78rem; color: rgba(251,191,36,0.75); margin-top: 5px; line-height: 1.4; }
+.username-warning.visible { display: block; }
+.force-username-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 99999; display: flex; align-items: center; justify-content: center; }
+.force-username-modal { background: rgba(18,18,20,0.97); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2.5rem; width: min(420px, 90vw); box-shadow: 0 24px 64px rgba(0,0,0,0.7); text-align: center; }
+.force-username-modal h2 { margin: 0 0 8px; font-size: 1.4rem; font-weight: 800; }
+.force-username-modal p { font-size: 0.9rem; opacity: 0.65; margin: 0 0 1.5rem; line-height: 1.5; }
+.force-username-modal .form-group { text-align: left; margin-bottom: 1rem; }
+.force-username-error { font-size: 0.82rem; color: #ef4444; margin-top: 6px; display: none; }
+.friend-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9500; display: flex; align-items: center; justify-content: center; }
+.friend-modal { background: rgba(18,18,20,0.97); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 2rem; width: min(360px, 90vw); box-shadow: 0 24px 64px rgba(0,0,0,0.7); text-align: center; position: relative; }
+.friend-modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 4px; transition: color 0.2s; }
+.friend-modal-close:hover { color: rgba(255,255,255,0.9); }

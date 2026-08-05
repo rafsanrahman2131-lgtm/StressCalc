@@ -1,11 +1,17 @@
+com\stresscalc\controller\FriendController.class
+com\stresscalc\repository\FriendRepository.class
 com\stresscalc\controller\AuthController.class
+com\stresscalc\model\Notification.class
 com\stresscalc\controller\AssessmentController.class
+com\stresscalc\controller\NotificationController.class
 com\stresscalc\controller\UserController.class
 com\stresscalc\controller\ViewController.class
+com\stresscalc\model\Friend.class
 com\stresscalc\StressCalculatorApplication.class
 com\stresscalc\model\TelemetryLog.class
 com\stresscalc\repository\UserRepository.class
 com\stresscalc\servlet\TelemetryDataServlet.class
+com\stresscalc\repository\NotificationRepository.class
 com\stresscalc\model\StressAssessment.class
 com\stresscalc\controller\EnvironmentalController.class
 com\stresscalc\model\User.class

@@ -13,6 +13,15 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "username", unique = true, nullable = true, length = 50)
+    private String username;
+
+    @Column(name = "first_name", nullable = true, length = 50)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = true, length = 50)
+    private String lastName;
+
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
@@ -24,6 +33,12 @@ public class User {
 
     @Column(name = "occupation", nullable = true, length = 100)
     private String occupation;
+
+    @Column(name = "city", nullable = true, length = 100)
+    private String city;
+
+    @Column(name = "country", nullable = true, length = 100)
+    private String country;
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
@@ -80,111 +95,59 @@ public class User {
     }
 
     // Getters and Setters
-    public Long getUserId() {
-        return userId;
-    }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public LocalDate getDob() {
-        return dob;
-    }
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
 
-    public void setDob(LocalDate dob) {
-        this.dob = dob;
-    }
+    public String getOccupation() { return occupation; }
+    public void setOccupation(String occupation) { this.occupation = occupation; }
 
-    public String getOccupation() {
-        return occupation;
-    }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
 
-    public void setOccupation(String occupation) {
-        this.occupation = occupation;
-    }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
-    public String getPasswordHash() {
-        return passwordHash;
-    }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
+    public String getActivityLevel() { return activityLevel; }
+    public void setActivityLevel(String activityLevel) { this.activityLevel = activityLevel; }
 
-    public String getActivityLevel() {
-        return activityLevel;
-    }
+    public String getSleepDuration() { return sleepDuration; }
+    public void setSleepDuration(String sleepDuration) { this.sleepDuration = sleepDuration; }
 
-    public void setActivityLevel(String activityLevel) {
-        this.activityLevel = activityLevel;
-    }
+    public String getCaffeine() { return caffeine; }
+    public void setCaffeine(String caffeine) { this.caffeine = caffeine; }
 
-    public String getSleepDuration() {
-        return sleepDuration;
-    }
+    public String getWearable() { return wearable; }
+    public void setWearable(String wearable) { this.wearable = wearable; }
 
-    public void setSleepDuration(String sleepDuration) {
-        this.sleepDuration = sleepDuration;
-    }
+    public String getFocusAudio() { return focusAudio; }
+    public void setFocusAudio(String focusAudio) { this.focusAudio = focusAudio; }
 
-    public String getCaffeine() {
-        return caffeine;
-    }
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 
-    public void setCaffeine(String caffeine) {
-        this.caffeine = caffeine;
-    }
+    public String getProfilePic() { return profilePic; }
+    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
 
-    public String getWearable() {
-        return wearable;
-    }
-
-    public void setWearable(String wearable) {
-        this.wearable = wearable;
-    }
-
-    public String getFocusAudio() {
-        return focusAudio;
-    }
-
-    public void setFocusAudio(String focusAudio) {
-        this.focusAudio = focusAudio;
-    }
-
-    public String getTimezone() {
-        return timezone;
-    }
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
-
-    public String getProfilePic() {
-        return profilePic;
-    }
-
-    public void setProfilePic(String profilePic) {
-        this.profilePic = profilePic;
-    }
-
-    public LocalDateTime getAccountCreated() {
-        return accountCreated;
-    }
+    public LocalDateTime getAccountCreated() { return accountCreated; }
 }

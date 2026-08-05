@@ -33,6 +33,8 @@ async function loadUserProfile() {
         if (avatarContainer) {
             if (user.profilePic && user.profilePic.startsWith('data:image')) {
                 avatarContainer.innerHTML = `<img src="${user.profilePic}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" alt="PFP">`;
+                // Sync top-right nav avatar
+                if (typeof updateTopNavPfp === 'function') updateTopNavPfp(user.profilePic);
             } else {
                 avatarContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
             }
@@ -274,8 +276,152 @@ function formatTimezoneLabel(val) {
     return val || 'Asia/Dhaka (+06:00)';
 }
 
+/* =====================================================
+   SOCIAL — Friends System
+   ===================================================== */
+
+async function loadFriends() {
+    try {
+        const res = await fetch('/api/friends');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Render accepted friends
+        const grid = document.getElementById('friendsGrid');
+        const countBadge = document.getElementById('friendCountBadge');
+        if (countBadge) countBadge.textContent = data.friendCount || 0;
+
+        if (grid) {
+            const friends = data.friends || [];
+            if (friends.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1;font-size:0.85rem;color:rgba(255,255,255,0.35);text-align:center;padding:1.5rem 0;">No friends added yet. Search by username above.</div>`;
+            } else {
+                grid.innerHTML = friends.map(f => {
+                    const initials = (f.fullName || f.username || '?').charAt(0).toUpperCase();
+                    const avatarHtml = f.profilePic
+                        ? `<img src="${f.profilePic}" alt="${escSocial(f.username)}'s avatar">`
+                        : `<span style="font-size:1.4rem;font-weight:800;color:#22c55e;">${initials}</span>`;
+                    return `
+                    <div class="friend-card" onclick="openFriendModal(${JSON.stringify(f).replace(/"/g,'&quot;')})">
+                        <div class="friend-card-avatar">${avatarHtml}</div>
+                        <div class="friend-card-username">@${escSocial(f.username || '—')}</div>
+                        <div class="friend-card-name">${escSocial(f.fullName || '')}</div>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        // Render pending requests
+        const pendingSection = document.getElementById('pendingRequestsSection');
+        const pendingGrid = document.getElementById('pendingRequestsGrid');
+        const pending = data.pendingRequests || [];
+
+        if (pendingSection && pendingGrid) {
+            pendingSection.style.display = pending.length > 0 ? 'block' : 'none';
+            pendingGrid.innerHTML = pending.map(p => {
+                const initials = (p.fullName || p.username || '?').charAt(0).toUpperCase();
+                const avatarHtml = p.profilePic
+                    ? `<img src="${p.profilePic}" alt="${escSocial(p.username)}'s avatar">`
+                    : `<span style="font-size:1.4rem;font-weight:800;color:#fbbf24;">${initials}</span>`;
+                return `
+                <div class="friend-card" style="border-color:rgba(251,191,36,0.2);">
+                    <div class="friend-card-avatar" style="border-color:rgba(251,191,36,0.3);color:#fbbf24;">${avatarHtml}</div>
+                    <div class="friend-card-username">@${escSocial(p.username || '—')}</div>
+                    <div class="pending-badge" style="margin-top:4px;">Pending</div>
+                    <button class="btn-pdf-report" style="padding:6px 12px;font-size:0.75rem;margin-top:4px;" onclick="acceptFriendRequest(${p.friendshipId}, this)">Accept</button>
+                </div>`;
+            }).join('');
+        }
+    } catch (e) {
+        console.warn('Could not load friends:', e);
+    }
+}
+
+async function sendFriendRequest() {
+    const input = document.getElementById('addFriendInput');
+    const statusEl = document.getElementById('addFriendStatus');
+    const target = input ? input.value.trim() : '';
+    if (!target) return;
+
+    statusEl.style.display = 'block';
+    statusEl.style.color = 'rgba(255,255,255,0.5)';
+    statusEl.textContent = 'Sending...';
+
+    try {
+        const fd = new FormData();
+        fd.append('targetUsername', target);
+        const res = await fetch('/api/friends/request', { method: 'POST', body: fd });
+        const data = await res.json();
+
+        if (res.ok) {
+            statusEl.style.color = '#22c55e';
+            statusEl.textContent = data.message || 'Friend request sent!';
+            if (input) input.value = '';
+        } else {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = data.error || 'Could not send request.';
+        }
+    } catch (e) {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = 'Network error. Please try again.';
+    }
+
+    setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+}
+
+async function acceptFriendRequest(friendshipId, btn) {
+    if (btn) { btn.disabled = true; btn.textContent = 'Accepting...'; }
+    try {
+        const res = await fetch(`/api/friends/accept/${friendshipId}`, { method: 'POST' });
+        if (res.ok) {
+            await loadFriends();
+        }
+    } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Accept'; }
+    }
+}
+
+function openFriendModal(friend) {
+    const overlay = document.getElementById('friendModalOverlay');
+    if (!overlay) return;
+
+    const avatarWrap = document.getElementById('friendModalAvatarWrap');
+    if (avatarWrap) {
+        if (friend.profilePic) {
+            avatarWrap.innerHTML = `<img src="${friend.profilePic}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        } else {
+            const initials = (friend.fullName || friend.username || '?').charAt(0).toUpperCase();
+            avatarWrap.innerHTML = `<span style="font-size:1.8rem;font-weight:800;color:#22c55e;">${initials}</span>`;
+        }
+    }
+
+    const nameEl = document.getElementById('friendModalName');
+    const usernameEl = document.getElementById('friendModalUsername');
+    const schoolEl = document.getElementById('friendModalSchool');
+
+    if (nameEl) nameEl.textContent = friend.fullName || friend.username || 'User';
+    if (usernameEl) usernameEl.textContent = '@' + (friend.username || '—');
+    if (schoolEl) schoolEl.textContent = friend.occupation ? friend.occupation : '';
+
+    overlay.style.display = 'flex';
+}
+
+function closeFriendModal() {
+    const overlay = document.getElementById('friendModalOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function escSocial(str) {
+    return String(str || '').replace(/[<>&"']/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
 // Global functions
 window.loadUserProfile = loadUserProfile;
 window.saveUserProfile = saveUserProfile;
 window.toggleProfileEditMode = toggleProfileEditMode;
 window.handlePfpSelect = handlePfpSelect;
+window.loadFriends = loadFriends;
+window.sendFriendRequest = sendFriendRequest;
+window.acceptFriendRequest = acceptFriendRequest;
+window.openFriendModal = openFriendModal;
+window.closeFriendModal = closeFriendModal;

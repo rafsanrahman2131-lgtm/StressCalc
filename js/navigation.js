@@ -1,13 +1,13 @@
 /**
  * StressCalculator — SPA Navigation Controller with State Persistence & Routing
  * Supports: Telemetry, Action Logs, Environmental Dashboard, and Profile Settings views.
+ * Note: "User Profile" removed from sidebar; accessible via top-right avatar PFP.
  */
 
 function initSpaNavigation() {
     const navTelemetry = document.getElementById('nav-telemetry');
     const navLogs = document.getElementById('nav-logs');
     const navEnvironmental = document.getElementById('nav-environmental');
-    const navProfile = document.getElementById('nav-profile');
 
     if (navTelemetry) {
         navTelemetry.addEventListener('click', (e) => {
@@ -27,13 +27,6 @@ function initSpaNavigation() {
         navEnvironmental.addEventListener('click', (e) => {
             e.preventDefault();
             switchSpaView('environmental');
-        });
-    }
-
-    if (navProfile) {
-        navProfile.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchSpaView('profile');
         });
     }
 
@@ -63,7 +56,7 @@ function initSpaNavigation() {
             initialView = savedView;
         }
     }
-    
+
     switchSpaView(initialView, true);
 }
 
@@ -76,7 +69,6 @@ function switchSpaView(viewId, isInitialLoad = false) {
     const navTelemetry = document.getElementById('nav-telemetry');
     const navLogs = document.getElementById('nav-logs');
     const navEnvironmental = document.getElementById('nav-environmental');
-    const navProfile = document.getElementById('nav-profile');
 
     // Persist state in localStorage and URL hash
     localStorage.setItem('stresscalc_active_view', viewId);
@@ -94,7 +86,6 @@ function switchSpaView(viewId, isInitialLoad = false) {
     if (navTelemetry) navTelemetry.classList.remove('active');
     if (navLogs) navLogs.classList.remove('active');
     if (navEnvironmental) navEnvironmental.classList.remove('active');
-    if (navProfile) navProfile.classList.remove('active');
 
     if (viewId === 'logs') {
         if (logsView) logsView.style.display = 'block';
@@ -112,16 +103,22 @@ function switchSpaView(viewId, isInitialLoad = false) {
         }
     } else if (viewId === 'profile') {
         if (profileView) profileView.style.display = 'block';
-        if (navProfile) navProfile.classList.add('active');
 
         if (typeof window.loadUserProfile === 'function') {
             window.loadUserProfile();
+        }
+        // Also load friends list when profile view is opened
+        if (typeof window.loadFriends === 'function') {
+            window.loadFriends();
         }
     } else {
         if (telemetryView) telemetryView.style.display = 'block';
         if (navTelemetry) navTelemetry.classList.add('active');
     }
 }
+
+// Expose globally so notifications.js and other modules can call it
+window.switchSpaView = switchSpaView;
 
 document.addEventListener('DOMContentLoaded', () => {
     initSpaNavigation();

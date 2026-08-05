@@ -49,6 +49,8 @@ public class UserController {
     public ResponseEntity<?> updateUserProfile(
             @RequestParam(name = "dob", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
             @RequestParam(name = "occupation", required = false) String occupation,
+            @RequestParam(name = "city", required = false) String city,
+            @RequestParam(name = "country", required = false) String country,
             @RequestParam(name = "activityLevel", required = false) String activityLevel,
             @RequestParam(name = "sleepDuration", required = false) String sleepDuration,
             @RequestParam(name = "caffeine", required = false) String caffeine,
@@ -75,9 +77,11 @@ public class UserController {
             });
         }
 
-        // Note: Name and Email cannot be changed
+        // Note: Name, Email, and Username cannot be changed
         if (dob != null) user.setDob(dob);
         if (occupation != null && !occupation.isBlank()) user.setOccupation(occupation.trim());
+        if (city != null && !city.isBlank()) user.setCity(city.trim());
+        if (country != null && !country.isBlank()) user.setCountry(country.trim());
         if (activityLevel != null && !activityLevel.isBlank()) user.setActivityLevel(activityLevel.trim());
         if (sleepDuration != null && !sleepDuration.isBlank()) user.setSleepDuration(sleepDuration.trim());
         if (caffeine != null && !caffeine.isBlank()) user.setCaffeine(caffeine.trim());
