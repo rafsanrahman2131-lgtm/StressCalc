@@ -1250,7 +1250,6 @@ legend {
     background: rgba(0, 0, 0, 0.4);
     box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
 }
-
 /* Fixed Palette Presentation Tiles */
 .palette-tile {
     background: var(--input-bg, rgba(0, 0, 0, 0.25));
@@ -1265,6 +1264,8 @@ legend {
     display: flex;
     align-items: center;
     box-sizing: border-box;
+}
+
 /* Glassmorphic Change Photo Button */
 .btn-change-photo {
     display: inline-flex;
@@ -1274,7 +1275,7 @@ legend {
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-primary, rgba(255, 255, 255, 0.9));
     padding: 8px 16px;
-    border-radius: 20px; /* Pill shape */
+    border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
@@ -1296,166 +1297,103 @@ legend {
     opacity: 1;
 }
 
-
-
-
-/* ============================================
-   TOP-RIGHT NAVIGATION CLUSTER
-   ============================================ */
-.top-right-nav {
-    position: fixed; top: 16px; right: 20px; z-index: 9000;
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(9,9,11,0.7); border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border-radius: 40px; padding: 6px 8px;
-}
-.nav-pfp-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: linear-gradient(135deg, rgba(34,197,94,0.25), rgba(16,185,129,0.15));
-    border: 1.5px solid rgba(34,197,94,0.4); color: #22c55e;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; overflow: hidden; transition: all 0.2s ease; padding: 0; flex-shrink: 0;
-}
-.nav-pfp-btn:hover { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.15); transform: scale(1.05); }
-.nav-pfp-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.notif-bell-btn {
-    position: relative; width: 36px; height: 36px; border-radius: 50%;
-    background: transparent; border: 1.5px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.75); display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s ease; padding: 0; flex-shrink: 0;
-}
-.notif-bell-btn:hover { background: rgba(255,255,255,0.07); color: #fff; }
-.notif-badge {
-    position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px;
-    background: #22c55e; color: #000; border-radius: 999px; font-size: 0.65rem; font-weight: 800;
-    display: flex; align-items: center; justify-content: center;
-    padding: 0 4px; box-shadow: 0 0 0 2px rgba(9,9,11,0.9); line-height: 1;
-}
-.notif-badge.hidden { display: none; }
-.notif-dropdown {
-    position: absolute; top: calc(100% + 12px); right: 0; width: 340px;
-    background: rgba(18,18,20,0.97); border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(20px); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.6);
-    overflow: hidden; z-index: 9100; display: none; opacity: 0; transform: translateY(-8px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.notif-dropdown.open { display: block; opacity: 1; transform: translateY(0); }
-.notif-dropdown-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-.notif-dropdown-header h4 { margin: 0; font-size: 0.9rem; font-weight: 800; color: rgba(255,255,255,0.9); }
-.notif-mark-all-btn { background: none; border: none; color: #22c55e; font-size: 0.78rem; font-weight: 700; cursor: pointer; opacity: 0.8; }
-.notif-mark-all-btn:hover { opacity: 1; }
-.notif-list { max-height: 320px; overflow-y: auto; }
-.notif-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; }
-.notif-item:hover { background: rgba(255,255,255,0.04); }
-.notif-item.unread { background: rgba(34,197,94,0.04); border-left: 2px solid rgba(34,197,94,0.5); }
-.notif-icon-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; margin-top: 6px; }
-.notif-icon-dot.read { background: rgba(255,255,255,0.2); }
-.notif-text { font-size: 0.84rem; color: rgba(255,255,255,0.8); line-height: 1.4; }
-.notif-time { font-size: 0.74rem; color: rgba(255,255,255,0.35); margin-top: 3px; }
-.notif-empty { padding: 28px 16px; text-align: center; font-size: 0.84rem; color: rgba(255,255,255,0.35); }
-
-/* ============================================ FRIENDS ============================================ */
-.friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
-.friend-card {
-    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(12px); border-radius: 14px; padding: 1.25rem 1rem;
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; text-align: center;
-}
-.friend-card:hover { transform: translateY(-4px); border-color: rgba(34,197,94,0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(34,197,94,0.15); }
-.friend-card-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.1)); border: 1px solid rgba(34,197,94,0.25); color: #22c55e; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-.friend-card-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.friend-card-username { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.9); }
-.friend-card-name { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-top: -4px; }
-.pending-badge { font-size: 0.7rem; font-weight: 700; background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); border-radius: 999px; padding: 2px 8px; }
-.username-warning { display: none; font-size: 0.78rem; color: rgba(251,191,36,0.75); margin-top: 5px; line-height: 1.4; }
-.username-warning.visible { display: block; }
-.force-username-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 99999; display: flex; align-items: center; justify-content: center; }
-.force-username-modal { background: rgba(18,18,20,0.97); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2.5rem; width: min(420px, 90vw); box-shadow: 0 24px 64px rgba(0,0,0,0.7); text-align: center; }
-.force-username-modal h2 { margin: 0 0 8px; font-size: 1.4rem; font-weight: 800; }
-.force-username-modal p { font-size: 0.9rem; opacity: 0.65; margin: 0 0 1.5rem; line-height: 1.5; }
-.force-username-modal .form-group { text-align: left; margin-bottom: 1rem; }
-.force-username-error { font-size: 0.82rem; color: #ef4444; margin-top: 6px; display: none; }
-.friend-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9500; display: flex; align-items: center; justify-content: center; }
-.friend-modal { background: rgba(18,18,20,0.97); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 2rem; width: min(360px, 90vw); box-shadow: 0 24px 64px rgba(0,0,0,0.7); text-align: center; position: relative; }
-.friend-modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 4px; transition: color 0.2s; }
-.friend-modal-close:hover { color: rgba(255,255,255,0.9); }
-
-/* Top Navigation Cluster Override */
-.top-nav-cluster {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    z-index: 10000;
-}
-
-.nav-icon-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
+/* ====================================================
+   LEETCODE-STYLE NAVBAR BELL & AVATAR
+   ==================================================== */
+.nav-bell-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.75);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.9);
-    transition: all 0.3s ease;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     position: relative;
     padding: 0;
-    overflow: hidden;
-    text-decoration: none;
-    box-sizing: border-box;
+    transition: color 0.2s ease, background-color 0.2s ease;
 }
 
-.nav-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+.nav-bell-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
 }
 
-.notif-badge {
+/* Bold Red Notification Dot / Badge Threshold */
+.notif-dot, .notif-badge {
     position: absolute;
-    top: -2px;
-    right: -2px;
-    background: #22c55e;
-    color: #000;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
+    top: 2px;
+    right: 2px;
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 999px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 4px;
+    box-shadow: 0 0 0 2px #09090B;
     line-height: 1;
 }
 
-.notif-badge.hidden {
+.notif-dot.hidden, .notif-badge.hidden {
     display: none;
 }
 
-/* Notification Dropdown */
+.nav-avatar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatar-circle:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* In-Page Notification Dropdown */
 .notif-dropdown {
     position: absolute;
-    top: 56px;
+    top: 42px;
     right: 0;
     width: 320px;
-    display: none; /* Hidden by default */
+    display: none;
     flex-direction: column;
-    z-index: 10001;
-    padding: 16px;
-    background: rgba(18, 18, 20, 0.97);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10000;
+    padding: 14px 16px;
+    background: rgba(24, 24, 27, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-radius: 16px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    border-radius: 14px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
 }
 
 .notif-dropdown.active, .notif-dropdown.open {
@@ -1466,317 +1404,237 @@ legend {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 12px;
-}
-
-.notif-header h4 { margin: 0; font-size: 1rem; color: #ffffff; font-weight: 700; }
-.text-btn { background: none; border: none; color: #22c55e; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
-.text-btn:hover { text-decoration: underline; }
-.empty-state { font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); text-align: center; margin: 24px 0; }
-
-/* HARD-CODED TOP RIGHT CLUSTER */
-.top-nav-cluster {
-    position: fixed !important;
-    top: 24px !important;
-    right: 24px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 16px !important;
-    z-index: 9999 !important; /* Ensure it floats above everything */
-}
-
-.nav-icon-btn {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 50% !important;
-    width: 44px !important;
-    height: 44px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    text-decoration: none !important;
-    box-sizing: border-box !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-}
-
-.nav-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.notif-badge {
-    position: absolute !important;
-    top: -4px !important;
-    right: -4px !important;
-    background: #22c55e !important;
-    color: #000 !important;
-    font-size: 0.75rem !important;
-    font-weight: 800 !important;
-    min-width: 20px !important;
-    height: 20px !important;
-    border-radius: 10px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: 2px solid #121212 !important;
-}
-
-/* Dropdown Styling */
-.notif-dropdown {
-    position: absolute !important;
-    top: 56px !important;
-    right: 0 !important;
-    width: 300px !important;
-    display: none; /* Toggled via JS */
-    flex-direction: column !important;
-    z-index: 10000 !important;
-    padding: 16px !important;
-    
-    background: rgba(20, 20, 20, 0.85) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
-}
-
-.notif-dropdown.active, .notif-dropdown.open {
-    display: flex !important;
-}
-
-/* ====================================================
-   LEETCODE-STYLE TOP RIGHT NAVBAR CLUSTER
-   ==================================================== */
-.top-nav-cluster {
-    position: fixed !important;
-    top: 14px !important;
-    right: 24px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 14px !important;
-    z-index: 9999 !important;
-    height: 36px !important;
-}
-
-.nav-bell-btn {
-    background: transparent !important;
-    border: none !important;
-    color: rgba(255, 255, 255, 0.7) !important;
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 6px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    position: relative !important;
-    padding: 0 !important;
-    transition: color 0.2s ease, background-color 0.2s ease !important;
-}
-
-.nav-bell-btn:hover {
-    color: rgba(255, 255, 255, 1) !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-}
-
-.notif-dot {
-    position: absolute !important;
-    top: 4px !important;
-    right: 4px !important;
-    width: 7px !important;
-    height: 7px !important;
-    background-color: #ef4444 !important;
-    border-radius: 50% !important;
-    box-shadow: 0 0 0 2px #09090B !important;
-}
-
-.notif-dot.hidden {
-    display: none !important;
-}
-
-.nav-avatar-btn {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-decoration: none !important;
-    cursor: pointer !important;
-}
-
-.avatar-circle {
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 50% !important;
-    background: #2563eb !important;
-    color: #ffffff !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-}
-
-.avatar-circle:hover {
-    transform: scale(1.08) !important;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4) !important;
-}
-
-.avatar-circle img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    border-radius: 50% !important;
-}
-
-.notif-dropdown {
-    position: absolute !important;
-    top: 40px !important;
-    right: 0 !important;
-    width: 320px !important;
-    display: none;
-    flex-direction: column !important;
-    z-index: 10000 !important;
-    padding: 14px 16px !important;
-    background: #18181b !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
-}
-
-.notif-dropdown.active, .notif-dropdown.open {
-    display: flex !important;
-}
-
-.notif-header {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-bottom: 12px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    padding-bottom: 8px !important;
+    padding-bottom: 8px;
 }
 
 .notif-header h4 {
-    margin: 0 !important;
-    font-size: 0.9rem !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #ffffff;
+    font-weight: 700;
 }
 
 .text-btn {
-    background: none !important;
-    border: none !important;
-    color: #22c55e !important;
-    cursor: pointer !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
+    background: none;
+    border: none;
+    color: #22c55e;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
 }
 
 .text-btn:hover {
-    text-decoration: underline !important;
+    text-decoration: underline;
 }
 
 .empty-state {
-    font-size: 0.82rem !important;
-    color: rgba(255, 255, 255, 0.5) !important;
-    text-align: center !important;
-    margin: 16px 0 !important;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    margin: 16px 0;
 }
 
-/* IN-PAGE NOTIFICATION UI & INTERACTIVE TOAST SYSTEM */
-.notif-dot, .notif-badge {
-    background-color: #ef4444 !important;
-    color: #ffffff !important;
+/* Unread Notification Item Indicator */
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-radius: 8px;
+}
+
+.notif-item:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .notif-item.unread {
-    background: rgba(239, 68, 68, 0.05) !important;
-    border-left: 3px solid #ef4444 !important;
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 3px solid #ef4444;
 }
 
+.notif-icon-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.notif-icon-dot.read {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Friend Request Inline Action Icons */
 .notif-actions {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    margin-top: 8px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .notif-action-btn {
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    transition: transform 0.2s ease, background-color 0.2s ease !important;
-    padding: 0 !important;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    padding: 0;
 }
 
 .notif-action-btn:hover {
-    transform: scale(1.1) !important;
+    transform: scale(1.1);
 }
 
 .notif-action-btn.accept-btn {
-    background: rgba(34, 197, 94, 0.15) !important;
-    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
 }
+
 .notif-action-btn.accept-btn:hover {
-    background: rgba(34, 197, 94, 0.3) !important;
-    border-color: #22c55e !important;
+    background: rgba(34, 197, 94, 0.3);
+    border-color: #22c55e;
 }
 
 .notif-action-btn.decline-btn {
-    background: rgba(239, 68, 68, 0.15) !important;
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
-}
-.notif-action-btn.decline-btn:hover {
-    background: rgba(239, 68, 68, 0.3) !important;
-    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+.notif-action-btn.decline-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: #ef4444;
+}
+
+/* Friends Section Cards */
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.friend-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border-radius: 14px;
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    text-align: center;
+}
+
+.friend-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(34, 197, 94, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.friend-card-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.1));
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #22c55e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.friend-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.friend-card-username {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.friend-card-name {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: -4px;
+}
+
+.pending-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+
+.username-warning {
+    display: none;
+    font-size: 0.78rem;
+    color: rgba(251, 191, 36, 0.75);
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.username-warning.visible {
+    display: block;
+}
+
+/* Interactive Toast Notification Container (Bottom Center) */
 .toast-container {
-    position: fixed !important;
-    bottom: 24px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    z-index: 100000 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    pointer-events: none !important;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
 }
 
 .toast-msg {
-    background: rgba(18, 18, 20, 0.95) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    color: #ffffff !important;
-    padding: 10px 22px !important;
-    border-radius: 30px !important;
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    pointer-events: auto !important;
-    animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    background: rgba(18, 18, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: #ffffff;
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+    animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .toast-msg.success {
-    border-color: rgba(34, 197, 94, 0.4) !important;
+    border-color: rgba(34, 197, 94, 0.4);
 }
 
 .toast-msg.decline {
-    border-color: rgba(239, 68, 68, 0.4) !important;
+    border-color: rgba(239, 68, 68, 0.4);
 }
 
 @keyframes toastSlideUp {
