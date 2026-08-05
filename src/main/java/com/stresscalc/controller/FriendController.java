@@ -150,6 +150,25 @@ public class FriendController {
         return ResponseEntity.ok(Map.of("status", "accepted"));
     }
 
+    // POST /api/friends/decline/{id} — decline a pending request
+    @PostMapping("/decline/{id}")
+    public ResponseEntity<?> declineRequest(@PathVariable Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+
+        Optional<Friend> friendOpt = friendRepository.findById(id);
+        if (friendOpt.isPresent()) {
+            Friend f = friendOpt.get();
+            if (f.getFriendId().equals(userId) || f.getUserId().equals(userId)) {
+                friendRepository.delete(f);
+            }
+        }
+
+        return ResponseEntity.ok(Map.of("status", "declined"));
+    }
+
     // GET /api/friends/search?username=xxx — find user by username (for Add Friend)
     @GetMapping("/search")
     public ResponseEntity<?> searchUser(@RequestParam("username") String username, HttpSession session) {

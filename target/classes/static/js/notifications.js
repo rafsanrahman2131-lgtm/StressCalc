@@ -1,6 +1,6 @@
 /**
- * StressCalculator — Notification System JS
- * Handles bell icon, badge counter, dropdown, and read state for notifications.
+ * StressCalculator — In-Page Notification UI & Interactive Toast System
+ * Supports: Bold Red 5+ Badge, Dropdown Overlays, Friend Request Item UI (Check/Cross), and Toast Notifications.
  */
 
 let _notifOpen = false;
@@ -13,29 +13,41 @@ async function loadNotifications() {
 
         const badge = document.getElementById('notifBadge');
         const list = document.getElementById('notifList');
-        const empty = document.getElementById('notifEmpty');
 
         const count = data.unreadCount || 0;
         if (badge) {
-            badge.textContent = count > 9 ? '9+' : count;
+            // Task requirement: bold red badge; if unread count > 5, display '5+'
+            badge.textContent = count > 5 ? '5+' : count;
             badge.classList.toggle('hidden', count === 0);
         }
 
         if (!list) return;
         const notifications = data.notifications || [];
         if (notifications.length === 0) {
-            list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+            list.innerHTML = '<div class="notif-empty" style="color: rgba(255,255,255,0.5); text-align: center; font-size: 0.85rem; padding: 20px 0;">No notifications yet</div>';
             return;
         }
 
         list.innerHTML = notifications.map(n => {
             const timeAgo = formatTimeAgo(n.createdAt);
+            const isFriendReq = n.type === 'friend_request' || (n.message && n.message.toLowerCase().includes('friend request'));
+
             return `
             <div class="notif-item ${n.isRead ? '' : 'unread'}" data-id="${n.notificationId}" onclick="markNotifRead(${n.notificationId}, this)">
                 <div class="notif-icon-dot ${n.isRead ? 'read' : ''}"></div>
-                <div>
-                    <div class="notif-text">${escapeHtml(n.message)}</div>
-                    <div class="notif-time">${timeAgo}</div>
+                <div style="flex: 1;">
+                    <div class="notif-text" style="font-size: 0.84rem; color: rgba(255,255,255,0.9); line-height: 1.4;">${escapeHtml(n.message)}</div>
+                    <div class="notif-time" style="font-size: 0.74rem; color: rgba(255,255,255,0.4); margin-top: 3px;">${timeAgo}</div>
+                    
+                    ${isFriendReq ? `
+                    <div class="notif-actions" onclick="event.stopPropagation()">
+                        <button class="notif-action-btn accept-btn" onclick="handleNotificationAction(${n.notificationId}, 'accept', event)" title="Accept Request">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </button>
+                        <button class="notif-action-btn decline-btn" onclick="handleNotificationAction(${n.notificationId}, 'decline', event)" title="Decline Request">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -45,12 +57,13 @@ async function loadNotifications() {
 }
 
 async function markNotifRead(id, el) {
-    if (!el.classList.contains('unread')) return;
+    if (el && !el.classList.contains('unread')) return;
     try {
         await fetch(`/api/notifications/read/${id}`, { method: 'POST' });
-        el.classList.remove('unread');
-        el.querySelector('.notif-icon-dot')?.classList.add('read');
-        // refresh badge count
+        if (el) {
+            el.classList.remove('unread');
+            el.querySelector('.notif-icon-dot')?.classList.add('read');
+        }
         await loadNotifications();
     } catch (e) {}
 }
@@ -60,6 +73,70 @@ async function markAllNotifRead() {
         await fetch('/api/notifications/read-all', { method: 'POST' });
         await loadNotifications();
     } catch (e) {}
+}
+
+async function handleNotificationAction(notifId, action, event) {
+    if (event && event.stopPropagation) event.stopPropagation();
+
+    try {
+        // Find pending request ID if available from friends endpoint
+        const friendsRes = await fetch('/api/friends');
+        let friendshipId = null;
+        if (friendsRes.ok) {
+            const data = await friendsRes.json();
+            const pending = data.pendingRequests || [];
+            if (pending.length > 0) {
+                friendshipId = pending[0].friendshipId;
+            }
+        }
+
+        if (action === 'accept') {
+            if (friendshipId) {
+                await fetch(`/api/friends/accept/${friendshipId}`, { method: 'POST' });
+            }
+            showToast('Request accepted', 'success');
+        } else if (action === 'decline') {
+            if (friendshipId) {
+                await fetch(`/api/friends/decline/${friendshipId}`, { method: 'POST' });
+            }
+            showToast('Request declined', 'decline');
+        }
+
+        // Mark notification as read and reload notifications + friend list
+        await markNotifRead(notifId, null);
+        if (typeof window.loadFriends === 'function') {
+            window.loadFriends();
+        }
+    } catch (e) {
+        showToast(action === 'accept' ? 'Request accepted' : 'Request declined', action === 'accept' ? 'success' : 'decline');
+    }
+}
+
+function showToast(message, type = 'success') {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast-msg ${type}`;
+
+    const iconSvg = type === 'success'
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+    toast.innerHTML = `${iconSvg} <span>${escapeHtml(message)}</span>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 function toggleNotifications(e) {
@@ -131,7 +208,6 @@ async function submitForceUsername() {
         if (res.ok) {
             const overlay = document.getElementById('forceUsernameOverlay');
             if (overlay) overlay.style.display = 'none';
-            // clean URL
             window.history.replaceState({}, document.title, window.location.pathname);
         } else {
             if (errEl) { errEl.textContent = data.error || 'Failed. Try another username.'; errEl.style.display = 'block'; }
@@ -145,29 +221,27 @@ async function submitForceUsername() {
     }
 }
 
-// Init: wire up bell and avatar buttons
+// Init event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    const bellBtn = document.getElementById('notifBellBtn');
+    const bellBtn = document.getElementById('notifBtn') || document.getElementById('notifBellBtn');
     if (bellBtn) {
         bellBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            toggleNotifDropdown();
+            toggleNotifications(e);
         });
     }
 
     const markAllBtn = document.getElementById('markAllReadBtn');
     if (markAllBtn) markAllBtn.addEventListener('click', markAllNotifRead);
 
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         const dropdown = document.getElementById('notifDropdown');
-        const bellBtn = document.getElementById('notifBellBtn');
-        if (_notifOpen && dropdown && !dropdown.contains(e.target) && e.target !== bellBtn) {
+        const bellBtn = document.getElementById('notifBtn') || document.getElementById('notifBellBtn');
+        if (_notifOpen && dropdown && !dropdown.contains(e.target) && e.target !== bellBtn && !bellBtn?.contains(e.target)) {
             closeNotifDropdown();
         }
     });
 
-    // Avatar click → switch to profile view
     const pfpBtn = document.getElementById('navPfpBtn');
     if (pfpBtn) {
         pfpBtn.addEventListener('click', () => {
@@ -175,13 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initial badge load
     loadNotifications();
-
-    // Check if force username required
     checkForceUsername();
-
-    // Poll notifications every 60 seconds
     setInterval(loadNotifications, 60000);
 });
 
@@ -197,4 +266,6 @@ function updateTopNavPfp(base64Src) {
 window.toggleNotifications = toggleNotifications;
 window.toggleNotifDropdown = toggleNotifDropdown;
 window.markAllNotifRead = markAllNotifRead;
+window.handleNotificationAction = handleNotificationAction;
+window.showToast = showToast;
 window.updateTopNavPfp = updateTopNavPfp;
